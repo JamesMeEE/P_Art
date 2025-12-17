@@ -317,18 +317,9 @@
         addBtn.disabled = true;
         showStatus('⏳ กำลังเพิ่มข้อมูล...', 'loading');
 
-        const response = await fetch(APPS_SCRIPT_URL, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            action: 'ADD_PRODUCT',
-            name: name,
-            price: price
-          })
-        });
-
+        const url = `${APPS_SCRIPT_URL}?action=ADD_PRODUCT&name=${encodeURIComponent(name)}&price=${encodeURIComponent(price)}`;
+        
+        const response = await fetch(url);
         const result = await response.json();
 
         if (result.success) {
