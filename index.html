@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Google Sheets Demo</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .container {
+      background: white;
+      border-radius: 20px;
+      padding: 40px;
+      max-width: 800px;
+      width: 100%;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    }
+
+    h1 {
+      color: #667eea;
+      margin-bottom: 10px;
+      font-size: 32px;
+    }
+
+    .subtitle {
+      color: #666;
+      margin-bottom: 30px;
+      font-size: 14px;
+    }
+
+    .status {
+      padding: 15px;
+      border-radius: 10px;
+      margin-bottom: 30px;
+      font-weight: 600;
+    }
+
+    .status.loading {
+      background: #fff3cd;
+      color: #856404;
+    }
+
+    .status.success {
+      background: #d4edda;
+      color: #155724;
+    }
+
+    .status.error {
+      background: #f8d7da;
+      color: #721c24;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-label {
+      display: block;
+      margin-bottom: 8px;
+      color: #333;
+      font-weight: 600;
+      font-size: 14px;
+    }
+
+    .form-input {
+      width: 100%;
+      padding: 12px 15px;
+      border: 2px solid #e0e0e0;
+      border-radius: 10px;
+      font-size: 14px;
+      transition: all 0.3s ease;
+    }
+
+    .form-input:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+
+    .btn {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      padding: 12px 30px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+      transition: transform 0.2s ease;
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+    }
+
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .data-section {
+      margin-top: 30px;
+    }
+
+    .data-title {
+      color: #667eea;
+      margin-bottom: 15px;
+      font-size: 20px;
+      font-weight: 600;
+    }
+
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 15px;
+    }
+
+    .data-table th {
+      background: #667eea;
+      color: white;
+      padding: 12px;
+      text-align: left;
+      font-weight: 600;
+    }
+
+    .data-table td {
+      padding: 12px;
+      border-bottom: 1px solid #e0e0e0;
+    }
+
+    .data-table tr:hover {
+      background: #f5f5f5;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 40px;
+      color: #999;
+    }
+
+    .config-box {
+      background: #f8f9fa;
+      border: 2px solid #e0e0e0;
+      border-radius: 10px;
+      padding: 20px;
+      margin-bottom: 30px;
+    }
+
+    .config-title {
+      font-weight: 600;
+      margin-bottom: 15px;
+      color: #333;
+    }
+
+    .config-item {
+      margin-bottom: 10px;
+      font-size: 13px;
+      color: #666;
+    }
+
+    .config-item strong {
+      color: #333;
+    }
+
+    .btn-group {
+      display: flex;
+      gap: 10px;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🚀 Google Sheets API Demo</h1>
+    <p class="subtitle">ตัวอย่างการเชื่อมต่อ Vercel/GitHub + Google Sheets</p>
+
+    <div class="config-box">
+      <div class="config-title">📋 การตั้งค่า:</div>
+      <div class="config-item"><strong>1.</strong> สร้าง Google Cloud Project และ enable Sheets API</div>
+      <div class="config-item"><strong>2.</strong> สร้าง API Key หรือ OAuth credentials</div>
+      <div class="config-item"><strong>3.</strong> แก้ไข SHEET_ID และ API_KEY ในโค้ด</div>
+      <div class="config-item"><strong>4.</strong> Share Google Sheet เป็น "Anyone with the link can view"</div>
+      <div class="config-item"><strong>5.</strong> Push to GitHub และ deploy บน Vercel</div>
+    </div>
+
+    <div id="status" class="status loading">
+      ⏳ กำลังเชื่อมต่อ Google Sheets...
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">ชื่อสินค้า</label>
+      <input type="text" class="form-input" id="productName" placeholder="เช่น แหวนทองคำ">
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">ราคา (บาท)</label>
+      <input type="number" class="form-input" id="productPrice" placeholder="เช่น 5000">
+    </div>
+
+    <div class="btn-group">
+      <button class="btn" id="addBtn" onclick="addProduct()">➕ เพิ่มสินค้า</button>
+      <button class="btn" id="loadBtn" onclick="loadProducts()">🔄 โหลดข้อมูล</button>
+    </div>
+
+    <div class="data-section">
+      <div class="data-title">📦 รายการสินค้า</div>
+      <table class="data-table" id="dataTable">
+        <thead>
+          <tr>
+            <th>ชื่อสินค้า</th>
+            <th>ราคา</th>
+            <th>วันที่เพิ่ม</th>
+          </tr>
+        </thead>
+        <tbody id="tableBody">
+          <tr>
+            <td colspan="3" class="empty-state">ยังไม่มีข้อมูล</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    const SHEET_ID = '1FF4odviKZ2LnRvPf8ltM0o_jxM0ZHuJHBlkQCjC3sxA';
+    const API_KEY = 'AIzaSyAB6yjxTB0TNbEk2C68aOP5u0IkdmK12tg';
+    const SHEET_NAME = 'Sheet1';
+
+    const statusDiv = document.getElementById('status');
+    const addBtn = document.getElementById('addBtn');
+    const loadBtn = document.getElementById('loadBtn');
+
+    function showStatus(message, type) {
+      statusDiv.textContent = message;
+      statusDiv.className = `status ${type}`;
+    }
+
+    async function testConnection() {
+      try {
+        const url = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}?key=${API_KEY}`;
+        const response = await fetch(url);
+        
+        if (!response.ok) {
+          throw new Error('ไม่สามารถเชื่อมต่อได้');
+        }
+
+        const data = await response.json();
+        showStatus(`✅ เชื่อมต่อสำเร็จ: ${data.properties.title}`, 'success');
+        loadProducts();
+      } catch (error) {
+        showStatus(`❌ เชื่อมต่อล้มเหลว: ${error.message}`, 'error');
+      }
+    }
+
+    async function loadProducts() {
+      try {
+        loadBtn.disabled = true;
+        showStatus('⏳ กำลังโหลดข้อมูล...', 'loading');
+
+        const range = `${SHEET_NAME}!A:C`;
+        const url = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${range}?key=${API_KEY}`;
+        
+        const response = await fetch(url);
+        
+        if (!response.ok) {
+          throw new Error('ไม่สามารถอ่านข้อมูลได้');
+        }
+
+        const data = await response.json();
+        const rows = data.values || [];
+
+        const tableBody = document.getElementById('tableBody');
+        
+        if (rows.length <= 1) {
+          tableBody.innerHTML = '<tr><td colspan="3" class="empty-state">ยังไม่มีข้อมูล</td></tr>';
+        } else {
+          tableBody.innerHTML = rows.slice(1).map(row => `
+            <tr>
+              <td>${row[0] || '-'}</td>
+              <td>${row[1] || '-'} บาท</td>
+              <td>${row[2] || '-'}</td>
+            </tr>
+          `).join('');
+        }
+
+        showStatus(`✅ โหลดข้อมูลสำเร็จ: ${rows.length - 1} รายการ`, 'success');
+      } catch (error) {
+        showStatus(`❌ โหลดข้อมูลล้มเหลว: ${error.message}`, 'error');
+      } finally {
+        loadBtn.disabled = false;
+      }
+    }
+
+    async function addProduct() {
+      const name = document.getElementById('productName').value;
+      const price = document.getElementById('productPrice').value;
+
+      if (!name || !price) {
+        showStatus('❌ กรุณากรอกข้อมูลให้ครบ', 'error');
+        return;
+      }
+
+      try {
+        addBtn.disabled = true;
+        showStatus('⏳ กำลังเพิ่มข้อมูล...', 'loading');
+
+        const date = new Date().toLocaleString('th-TH');
+        const values = [[name, price, date]];
+
+        const range = `${SHEET_NAME}!A:C`;
+        const url = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${range}:append?valueInputOption=RAW&key=${API_KEY}`;
+
+        const response = await fetch(url, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            values: values
+          })
+        });
+
+        if (!response.ok) {
+          throw new Error('ไม่สามารถเพิ่มข้อมูลได้ (ตรวจสอบสิทธิ์การเขียน)');
+        }
+
+        document.getElementById('productName').value = '';
+        document.getElementById('productPrice').value = '';
+
+        showStatus('✅ เพิ่มข้อมูลสำเร็จ', 'success');
+        loadProducts();
+      } catch (error) {
+        showStatus(`❌ เพิ่มข้อมูลล้มเหลว: ${error.message}`, 'error');
+      } finally {
+        addBtn.disabled = false;
+      }
+    }
+
+    window.addEventListener('load', testConnection);
+  </script>
+</body>
+</html>
