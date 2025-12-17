@@ -184,16 +184,15 @@
 </head>
 <body>
   <div class="container">
-    <h1>🚀 Google Sheets API Demo</h1>
-    <p class="subtitle">ตัวอย่างการเชื่อมต่อ Vercel/GitHub + Google Sheets</p>
+    <h1>🚀 Google Sheets API Demo (V2)</h1>
+    <p class="subtitle">อ่านด้วย Sheets API (เร็ว) + เขียนด้วย Apps Script API</p>
 
     <div class="config-box">
       <div class="config-title">📋 การตั้งค่า:</div>
-      <div class="config-item"><strong>1.</strong> สร้าง Google Cloud Project และ enable Sheets API</div>
-      <div class="config-item"><strong>2.</strong> สร้าง API Key หรือ OAuth credentials</div>
-      <div class="config-item"><strong>3.</strong> แก้ไข SHEET_ID และ API_KEY ในโค้ด</div>
-      <div class="config-item"><strong>4.</strong> Share Google Sheet เป็น "Anyone with the link can view"</div>
-      <div class="config-item"><strong>5.</strong> Push to GitHub และ deploy บน Vercel</div>
+      <div class="config-item"><strong>1.</strong> เปิด Google Sheet > Extensions > Apps Script</div>
+      <div class="config-item"><strong>2.</strong> วาง Code.gs และ Deploy เป็น Web app</div>
+      <div class="config-item"><strong>3.</strong> คัดลอก Web app URL มาใส่ในโค้ด</div>
+      <div class="config-item"><strong>4.</strong> แก้ไข SHEET_ID, API_KEY และ APPS_SCRIPT_URL</div>
     </div>
 
     <div id="status" class="status loading">
@@ -237,6 +236,7 @@
   <script>
     const SHEET_ID = '1FF4odviKZ2LnRvPf8ltM0o_jxM0ZHuJHBlkQCjC3sxA';
     const API_KEY = 'AIzaSyAB6yjxTB0TNbEk2C68aOP5u0IkdmK12tg';
+    const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbziDXIkJa_VIXVJpRnwv5aYDq425OU5O1vkDvMXEDmzj5KAzg80PJQFtN5DKOmlv0qp/exec';
     const SHEET_NAME = 'Sheet1';
 
     const statusDiv = document.getElementById('status');
@@ -317,31 +317,28 @@
         addBtn.disabled = true;
         showStatus('⏳ กำลังเพิ่มข้อมูล...', 'loading');
 
-        const date = new Date().toLocaleString('th-TH');
-        const values = [[name, price, date]];
-
-        const range = `${SHEET_NAME}!A:C`;
-        const url = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${range}:append?valueInputOption=RAW&key=${API_KEY}`;
-
-        const response = await fetch(url, {
+        const response = await fetch(APPS_SCRIPT_URL, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            values: values
+            action: 'ADD_PRODUCT',
+            name: name,
+            price: price
           })
         });
 
-        if (!response.ok) {
-          throw new Error('ไม่สามารถเพิ่มข้อมูลได้ (ตรวจสอบสิทธิ์การเขียน)');
+        const result = await response.json();
+
+        if (result.success) {
+          document.getElementById('productName').value = '';
+          document.getElementById('productPrice').value = '';
+          showStatus('✅ เพิ่มข้อมูลสำเร็จ', 'success');
+          setTimeout(() => loadProducts(), 1000);
+        } else {
+          throw new Error(result.message);
         }
-
-        document.getElementById('productName').value = '';
-        document.getElementById('productPrice').value = '';
-
-        showStatus('✅ เพิ่มข้อมูลสำเร็จ', 'success');
-        loadProducts();
       } catch (error) {
         showStatus(`❌ เพิ่มข้อมูลล้มเหลว: ${error.message}`, 'error');
       } finally {
