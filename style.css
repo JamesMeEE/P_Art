@@ -40,6 +40,67 @@ body {
     repeating-linear-gradient(-45deg, var(--gold-primary) 0px, var(--gold-primary) 1px, transparent 1px, transparent 20px);
 }
 
+.login-screen {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #0A0A0A 0%, #1A1A1A 100%);
+  align-items: center;
+  justify-content: center;
+  z-index: 3000;
+}
+
+.login-screen.active {
+  display: flex;
+}
+
+.login-card {
+  background: linear-gradient(135deg, var(--bg-card) 0%, var(--bg-secondary) 100%);
+  border: 1px solid var(--gold-dark);
+  border-radius: 20px;
+  padding: 60px 50px;
+  max-width: 450px;
+  width: 90%;
+  box-shadow: 0 20px 60px rgba(212, 175, 55, 0.3);
+  text-align: center;
+}
+
+.login-card .logo-icon {
+  width: 80px;
+  height: 80px;
+  background: linear-gradient(135deg, var(--gold-primary) 0%, var(--gold-dark) 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 42px;
+  border-radius: 50%;
+  box-shadow: 0 0 30px rgba(212, 175, 55, 0.4);
+  margin: 0 auto 30px;
+}
+
+.login-card h1 {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 48px;
+  font-weight: 700;
+  background: linear-gradient(135deg, var(--gold-primary) 0%, var(--gold-light) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  letter-spacing: 2px;
+  margin-bottom: 10px;
+}
+
+.login-card p {
+  font-size: 14px;
+  color: var(--text-secondary);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-bottom: 40px;
+}
+
 .container {
   max-width: 1600px;
   margin: 0 auto;
@@ -360,6 +421,25 @@ header::before {
   border-color: var(--gold-primary);
 }
 
+.btn-action {
+  background: transparent;
+  color: var(--gold-primary);
+  border: 1px solid var(--gold-dark);
+  padding: 8px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  margin: 2px;
+}
+
+.btn-action:hover {
+  background: rgba(212, 175, 55, 0.1);
+  border-color: var(--gold-primary);
+}
+
 .table-container {
   background: var(--bg-secondary);
   border: 1px solid var(--border-color);
@@ -420,13 +500,19 @@ tbody tr:hover {
   border: 1px solid var(--warning);
 }
 
+.status-ready {
+  background: rgba(52, 152, 219, 0.2);
+  color: #3498db;
+  border: 1px solid #3498db;
+}
+
 .status-completed {
   background: rgba(46, 204, 113, 0.2);
   color: var(--success);
   border: 1px solid var(--success);
 }
 
-.status-cancelled {
+.status-rejected {
   background: rgba(231, 76, 60, 0.2);
   color: var(--danger);
   border: 1px solid var(--danger);
@@ -587,6 +673,25 @@ tbody tr:hover {
 @keyframes spin {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
+}
+
+.manager-only {
+  display: none;
+}
+
+body.role-manager .manager-only {
+  display: table-cell;
+}
+
+body.role-manager .manager-only.btn-primary {
+  display: inline-block;
+}
+
+.accountant-readonly input,
+.accountant-readonly select,
+.accountant-readonly button.btn-primary {
+  pointer-events: none;
+  opacity: 0.6;
 }
 
 @media (max-width: 768px) {
