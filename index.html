@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Gold Shop Management System</title>
+  <title>XXXXXX Manager System</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600;700&family=Montserrat:wght@200;300;400;500;600&display=swap" rel="stylesheet">
@@ -16,35 +16,51 @@
     <div class="spinner"></div>
   </div>
 
-  <header>
+  <div id="loginScreen" class="login-screen active">
+    <div class="login-card">
+      <div class="logo-icon">◆</div>
+      <h1>XXXXXX</h1>
+      <p>Manager System</p>
+      <div class="form-group">
+        <label class="form-label">Username</label>
+        <input type="text" class="form-input" id="loginUsername" placeholder="Enter username">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Password</label>
+        <input type="password" class="form-input" id="loginPassword" placeholder="Enter password">
+      </div>
+      <button class="btn-primary" onclick="login()">Login</button>
+    </div>
+  </div>
+
+  <header id="mainHeader" style="display: none;">
     <div class="header-content">
       <div class="logo">
         <div class="logo-icon">◆</div>
         <div class="logo-text">
-          <h1>AURELIA</h1>
-          <p>Premium Gold Management</p>
+          <h1>XXXXXX</h1>
+          <p>Manager System</p>
         </div>
       </div>
       <div class="user-info">
-        <div class="user-avatar">A</div>
+        <div class="user-avatar" id="userAvatar">U</div>
         <div class="user-details">
-          <div class="user-name">Administrator</div>
-          <div class="user-role">Full Access</div>
+          <div class="user-name" id="userName">User</div>
+          <div class="user-role" id="userRole">Role</div>
         </div>
+        <button class="btn-secondary" style="margin-left: 15px;" onclick="logout()">Logout</button>
       </div>
     </div>
   </header>
 
-  <div class="container">
-    <nav class="navigation">
+  <div class="container" id="mainContainer" style="display: none;">
+    <nav class="navigation" id="mainNav">
       <button class="nav-btn active" onclick="showSection('dashboard')">✦ Dashboard</button>
       <button class="nav-btn" onclick="showSection('products')">◈ Products</button>
-      <button class="nav-btn" onclick="showSection('pricing')">◉ Pricing</button>
       <button class="nav-btn" onclick="showSection('sales')">◐ Sales</button>
-      <button class="nav-btn" onclick="showSection('purchases')">◑ Purchases</button>
+      <button class="nav-btn" onclick="showSection('buyback')">◑ Buyback</button>
       <button class="nav-btn" onclick="showSection('inventory')">◒ Inventory</button>
-      <button class="nav-btn" onclick="showSection('audit')">◓ Audit</button>
-      <button class="nav-btn" onclick="showSection('logs')">◔ Logs</button>
+      <button class="nav-btn" onclick="showSection('reconciliation')">◓ Reconciliation</button>
       <button class="nav-btn" onclick="showSection('reports')">◕ Reports</button>
     </nav>
 
@@ -52,35 +68,35 @@
       <div class="dashboard-stats">
         <div class="stat-card">
           <div class="card-header">
-            <div class="card-title">Total Sales</div>
+            <div class="card-title">Gross Profit (GP)</div>
             <div class="card-icon">◈</div>
           </div>
-          <div class="stat-value" id="totalSales">0</div>
-          <div class="stat-label">Baht</div>
+          <div class="stat-value" id="grossProfit">0</div>
+          <div class="stat-label">LAK</div>
         </div>
         <div class="stat-card">
           <div class="card-header">
-            <div class="card-title">Total Purchases</div>
+            <div class="card-title">FX Gain/Loss</div>
             <div class="card-icon">◉</div>
           </div>
-          <div class="stat-value" id="totalPurchases">0</div>
-          <div class="stat-label">Baht</div>
-        </div>
-        <div class="stat-card">
-          <div class="card-header">
-            <div class="card-title">Products</div>
-            <div class="card-icon">◐</div>
-          </div>
-          <div class="stat-value" id="totalProducts">0</div>
-          <div class="stat-label">Items</div>
+          <div class="stat-value" id="fxGainLoss">0</div>
+          <div class="stat-label">LAK</div>
         </div>
         <div class="stat-card">
           <div class="card-header">
             <div class="card-title">Net Profit</div>
-            <div class="card-icon">◑</div>
+            <div class="card-icon">◐</div>
           </div>
           <div class="stat-value" id="netProfit">0</div>
-          <div class="stat-label">Baht</div>
+          <div class="stat-label">LAK</div>
+        </div>
+        <div class="stat-card">
+          <div class="card-header">
+            <div class="card-title">Total Products</div>
+            <div class="card-icon">◑</div>
+          </div>
+          <div class="stat-value" id="totalProducts">0</div>
+          <div class="stat-label">Items</div>
         </div>
       </div>
 
@@ -90,16 +106,16 @@
             <div class="card-title">Quick Actions</div>
           </div>
           <div style="display: flex; flex-direction: column; gap: 15px;">
-            <button class="btn-primary" onclick="showSection('sales')">New Sale</button>
-            <button class="btn-primary" onclick="showSection('purchases')">New Purchase</button>
+            <button class="btn-primary" onclick="showSection('sales')" id="quickSales">New Sale</button>
+            <button class="btn-primary" onclick="showSection('buyback')" id="quickBuyback">New Buyback</button>
             <button class="btn-secondary" onclick="showSection('products')">Manage Products</button>
           </div>
         </div>
         <div class="card">
           <div class="card-header">
-            <div class="card-title">Recent Activity</div>
+            <div class="card-title">Summary</div>
           </div>
-          <div id="recentActivity" style="max-height: 300px; overflow-y: auto;">
+          <div id="summaryContent">
             <p style="color: var(--text-secondary); text-align: center; padding: 20px;">Loading...</p>
           </div>
         </div>
@@ -109,60 +125,36 @@
     <section id="products" class="section">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
         <h2 style="font-family: 'Cormorant Garamond', serif; font-size: 36px; color: var(--gold-primary);">Product Management</h2>
-        <button class="btn-primary" onclick="openModal('productModal')">+ Add Product</button>
+        <button class="btn-primary" onclick="openModal('productModal')" id="addProductBtn">+ Add Product</button>
       </div>
       <div class="table-container">
         <table>
           <thead>
             <tr>
               <th>ID</th>
-              <th>Name</th>
-              <th>Category</th>
+              <th>Product</th>
               <th>Weight (g)</th>
-              <th>Purity</th>
+              <th>Requirement</th>
+              <th>Buy Price</th>
+              <th>Sell Price</th>
+              <th>Exchange Rate</th>
               <th>Stock</th>
-              <th>Last Update</th>
+              <th class="manager-only">Actions</th>
             </tr>
           </thead>
           <tbody id="productsTable">
             <tr>
-              <td colspan="7" style="text-align: center; padding: 40px;">Loading...</td>
+              <td colspan="9" style="text-align: center; padding: 40px;">Loading...</td>
             </tr>
           </tbody>
         </table>
       </div>
     </section>
 
-    <section id="pricing" class="section">
-      <div style="margin-bottom: 30px;">
-        <h2 style="font-family: 'Cormorant Garamond', serif; font-size: 36px; color: var(--gold-primary);">Price Configuration</h2>
-      </div>
-      <div class="grid">
-        <div class="card">
-          <div class="card-header">
-            <div class="card-title">Current Prices</div>
-          </div>
-          <div class="form-group">
-            <label class="form-label">Buy Price (per gram)</label>
-            <input type="number" class="form-input" id="buyPrice" placeholder="0.00">
-          </div>
-          <div class="form-group">
-            <label class="form-label">Sell Price (per gram)</label>
-            <input type="number" class="form-input" id="sellPrice" placeholder="0.00">
-          </div>
-          <div class="form-group">
-            <label class="form-label">Exchange Rate (USD to THB)</label>
-            <input type="number" class="form-input" id="exchangeRate" placeholder="0.00">
-          </div>
-          <button class="btn-primary" onclick="updatePricing()">Update Prices</button>
-        </div>
-      </div>
-    </section>
-
     <section id="sales" class="section">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
         <h2 style="font-family: 'Cormorant Garamond', serif; font-size: 36px; color: var(--gold-primary);">Sales Management</h2>
-        <button class="btn-primary" onclick="openModal('saleModal')">+ New Sale</button>
+        <button class="btn-primary" onclick="openModal('saleModal')" id="addSaleBtn">+ New Sale</button>
       </div>
       <div class="table-container">
         <table>
@@ -170,41 +162,45 @@
             <tr>
               <th>ID</th>
               <th>Customer</th>
+              <th>Product</th>
               <th>Amount</th>
-              <th>Status</th>
+              <th>Price (LAK)</th>
               <th>Date</th>
-              <th>Created By</th>
+              <th>Status</th>
+              <th>Actions</th>
             </tr>
           </thead>
           <tbody id="salesTable">
             <tr>
-              <td colspan="6" style="text-align: center; padding: 40px;">Loading...</td>
+              <td colspan="8" style="text-align: center; padding: 40px;">Loading...</td>
             </tr>
           </tbody>
         </table>
       </div>
     </section>
 
-    <section id="purchases" class="section">
+    <section id="buyback" class="section">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
-        <h2 style="font-family: 'Cormorant Garamond', serif; font-size: 36px; color: var(--gold-primary);">Purchase Management</h2>
-        <button class="btn-primary" onclick="openModal('purchaseModal')">+ New Purchase</button>
+        <h2 style="font-family: 'Cormorant Garamond', serif; font-size: 36px; color: var(--gold-primary);">Buyback Management</h2>
+        <button class="btn-primary" onclick="openModal('buybackModal')" id="addBuybackBtn">+ New Buyback</button>
       </div>
       <div class="table-container">
         <table>
           <thead>
             <tr>
               <th>ID</th>
-              <th>Supplier</th>
+              <th>Customer</th>
+              <th>Product</th>
               <th>Amount</th>
-              <th>Status</th>
+              <th>Price (LAK)</th>
               <th>Date</th>
-              <th>Created By</th>
+              <th>Status</th>
+              <th>Actions</th>
             </tr>
           </thead>
-          <tbody id="purchasesTable">
+          <tbody id="buybackTable">
             <tr>
-              <td colspan="6" style="text-align: center; padding: 40px;">Loading...</td>
+              <td colspan="8" style="text-align: center; padding: 40px;">Loading...</td>
             </tr>
           </tbody>
         </table>
@@ -214,50 +210,27 @@
     <section id="inventory" class="section">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
         <h2 style="font-family: 'Cormorant Garamond', serif; font-size: 36px; color: var(--gold-primary);">Inventory Management</h2>
-        <button class="btn-primary" onclick="openModal('inventoryModal')">+ New Transaction</button>
+        <div style="display: flex; gap: 10px;">
+          <button class="btn-primary" onclick="openModal('withdrawModal')" id="withdrawBtn">Withdraw</button>
+          <button class="btn-primary manager-only" onclick="openModal('stockInModal')" id="stockInBtn">Stock In</button>
+          <button class="btn-primary manager-only" onclick="openModal('stockOutModal')" id="stockOutBtn">Stock Out</button>
+        </div>
       </div>
       <div class="table-container">
         <table>
           <thead>
             <tr>
               <th>ID</th>
-              <th>Product ID</th>
+              <th>Product</th>
               <th>Type</th>
               <th>Quantity</th>
+              <th>Cost (LAK)</th>
               <th>Date</th>
-              <th>Note</th>
-              <th>Created By</th>
+              <th>Status</th>
+              <th>Actions</th>
             </tr>
           </thead>
           <tbody id="inventoryTable">
-            <tr>
-              <td colspan="7" style="text-align: center; padding: 40px;">Loading...</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </section>
-
-    <section id="audit" class="section">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
-        <h2 style="font-family: 'Cormorant Garamond', serif; font-size: 36px; color: var(--gold-primary);">Audit Records</h2>
-        <button class="btn-primary" onclick="openModal('auditModal')">+ New Audit</button>
-      </div>
-      <div class="table-container">
-        <table>
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>Type</th>
-              <th>Expected Cash</th>
-              <th>Actual Cash</th>
-              <th>Expected Gold</th>
-              <th>Actual Gold</th>
-              <th>Date</th>
-              <th>Created By</th>
-            </tr>
-          </thead>
-          <tbody id="auditTable">
             <tr>
               <td colspan="8" style="text-align: center; padding: 40px;">Loading...</td>
             </tr>
@@ -266,27 +239,15 @@
       </div>
     </section>
 
-    <section id="logs" class="section">
+    <section id="reconciliation" class="section">
       <div style="margin-bottom: 30px;">
-        <h2 style="font-family: 'Cormorant Garamond', serif; font-size: 36px; color: var(--gold-primary);">System Logs</h2>
+        <h2 style="font-family: 'Cormorant Garamond', serif; font-size: 36px; color: var(--gold-primary);">Reconciliation</h2>
       </div>
-      <div class="table-container">
-        <table>
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>Action</th>
-              <th>User</th>
-              <th>Timestamp</th>
-              <th>Details</th>
-            </tr>
-          </thead>
-          <tbody id="logsTable">
-            <tr>
-              <td colspan="5" style="text-align: center; padding: 40px;">Loading...</td>
-            </tr>
-          </tbody>
-        </table>
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Coming Soon</div>
+        </div>
+        <p style="color: var(--text-secondary); text-align: center; padding: 40px;">This feature is under development.</p>
       </div>
     </section>
 
@@ -317,27 +278,24 @@
         <input type="text" class="form-input" id="productName" placeholder="Enter product name">
       </div>
       <div class="form-group">
-        <label class="form-label">Category</label>
-        <select class="form-select" id="productCategory">
-          <option value="Necklace">Necklace</option>
-          <option value="Ring">Ring</option>
-          <option value="Bracelet">Bracelet</option>
-          <option value="Earring">Earring</option>
-          <option value="Bullion">Bullion</option>
-        </select>
-      </div>
-      <div class="form-group">
         <label class="form-label">Weight (grams)</label>
         <input type="number" class="form-input" id="productWeight" placeholder="0.00" step="0.01">
       </div>
       <div class="form-group">
-        <label class="form-label">Purity</label>
-        <select class="form-select" id="productPurity">
-          <option value="24K">24K (99.9%)</option>
-          <option value="22K">22K (91.6%)</option>
-          <option value="18K">18K (75%)</option>
-          <option value="14K">14K (58.5%)</option>
-        </select>
+        <label class="form-label">Requirement</label>
+        <input type="text" class="form-input" id="productRequirement" placeholder="Enter requirement">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Buy Price (LAK/บาททองคำ)</label>
+        <input type="number" class="form-input" id="productBuyPrice" placeholder="0.00" step="0.01">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Sell Price (LAK/บาททองคำ)</label>
+        <input type="number" class="form-input" id="productSellPrice" placeholder="0.00" step="0.01">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Exchange Rate (LAK/THB or LAK/USD)</label>
+        <input type="number" class="form-input" id="productExchangeRate" placeholder="0.00" step="0.01">
       </div>
       <div class="form-group">
         <label class="form-label">Initial Stock</label>
@@ -360,8 +318,18 @@
         <input type="text" class="form-input" id="saleCustomer" placeholder="Enter customer name">
       </div>
       <div class="form-group">
-        <label class="form-label">Total Amount</label>
-        <input type="number" class="form-input" id="saleAmount" placeholder="0.00" step="0.01">
+        <label class="form-label">Product</label>
+        <select class="form-select" id="saleProduct">
+          <option value="">Select product...</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Amount</label>
+        <input type="number" class="form-input" id="saleAmount" placeholder="0" step="1">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Price (LAK)</label>
+        <input type="number" class="form-input" id="salePrice" placeholder="0.00" step="0.01">
       </div>
       <div class="modal-footer">
         <button class="btn-secondary" onclick="closeModal('saleModal')">Cancel</button>
@@ -370,95 +338,120 @@
     </div>
   </div>
 
-  <div id="purchaseModal" class="modal">
+  <div id="buybackModal" class="modal">
     <div class="modal-content">
       <div class="modal-header">
-        <h2 class="modal-title">New Purchase</h2>
+        <h2 class="modal-title">New Buyback</h2>
       </div>
       <div class="form-group">
-        <label class="form-label">Supplier Name</label>
-        <input type="text" class="form-input" id="purchaseSupplier" placeholder="Enter supplier name">
+        <label class="form-label">Customer Name</label>
+        <input type="text" class="form-input" id="buybackCustomer" placeholder="Enter customer name">
       </div>
       <div class="form-group">
-        <label class="form-label">Total Amount</label>
-        <input type="number" class="form-input" id="purchaseAmount" placeholder="0.00" step="0.01">
+        <label class="form-label">Product</label>
+        <select class="form-select" id="buybackProduct">
+          <option value="">Select product...</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Amount</label>
+        <input type="number" class="form-input" id="buybackAmount" placeholder="0" step="1">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Price (LAK)</label>
+        <input type="number" class="form-input" id="buybackPrice" placeholder="0.00" step="0.01">
       </div>
       <div class="modal-footer">
-        <button class="btn-secondary" onclick="closeModal('purchaseModal')">Cancel</button>
-        <button class="btn-primary" onclick="addPurchase()">Create Purchase</button>
+        <button class="btn-secondary" onclick="closeModal('buybackModal')">Cancel</button>
+        <button class="btn-primary" onclick="addBuyback()">Create Buyback</button>
       </div>
     </div>
   </div>
 
-  <div id="inventoryModal" class="modal">
+  <div id="approvalModal" class="modal">
     <div class="modal-content">
       <div class="modal-header">
-        <h2 class="modal-title">New Inventory Transaction</h2>
+        <h2 class="modal-title">ตรวจสอบรายการ</h2>
+      </div>
+      <div id="approvalDetails" style="margin-bottom: 20px;"></div>
+      <div class="form-group">
+        <label class="form-label">เหตุผล (ถ้าไม่อนุมัติ)</label>
+        <input type="text" class="form-input" id="approvalReason" placeholder="Enter reason">
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" onclick="closeModal('approvalModal')">Cancel</button>
+        <button class="btn-primary" style="background: var(--danger);" onclick="rejectItem()">ไม่อนุมัติ</button>
+        <button class="btn-primary" onclick="approveItem()">อนุมัติ</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="withdrawModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title">Withdraw</h2>
       </div>
       <div class="form-group">
-        <label class="form-label">Product ID</label>
-        <input type="text" class="form-input" id="invProductId" placeholder="Enter product ID">
-      </div>
-      <div class="form-group">
-        <label class="form-label">Transaction Type</label>
-        <select class="form-select" id="invType">
-          <option value="STOCK_IN">Stock In</option>
-          <option value="STOCK_OUT">Stock Out</option>
-          <option value="WITHDRAWAL">Withdrawal</option>
-          <option value="ADJUSTMENT">Adjustment</option>
+        <label class="form-label">Product</label>
+        <select class="form-select" id="withdrawProduct">
+          <option value="">Select product...</option>
         </select>
       </div>
       <div class="form-group">
         <label class="form-label">Quantity</label>
-        <input type="number" class="form-input" id="invQuantity" placeholder="0">
-      </div>
-      <div class="form-group">
-        <label class="form-label">Note</label>
-        <input type="text" class="form-input" id="invNote" placeholder="Enter note">
+        <input type="number" class="form-input" id="withdrawQuantity" placeholder="0" step="1">
       </div>
       <div class="modal-footer">
-        <button class="btn-secondary" onclick="closeModal('inventoryModal')">Cancel</button>
-        <button class="btn-primary" onclick="addInventoryTransaction()">Create Transaction</button>
+        <button class="btn-secondary" onclick="closeModal('withdrawModal')">Cancel</button>
+        <button class="btn-primary" onclick="addWithdraw()">Submit</button>
       </div>
     </div>
   </div>
 
-  <div id="auditModal" class="modal">
+  <div id="stockInModal" class="modal">
     <div class="modal-content">
       <div class="modal-header">
-        <h2 class="modal-title">New Audit Record</h2>
+        <h2 class="modal-title">Stock In</h2>
       </div>
       <div class="form-group">
-        <label class="form-label">Audit Type</label>
-        <select class="form-select" id="auditType">
-          <option value="DAILY">Daily</option>
-          <option value="WEEKLY">Weekly</option>
-          <option value="MONTHLY">Monthly</option>
+        <label class="form-label">Product</label>
+        <select class="form-select" id="stockInProduct">
+          <option value="">Select product...</option>
         </select>
       </div>
       <div class="form-group">
-        <label class="form-label">Expected Cash</label>
-        <input type="number" class="form-input" id="expectedCash" placeholder="0.00" step="0.01">
+        <label class="form-label">Quantity</label>
+        <input type="number" class="form-input" id="stockInQuantity" placeholder="0" step="1">
       </div>
       <div class="form-group">
-        <label class="form-label">Actual Cash</label>
-        <input type="number" class="form-input" id="actualCash" placeholder="0.00" step="0.01">
-      </div>
-      <div class="form-group">
-        <label class="form-label">Expected Gold (grams)</label>
-        <input type="number" class="form-input" id="expectedGold" placeholder="0.00" step="0.01">
-      </div>
-      <div class="form-group">
-        <label class="form-label">Actual Gold (grams)</label>
-        <input type="number" class="form-input" id="actualGold" placeholder="0.00" step="0.01">
-      </div>
-      <div class="form-group">
-        <label class="form-label">Note</label>
-        <input type="text" class="form-input" id="auditNote" placeholder="Enter note">
+        <label class="form-label">Cost (LAK)</label>
+        <input type="number" class="form-input" id="stockInCost" placeholder="0.00" step="0.01">
       </div>
       <div class="modal-footer">
-        <button class="btn-secondary" onclick="closeModal('auditModal')">Cancel</button>
-        <button class="btn-primary" onclick="addAudit()">Create Audit</button>
+        <button class="btn-secondary" onclick="closeModal('stockInModal')">Cancel</button>
+        <button class="btn-primary" onclick="addStockIn()">Submit</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="stockOutModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title">Stock Out (สูญหาย)</h2>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Product</label>
+        <select class="form-select" id="stockOutProduct">
+          <option value="">Select product...</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Quantity</label>
+        <input type="number" class="form-input" id="stockOutQuantity" placeholder="0" step="1">
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" onclick="closeModal('stockOutModal')">Cancel</button>
+        <button class="btn-primary" onclick="addStockOut()">Submit</button>
       </div>
     </div>
   </div>
