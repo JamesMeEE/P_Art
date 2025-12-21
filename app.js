@@ -4,6 +4,56 @@ const CONFIG = {
   APPS_SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbziDXIkJa_VIXVJpRnwv5aYDq425OU5O1vkDvMXEDmzj5KAzg80PJQFtN5DKOmlv0qp/exec'
 };
 
+const USERS = {
+  manager: { password: 'manager123', role: 'Manager' },
+  teller: { password: 'teller123', role: 'Teller' },
+  accountant: { password: 'accountant123', role: 'Accountant' }
+};
+
+let currentUser = null;
+let currentApprovalItem = null;
+
+function login() {
+  const username = document.getElementById('loginUsername').value;
+  const password = document.getElementById('loginPassword').value;
+
+  if (USERS[username] && USERS[username].password === password) {
+    currentUser = { username, ...USERS[username] };
+    document.getElementById('loginScreen').classList.remove('active');
+    document.getElementById('mainHeader').style.display = 'block';
+    document.getElementById('mainContainer').style.display = 'block';
+    document.getElementById('userName').textContent = currentUser.role;
+    document.getElementById('userRole').textContent = currentUser.role;
+    document.getElementById('userAvatar').textContent = currentUser.role[0];
+    
+    document.body.className = 'role-' + username;
+    
+    if (currentUser.role === 'Accountant') {
+      document.body.classList.add('accountant-readonly');
+      document.getElementById('quickSales').style.display = 'none';
+      document.getElementById('quickBuyback').style.display = 'none';
+      document.getElementById('addSaleBtn').style.display = 'none';
+      document.getElementById('addBuybackBtn').style.display = 'none';
+      document.getElementById('addProductBtn').style.display = 'none';
+      document.getElementById('withdrawBtn').style.display = 'none';
+    }
+    
+    loadDashboard();
+  } else {
+    alert('Invalid username or password');
+  }
+}
+
+function logout() {
+  currentUser = null;
+  document.getElementById('loginScreen').classList.add('active');
+  document.getElementById('mainHeader').style.display = 'none';
+  document.getElementById('mainContainer').style.display = 'none';
+  document.getElementById('loginUsername').value = '';
+  document.getElementById('loginPassword').value = '';
+  document.body.className = '';
+}
+
 function showLoading() {
   document.getElementById('loading').classList.add('active');
 }
@@ -24,16 +74,17 @@ function showSection(sectionId) {
   
   if (sectionId === 'dashboard') loadDashboard();
   else if (sectionId === 'products') loadProducts();
-  else if (sectionId === 'pricing') loadPricing();
   else if (sectionId === 'sales') loadSales();
-  else if (sectionId === 'purchases') loadPurchases();
+  else if (sectionId === 'buyback') loadBuyback();
   else if (sectionId === 'inventory') loadInventory();
-  else if (sectionId === 'audit') loadAudits();
-  else if (sectionId === 'logs') loadLogs();
   else if (sectionId === 'reports') loadReports();
 }
 
 function openModal(modalId) {
+  if (modalId === 'saleModal' || modalId === 'buybackModal' || modalId === 'withdrawModal' || 
+      modalId === 'stockInModal' || modalId === 'stockOutModal') {
+    loadProductOptions();
+  }
   document.getElementById(modalId).classList.add('active');
 }
 
@@ -50,6 +101,8 @@ async function fetchSheetData(range) {
 }
 
 async function callAppsScript(action, params) {
+  params.user = currentUser.username;
+  params.role = currentUser.role;
   const url = `${CONFIG.APPS_SCRIPT_URL}?action=${action}&${new URLSearchParams(params).toString()}`;
   const response = await fetch(url);
   if (!response.ok) throw new Error('Failed to call API');
@@ -59,27 +112,52 @@ async function callAppsScript(action, params) {
 async function loadDashboard() {
   try {
     showLoading();
-    const [salesData, purchasesData, productsData] = await Promise.all([
-      fetchSheetData('Sales!A:D'),
-      fetchSheetData('Purchases!A:D'),
-      fetchSheetData('Products!A:G')
+    const [salesData, buybackData, productsData] = await Promise.all([
+      fetchSheetData('Sales!A:H'),
+      fetchSheetData('Buyback!A:H'),
+      fetchSheetData('Products!A:I')
     ]);
 
-    const totalSales = salesData.slice(1).reduce((sum, row) => sum + (parseFloat(row[3]) || 0), 0);
-    const totalPurchases = purchasesData.slice(1).reduce((sum, row) => sum + (parseFloat(row[3]) || 0), 0);
-    const totalProducts = productsData.length - 1;
-    const netProfit = totalSales - totalPurchases;
+    let gp = 0;
+    let fxGainLoss = 0;
 
-    document.getElementById('totalSales').textContent = formatNumber(totalSales);
-    document.getElementById('totalPurchases').textContent = formatNumber(totalPurchases);
-    document.getElementById('totalProducts').textContent = totalProducts;
+    salesData.slice(1).forEach(row => {
+      if (row[6] === 'COMPLETED') {
+        const price = parseFloat(row[4]) || 0;
+        gp += price;
+      }
+    });
+
+    buybackData.slice(1).forEach(row => {
+      if (row[6] === 'COMPLETED') {
+        const price = parseFloat(row[4]) || 0;
+        gp -= price;
+      }
+    });
+
+    const netProfit = gp + fxGainLoss;
+
+    document.getElementById('grossProfit').textContent = formatNumber(gp);
+    document.getElementById('fxGainLoss').textContent = formatNumber(fxGainLoss);
     document.getElementById('netProfit').textContent = formatNumber(netProfit);
+    document.getElementById('totalProducts').textContent = productsData.length - 1;
 
-    const logs = await fetchSheetData('Logs!A:E');
-    const recentLogs = logs.slice(-5).reverse();
-    document.getElementById('recentActivity').innerHTML = recentLogs.length > 0
-      ? recentLogs.map(log => `<p style="color: var(--text-secondary); margin-bottom: 10px; padding: 10px; border-left: 2px solid var(--gold-primary);">${log[1]} - ${log[3]}</p>`).join('')
-      : '<p style="color: var(--text-secondary); text-align: center; padding: 20px;">No recent activity</p>';
+    document.getElementById('summaryContent').innerHTML = `
+      <div style="margin: 20px 0;">
+        <div style="margin-bottom: 15px;">
+          <span style="color: var(--text-secondary);">Total Sales:</span>
+          <span style="color: var(--gold-primary); font-weight: 600; float: right;">${salesData.length - 1}</span>
+        </div>
+        <div style="margin-bottom: 15px;">
+          <span style="color: var(--text-secondary);">Total Buyback:</span>
+          <span style="color: var(--gold-primary); font-weight: 600; float: right;">${buybackData.length - 1}</span>
+        </div>
+        <div style="margin-bottom: 15px;">
+          <span style="color: var(--text-secondary);">Total Products:</span>
+          <span style="color: var(--gold-primary); font-weight: 600; float: right;">${productsData.length - 1}</span>
+        </div>
+      </div>
+    `;
 
     hideLoading();
   } catch (error) {
@@ -91,11 +169,11 @@ async function loadDashboard() {
 async function loadProducts() {
   try {
     showLoading();
-    const data = await fetchSheetData('Products!A:G');
+    const data = await fetchSheetData('Products!A:I');
     const tbody = document.getElementById('productsTable');
     
     if (data.length <= 1) {
-      tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 40px;">No products available</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="9" style="text-align: center; padding: 40px;">No products available</td></tr>';
     } else {
       tbody.innerHTML = data.slice(1).map(row => `
         <tr>
@@ -103,9 +181,13 @@ async function loadProducts() {
           <td>${row[1]}</td>
           <td>${row[2]}</td>
           <td>${row[3]}</td>
-          <td>${row[4]}</td>
-          <td>${row[5]}</td>
-          <td>${formatDate(row[6])}</td>
+          <td>${formatNumber(row[4])}</td>
+          <td>${formatNumber(row[5])}</td>
+          <td>${formatNumber(row[6])}</td>
+          <td>${row[7]}</td>
+          <td class="manager-only">
+            <button class="btn-action" onclick="editProduct('${row[0]}')">Edit</button>
+          </td>
         </tr>
       `).join('');
     }
@@ -116,18 +198,60 @@ async function loadProducts() {
   }
 }
 
-async function loadPricing() {
+async function loadProductOptions() {
+  try {
+    const data = await fetchSheetData('Products!A:I');
+    const options = data.slice(1).map(row => 
+      `<option value="${row[0]}">${row[1]} (${row[2]}g)</option>`
+    ).join('');
+    
+    document.getElementById('saleProduct').innerHTML = '<option value="">Select product...</option>' + options;
+    document.getElementById('buybackProduct').innerHTML = '<option value="">Select product...</option>' + options;
+    document.getElementById('withdrawProduct').innerHTML = '<option value="">Select product...</option>' + options;
+    document.getElementById('stockInProduct').innerHTML = '<option value="">Select product...</option>' + options;
+    document.getElementById('stockOutProduct').innerHTML = '<option value="">Select product...</option>' + options;
+  } catch (error) {
+    console.error('Error loading products:', error);
+  }
+}
+
+async function addProduct() {
+  const name = document.getElementById('productName').value;
+  const weight = document.getElementById('productWeight').value;
+  const requirement = document.getElementById('productRequirement').value;
+  const buyPrice = document.getElementById('productBuyPrice').value;
+  const sellPrice = document.getElementById('productSellPrice').value;
+  const exchangeRate = document.getElementById('productExchangeRate').value;
+  const stock = document.getElementById('productStock').value;
+
+  if (!name || !weight) {
+    alert('Please fill required fields');
+    return;
+  }
+
   try {
     showLoading();
-    const data = await fetchSheetData('PriceConfig!A:D');
-    if (data.length > 1) {
-      document.getElementById('buyPrice').value = data[1][0] || '';
-      document.getElementById('sellPrice').value = data[1][1] || '';
-      document.getElementById('exchangeRate').value = data[1][2] || '';
+    const result = await callAppsScript('ADD_PRODUCT', {
+      name, weight, requirement, buyPrice, sellPrice, exchangeRate, stock
+    });
+
+    if (result.success) {
+      alert('Product added successfully!');
+      closeModal('productModal');
+      document.getElementById('productName').value = '';
+      document.getElementById('productWeight').value = '';
+      document.getElementById('productRequirement').value = '';
+      document.getElementById('productBuyPrice').value = '';
+      document.getElementById('productSellPrice').value = '';
+      document.getElementById('productExchangeRate').value = '';
+      document.getElementById('productStock').value = '';
+      loadProducts();
+    } else {
+      alert('Error: ' + result.message);
     }
     hideLoading();
   } catch (error) {
-    console.error('Error loading pricing:', error);
+    alert('Error: ' + error.message);
     hideLoading();
   }
 }
@@ -135,22 +259,33 @@ async function loadPricing() {
 async function loadSales() {
   try {
     showLoading();
-    const data = await fetchSheetData('Sales!A:G');
+    const data = await fetchSheetData('Sales!A:H');
     const tbody = document.getElementById('salesTable');
     
     if (data.length <= 1) {
-      tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 40px;">No sales records</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 40px;">No sales records</td></tr>';
     } else {
-      tbody.innerHTML = data.slice(1).map(row => `
-        <tr>
-          <td>${row[0]}</td>
-          <td>${row[1]}</td>
-          <td>${formatNumber(row[3])}</td>
-          <td><span class="status-badge status-${row[4].toLowerCase()}">${row[4]}</span></td>
-          <td>${formatDate(row[5])}</td>
-          <td>${row[6]}</td>
-        </tr>
-      `).join('');
+      tbody.innerHTML = data.slice(1).map(row => {
+        let actions = '';
+        if (row[6] === 'PENDING' && currentUser.role === 'Manager') {
+          actions = `<button class="btn-action" onclick="reviewSale('${row[0]}')">ตรวจสอบ</button>`;
+        } else if (row[6] === 'READY' && (currentUser.role === 'Manager' || currentUser.role === 'Teller')) {
+          actions = `<button class="btn-action" onclick="confirmSale('${row[0]}')">ยืนยัน</button>`;
+        }
+        
+        return `
+          <tr>
+            <td>${row[0]}</td>
+            <td>${row[1]}</td>
+            <td>${row[2]}</td>
+            <td>${row[3]}</td>
+            <td>${formatNumber(row[4])}</td>
+            <td>${formatDate(row[5])}</td>
+            <td><span class="status-badge status-${row[6].toLowerCase()}">${row[6]}</span></td>
+            <td>${actions}</td>
+          </tr>
+        `;
+      }).join('');
     }
     hideLoading();
   } catch (error) {
@@ -159,53 +294,230 @@ async function loadSales() {
   }
 }
 
-async function loadPurchases() {
+async function addSale() {
+  const customer = document.getElementById('saleCustomer').value;
+  const product = document.getElementById('saleProduct').value;
+  const amount = document.getElementById('saleAmount').value;
+  const price = document.getElementById('salePrice').value;
+
+  if (!customer || !product || !amount || !price) {
+    alert('Please fill all fields');
+    return;
+  }
+
   try {
     showLoading();
-    const data = await fetchSheetData('Purchases!A:G');
-    const tbody = document.getElementById('purchasesTable');
-    
-    if (data.length <= 1) {
-      tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 40px;">No purchase records</td></tr>';
+    const result = await callAppsScript('ADD_SALE', {
+      customer, product, amount, price
+    });
+
+    if (result.success) {
+      alert('Sale created successfully!');
+      closeModal('saleModal');
+      document.getElementById('saleCustomer').value = '';
+      document.getElementById('saleAmount').value = '';
+      document.getElementById('salePrice').value = '';
+      loadSales();
+      loadDashboard();
     } else {
-      tbody.innerHTML = data.slice(1).map(row => `
-        <tr>
-          <td>${row[0]}</td>
-          <td>${row[1]}</td>
-          <td>${formatNumber(row[3])}</td>
-          <td><span class="status-badge status-${row[4].toLowerCase()}">${row[4]}</span></td>
-          <td>${formatDate(row[5])}</td>
-          <td>${row[6]}</td>
-        </tr>
-      `).join('');
+      alert('Error: ' + result.message);
     }
     hideLoading();
   } catch (error) {
-    console.error('Error loading purchases:', error);
+    alert('Error: ' + error.message);
     hideLoading();
   }
+}
+
+function reviewSale(id) {
+  currentApprovalItem = { id, type: 'SALE' };
+  document.getElementById('approvalDetails').innerHTML = `<p>รหัสรายการ: ${id}</p><p>ประเภท: Sales</p>`;
+  openModal('approvalModal');
+}
+
+async function approveItem() {
+  if (!currentApprovalItem) return;
+  
+  try {
+    showLoading();
+    const result = await callAppsScript('APPROVE_ITEM', {
+      id: currentApprovalItem.id,
+      type: currentApprovalItem.type
+    });
+
+    if (result.success) {
+      alert('Approved successfully!');
+      closeModal('approvalModal');
+      if (currentApprovalItem.type === 'SALE') loadSales();
+      else if (currentApprovalItem.type === 'BUYBACK') loadBuyback();
+      else if (currentApprovalItem.type === 'WITHDRAW') loadInventory();
+    } else {
+      alert('Error: ' + result.message);
+    }
+    hideLoading();
+  } catch (error) {
+    alert('Error: ' + error.message);
+    hideLoading();
+  }
+}
+
+async function rejectItem() {
+  const reason = document.getElementById('approvalReason').value;
+  if (!reason) {
+    alert('Please enter reason');
+    return;
+  }
+  
+  try {
+    showLoading();
+    const result = await callAppsScript('REJECT_ITEM', {
+      id: currentApprovalItem.id,
+      type: currentApprovalItem.type,
+      reason
+    });
+
+    if (result.success) {
+      alert('Rejected successfully!');
+      closeModal('approvalModal');
+      if (currentApprovalItem.type === 'SALE') loadSales();
+      else if (currentApprovalItem.type === 'BUYBACK') loadBuyback();
+      else if (currentApprovalItem.type === 'WITHDRAW') loadInventory();
+    } else {
+      alert('Error: ' + result.message);
+    }
+    hideLoading();
+  } catch (error) {
+    alert('Error: ' + error.message);
+    hideLoading();
+  }
+}
+
+async function confirmSale(id) {
+  if (!confirm('Confirm this sale?')) return;
+  
+  try {
+    showLoading();
+    const result = await callAppsScript('CONFIRM_SALE', { id });
+
+    if (result.success) {
+      alert('Sale confirmed! Generating receipt...');
+      loadSales();
+      loadDashboard();
+    } else {
+      alert('Error: ' + result.message);
+    }
+    hideLoading();
+  } catch (error) {
+    alert('Error: ' + error.message);
+    hideLoading();
+  }
+}
+
+async function loadBuyback() {
+  try {
+    showLoading();
+    const data = await fetchSheetData('Buyback!A:H');
+    const tbody = document.getElementById('buybackTable');
+    
+    if (data.length <= 1) {
+      tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 40px;">No buyback records</td></tr>';
+    } else {
+      tbody.innerHTML = data.slice(1).map(row => {
+        let actions = '';
+        if (row[6] === 'PENDING' && currentUser.role === 'Manager') {
+          actions = `<button class="btn-action" onclick="reviewBuyback('${row[0]}')">ตรวจสอบ</button>`;
+        }
+        
+        return `
+          <tr>
+            <td>${row[0]}</td>
+            <td>${row[1]}</td>
+            <td>${row[2]}</td>
+            <td>${row[3]}</td>
+            <td>${formatNumber(row[4])}</td>
+            <td>${formatDate(row[5])}</td>
+            <td><span class="status-badge status-${row[6].toLowerCase()}">${row[6]}</span></td>
+            <td>${actions}</td>
+          </tr>
+        `;
+      }).join('');
+    }
+    hideLoading();
+  } catch (error) {
+    console.error('Error loading buyback:', error);
+    hideLoading();
+  }
+}
+
+async function addBuyback() {
+  const customer = document.getElementById('buybackCustomer').value;
+  const product = document.getElementById('buybackProduct').value;
+  const amount = document.getElementById('buybackAmount').value;
+  const price = document.getElementById('buybackPrice').value;
+
+  if (!customer || !product || !amount || !price) {
+    alert('Please fill all fields');
+    return;
+  }
+
+  try {
+    showLoading();
+    const result = await callAppsScript('ADD_BUYBACK', {
+      customer, product, amount, price
+    });
+
+    if (result.success) {
+      alert('Buyback created successfully!');
+      closeModal('buybackModal');
+      document.getElementById('buybackCustomer').value = '';
+      document.getElementById('buybackAmount').value = '';
+      document.getElementById('buybackPrice').value = '';
+      loadBuyback();
+      loadDashboard();
+    } else {
+      alert('Error: ' + result.message);
+    }
+    hideLoading();
+  } catch (error) {
+    alert('Error: ' + error.message);
+    hideLoading();
+  }
+}
+
+function reviewBuyback(id) {
+  currentApprovalItem = { id, type: 'BUYBACK' };
+  document.getElementById('approvalDetails').innerHTML = `<p>รหัสรายการ: ${id}</p><p>ประเภท: Buyback</p>`;
+  openModal('approvalModal');
 }
 
 async function loadInventory() {
   try {
     showLoading();
-    const data = await fetchSheetData('Inventory!A:G');
+    const data = await fetchSheetData('Inventory!A:H');
     const tbody = document.getElementById('inventoryTable');
     
     if (data.length <= 1) {
-      tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 40px;">No inventory transactions</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 40px;">No inventory records</td></tr>';
     } else {
-      tbody.innerHTML = data.slice(1).map(row => `
-        <tr>
-          <td>${row[0]}</td>
-          <td>${row[1]}</td>
-          <td>${row[2]}</td>
-          <td>${row[3]}</td>
-          <td>${formatDate(row[4])}</td>
-          <td>${row[5]}</td>
-          <td>${row[6]}</td>
-        </tr>
-      `).join('');
+      tbody.innerHTML = data.slice(1).map(row => {
+        let actions = '';
+        if (row[6] === 'PENDING' && row[2] === 'WITHDRAW' && currentUser.role === 'Manager') {
+          actions = `<button class="btn-action" onclick="reviewWithdraw('${row[0]}')">ตรวจสอบ</button>`;
+        }
+        
+        return `
+          <tr>
+            <td>${row[0]}</td>
+            <td>${row[1]}</td>
+            <td>${row[2]}</td>
+            <td>${row[3]}</td>
+            <td>${row[4] ? formatNumber(row[4]) : '-'}</td>
+            <td>${formatDate(row[5])}</td>
+            <td><span class="status-badge status-${row[6].toLowerCase()}">${row[6]}</span></td>
+            <td>${actions}</td>
+          </tr>
+        `;
+      }).join('');
     }
     hideLoading();
   } catch (error) {
@@ -214,57 +526,102 @@ async function loadInventory() {
   }
 }
 
-async function loadAudits() {
+async function addWithdraw() {
+  const product = document.getElementById('withdrawProduct').value;
+  const quantity = document.getElementById('withdrawQuantity').value;
+
+  if (!product || !quantity) {
+    alert('Please fill all fields');
+    return;
+  }
+
   try {
     showLoading();
-    const data = await fetchSheetData('Audits!A:I');
-    const tbody = document.getElementById('auditTable');
-    
-    if (data.length <= 1) {
-      tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 40px;">No audit records</td></tr>';
+    const result = await callAppsScript('ADD_WITHDRAW', {
+      product, quantity
+    });
+
+    if (result.success) {
+      alert('Withdraw request created!');
+      closeModal('withdrawModal');
+      document.getElementById('withdrawQuantity').value = '';
+      loadInventory();
     } else {
-      tbody.innerHTML = data.slice(1).map(row => `
-        <tr>
-          <td>${row[0]}</td>
-          <td>${row[1]}</td>
-          <td>${formatNumber(row[2])}</td>
-          <td>${formatNumber(row[3])}</td>
-          <td>${row[4]}</td>
-          <td>${row[5]}</td>
-          <td>${formatDate(row[6])}</td>
-          <td>${row[7]}</td>
-        </tr>
-      `).join('');
+      alert('Error: ' + result.message);
     }
     hideLoading();
   } catch (error) {
-    console.error('Error loading audits:', error);
+    alert('Error: ' + error.message);
     hideLoading();
   }
 }
 
-async function loadLogs() {
+function reviewWithdraw(id) {
+  currentApprovalItem = { id, type: 'WITHDRAW' };
+  document.getElementById('approvalDetails').innerHTML = `<p>รหัสรายการ: ${id}</p><p>ประเภท: Withdraw</p>`;
+  openModal('approvalModal');
+}
+
+async function addStockIn() {
+  const product = document.getElementById('stockInProduct').value;
+  const quantity = document.getElementById('stockInQuantity').value;
+  const cost = document.getElementById('stockInCost').value;
+
+  if (!product || !quantity || !cost) {
+    alert('Please fill all fields');
+    return;
+  }
+
   try {
     showLoading();
-    const data = await fetchSheetData('Logs!A:E');
-    const tbody = document.getElementById('logsTable');
-    
-    if (data.length <= 1) {
-      tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 40px;">No logs available</td></tr>';
+    const result = await callAppsScript('ADD_STOCK_IN', {
+      product, quantity, cost
+    });
+
+    if (result.success) {
+      alert('Stock added successfully!');
+      closeModal('stockInModal');
+      document.getElementById('stockInQuantity').value = '';
+      document.getElementById('stockInCost').value = '';
+      loadInventory();
+      loadProducts();
     } else {
-      tbody.innerHTML = data.slice(1).reverse().map(row => `
-        <tr>
-          <td>${row[0]}</td>
-          <td>${row[1]}</td>
-          <td>${row[2]}</td>
-          <td>${formatDate(row[3])}</td>
-          <td>${row[4]}</td>
-        </tr>
-      `).join('');
+      alert('Error: ' + result.message);
     }
     hideLoading();
   } catch (error) {
-    console.error('Error loading logs:', error);
+    alert('Error: ' + error.message);
+    hideLoading();
+  }
+}
+
+async function addStockOut() {
+  const product = document.getElementById('stockOutProduct').value;
+  const quantity = document.getElementById('stockOutQuantity').value;
+
+  if (!product || !quantity) {
+    alert('Please fill all fields');
+    return;
+  }
+
+  try {
+    showLoading();
+    const result = await callAppsScript('ADD_STOCK_OUT', {
+      product, quantity
+    });
+
+    if (result.success) {
+      alert('Stock out recorded!');
+      closeModal('stockOutModal');
+      document.getElementById('stockOutQuantity').value = '';
+      loadInventory();
+      loadProducts();
+    } else {
+      alert('Error: ' + result.message);
+    }
+    hideLoading();
+  } catch (error) {
+    alert('Error: ' + error.message);
     hideLoading();
   }
 }
@@ -272,34 +629,33 @@ async function loadLogs() {
 async function loadReports() {
   try {
     showLoading();
-    const [salesData, purchasesData, productsData] = await Promise.all([
-      fetchSheetData('Sales!A:D'),
-      fetchSheetData('Purchases!A:D'),
-      fetchSheetData('Products!A:G')
+    const [salesData, buybackData, productsData] = await Promise.all([
+      fetchSheetData('Sales!A:H'),
+      fetchSheetData('Buyback!A:H'),
+      fetchSheetData('Products!A:I')
     ]);
 
-    const totalSales = salesData.slice(1).reduce((sum, row) => sum + (parseFloat(row[3]) || 0), 0);
-    const totalPurchases = purchasesData.slice(1).reduce((sum, row) => sum + (parseFloat(row[3]) || 0), 0);
-    const totalProducts = productsData.length - 1;
-    const netProfit = totalSales - totalPurchases;
+    let gp = 0;
+    salesData.slice(1).forEach(row => {
+      if (row[6] === 'COMPLETED') gp += parseFloat(row[4]) || 0;
+    });
+    buybackData.slice(1).forEach(row => {
+      if (row[6] === 'COMPLETED') gp -= parseFloat(row[4]) || 0;
+    });
 
     document.getElementById('reportContent').innerHTML = `
       <div style="margin: 20px 0;">
         <div style="margin-bottom: 15px;">
-          <span style="color: var(--text-secondary);">Total Sales:</span>
-          <span style="color: var(--gold-primary); font-weight: 600; float: right;">${formatNumber(totalSales)} THB</span>
+          <span style="color: var(--text-secondary);">Gross Profit:</span>
+          <span style="color: var(--gold-primary); font-weight: 600; float: right;">${formatNumber(gp)} LAK</span>
         </div>
         <div style="margin-bottom: 15px;">
-          <span style="color: var(--text-secondary);">Total Purchases:</span>
-          <span style="color: var(--gold-primary); font-weight: 600; float: right;">${formatNumber(totalPurchases)} THB</span>
-        </div>
-        <div style="margin-bottom: 15px;">
-          <span style="color: var(--text-secondary);">Total Products:</span>
-          <span style="color: var(--gold-primary); font-weight: 600; float: right;">${totalProducts}</span>
+          <span style="color: var(--text-secondary);">FX Gain/Loss:</span>
+          <span style="color: var(--gold-primary); font-weight: 600; float: right;">0.00 LAK</span>
         </div>
         <div style="margin-bottom: 15px; padding-top: 15px; border-top: 1px solid var(--border-color);">
           <span style="color: var(--text-secondary);">Net Profit:</span>
-          <span style="color: ${netProfit >= 0 ? 'var(--success)' : 'var(--danger)'}; font-weight: 700; float: right;">${formatNumber(netProfit)} THB</span>
+          <span style="color: ${gp >= 0 ? 'var(--success)' : 'var(--danger)'}; font-weight: 700; float: right;">${formatNumber(gp)} LAK</span>
         </div>
       </div>
     `;
@@ -310,207 +666,8 @@ async function loadReports() {
   }
 }
 
-async function addProduct() {
-  const name = document.getElementById('productName').value;
-  const category = document.getElementById('productCategory').value;
-  const weight = document.getElementById('productWeight').value;
-  const purity = document.getElementById('productPurity').value;
-  const stock = document.getElementById('productStock').value;
-
-  if (!name || !weight || !stock) {
-    alert('Please fill all required fields');
-    return;
-  }
-
-  try {
-    showLoading();
-    const result = await callAppsScript('ADD_PRODUCT', {
-      name, category, weight, purity, stock
-    });
-
-    if (result.success) {
-      alert('Product added successfully!');
-      closeModal('productModal');
-      document.getElementById('productName').value = '';
-      document.getElementById('productWeight').value = '';
-      document.getElementById('productStock').value = '';
-      loadProducts();
-    } else {
-      alert('Error: ' + result.message);
-    }
-    hideLoading();
-  } catch (error) {
-    alert('Error adding product: ' + error.message);
-    hideLoading();
-  }
-}
-
-async function updatePricing() {
-  const buyPrice = document.getElementById('buyPrice').value;
-  const sellPrice = document.getElementById('sellPrice').value;
-  const exchangeRate = document.getElementById('exchangeRate').value;
-
-  if (!buyPrice || !sellPrice || !exchangeRate) {
-    alert('Please fill all fields');
-    return;
-  }
-
-  try {
-    showLoading();
-    const result = await callAppsScript('UPDATE_PRICING', {
-      buyPrice, sellPrice, exchangeRate
-    });
-
-    if (result.success) {
-      alert('Pricing updated successfully!');
-    } else {
-      alert('Error: ' + result.message);
-    }
-    hideLoading();
-  } catch (error) {
-    alert('Error updating pricing: ' + error.message);
-    hideLoading();
-  }
-}
-
-async function addSale() {
-  const customerName = document.getElementById('saleCustomer').value;
-  const totalAmount = document.getElementById('saleAmount').value;
-
-  if (!customerName || !totalAmount) {
-    alert('Please fill all fields');
-    return;
-  }
-
-  try {
-    showLoading();
-    const result = await callAppsScript('ADD_SALE', {
-      customerName, totalAmount, products: '[]'
-    });
-
-    if (result.success) {
-      alert('Sale created successfully!');
-      closeModal('saleModal');
-      document.getElementById('saleCustomer').value = '';
-      document.getElementById('saleAmount').value = '';
-      loadSales();
-      loadDashboard();
-    } else {
-      alert('Error: ' + result.message);
-    }
-    hideLoading();
-  } catch (error) {
-    alert('Error creating sale: ' + error.message);
-    hideLoading();
-  }
-}
-
-async function addPurchase() {
-  const supplierName = document.getElementById('purchaseSupplier').value;
-  const totalAmount = document.getElementById('purchaseAmount').value;
-
-  if (!supplierName || !totalAmount) {
-    alert('Please fill all fields');
-    return;
-  }
-
-  try {
-    showLoading();
-    const result = await callAppsScript('ADD_PURCHASE', {
-      supplierName, totalAmount, products: '[]'
-    });
-
-    if (result.success) {
-      alert('Purchase created successfully!');
-      closeModal('purchaseModal');
-      document.getElementById('purchaseSupplier').value = '';
-      document.getElementById('purchaseAmount').value = '';
-      loadPurchases();
-      loadDashboard();
-    } else {
-      alert('Error: ' + result.message);
-    }
-    hideLoading();
-  } catch (error) {
-    alert('Error creating purchase: ' + error.message);
-    hideLoading();
-  }
-}
-
-async function addInventoryTransaction() {
-  const productId = document.getElementById('invProductId').value;
-  const type = document.getElementById('invType').value;
-  const quantity = document.getElementById('invQuantity').value;
-  const note = document.getElementById('invNote').value;
-
-  if (!productId || !quantity) {
-    alert('Please fill all required fields');
-    return;
-  }
-
-  try {
-    showLoading();
-    const result = await callAppsScript('ADD_INVENTORY', {
-      productId, type, quantity, note
-    });
-
-    if (result.success) {
-      alert('Transaction created successfully!');
-      closeModal('inventoryModal');
-      document.getElementById('invProductId').value = '';
-      document.getElementById('invQuantity').value = '';
-      document.getElementById('invNote').value = '';
-      loadInventory();
-    } else {
-      alert('Error: ' + result.message);
-    }
-    hideLoading();
-  } catch (error) {
-    alert('Error creating transaction: ' + error.message);
-    hideLoading();
-  }
-}
-
-async function addAudit() {
-  const type = document.getElementById('auditType').value;
-  const expectedCash = document.getElementById('expectedCash').value;
-  const actualCash = document.getElementById('actualCash').value;
-  const expectedGold = document.getElementById('expectedGold').value;
-  const actualGold = document.getElementById('actualGold').value;
-  const note = document.getElementById('auditNote').value;
-
-  if (!expectedCash || !actualCash || !expectedGold || !actualGold) {
-    alert('Please fill all required fields');
-    return;
-  }
-
-  try {
-    showLoading();
-    const result = await callAppsScript('ADD_AUDIT', {
-      type, expectedCash, actualCash, expectedGold, actualGold, note
-    });
-
-    if (result.success) {
-      alert('Audit record created successfully!');
-      closeModal('auditModal');
-      document.getElementById('expectedCash').value = '';
-      document.getElementById('actualCash').value = '';
-      document.getElementById('expectedGold').value = '';
-      document.getElementById('actualGold').value = '';
-      document.getElementById('auditNote').value = '';
-      loadAudits();
-    } else {
-      alert('Error: ' + result.message);
-    }
-    hideLoading();
-  } catch (error) {
-    alert('Error creating audit: ' + error.message);
-    hideLoading();
-  }
-}
-
 function formatNumber(num) {
-  return new Intl.NumberFormat('th-TH', {
+  return new Intl.NumberFormat('en-US', {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2
   }).format(num);
@@ -518,10 +675,8 @@ function formatNumber(num) {
 
 function formatDate(date) {
   if (!date) return '-';
-  return new Date(date).toLocaleString('th-TH');
+  return new Date(date).toLocaleString('en-US');
 }
-
-window.addEventListener('load', loadDashboard);
 
 document.querySelectorAll('.modal').forEach(modal => {
   modal.addEventListener('click', function(e) {
