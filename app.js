@@ -1,7 +1,7 @@
 const CONFIG = {
   SHEET_ID: '1FF4odviKZ2LnRvPf8ltM0o_jxM0ZHuJHBlkQCjC3sxA',
   API_KEY: 'AIzaSyAB6yjxTB0TNbEk2C68aOP5u0IkdmK12tg',
-  APPS_SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbziDXIkJa_VIXVJpRnwv5aYDq425OU5O1vkDvMXEDmzj5KAzg80PJQFtN5DKOmlv0qp/exec'
+  APPS_SCRIPT_URL: 'https://script.google.com/macros/s/1axvE4dvC-l4wfS8I69kfxg8nGVD_qzHx5hVuD9CmNZ6jsEBIopC58Ln9/exec'
 };
 
 const USERS = {
@@ -93,20 +93,42 @@ function closeModal(modalId) {
 }
 
 async function fetchSheetData(range) {
-  const url = `https://sheets.googleapis.com/v4/spreadsheets/${CONFIG.SHEET_ID}/values/${range}?key=${CONFIG.API_KEY}`;
-  const response = await fetch(url);
-  if (!response.ok) throw new Error('Failed to fetch data');
-  const data = await response.json();
-  return data.values || [];
+  try {
+    const url = `https://sheets.googleapis.com/v4/spreadsheets/${CONFIG.SHEET_ID}/values/${range}?key=${CONFIG.API_KEY}`;
+    console.log('Fetching:', url);
+    const response = await fetch(url);
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('Fetch error:', errorText);
+      throw new Error('Failed to fetch data: ' + errorText);
+    }
+    const data = await response.json();
+    return data.values || [];
+  } catch (error) {
+    console.error('fetchSheetData error:', error);
+    throw error;
+  }
 }
 
 async function callAppsScript(action, params) {
-  params.user = currentUser.username;
-  params.role = currentUser.role;
-  const url = `${CONFIG.APPS_SCRIPT_URL}?action=${action}&${new URLSearchParams(params).toString()}`;
-  const response = await fetch(url);
-  if (!response.ok) throw new Error('Failed to call API');
-  return await response.json();
+  try {
+    params.user = currentUser.username;
+    params.role = currentUser.role;
+    const url = `${CONFIG.APPS_SCRIPT_URL}?action=${action}&${new URLSearchParams(params).toString()}`;
+    console.log('Calling Apps Script:', url);
+    const response = await fetch(url);
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('Apps Script error:', errorText);
+      throw new Error('Failed to call API: ' + errorText);
+    }
+    const result = await response.json();
+    console.log('Apps Script response:', result);
+    return result;
+  } catch (error) {
+    console.error('callAppsScript error:', error);
+    throw error;
+  }
 }
 
 async function loadDashboard() {
@@ -162,6 +184,7 @@ async function loadDashboard() {
     hideLoading();
   } catch (error) {
     console.error('Error loading dashboard:', error);
+    alert('Error loading dashboard: ' + error.message);
     hideLoading();
   }
 }
@@ -180,7 +203,7 @@ async function loadProducts() {
           <td>${row[0]}</td>
           <td>${row[1]}</td>
           <td>${row[2]}</td>
-          <td>${row[3]}</td>
+          <td>${row[3] || '-'}</td>
           <td>${formatNumber(row[4])}</td>
           <td>${formatNumber(row[5])}</td>
           <td>${formatNumber(row[6])}</td>
@@ -194,6 +217,7 @@ async function loadProducts() {
     hideLoading();
   } catch (error) {
     console.error('Error loading products:', error);
+    alert('Error loading products: ' + error.message);
     hideLoading();
   }
 }
@@ -211,7 +235,7 @@ async function loadProductOptions() {
     document.getElementById('stockInProduct').innerHTML = '<option value="">Select product...</option>' + options;
     document.getElementById('stockOutProduct').innerHTML = '<option value="">Select product...</option>' + options;
   } catch (error) {
-    console.error('Error loading products:', error);
+    console.error('Error loading product options:', error);
   }
 }
 
@@ -225,7 +249,7 @@ async function addProduct() {
   const stock = document.getElementById('productStock').value;
 
   if (!name || !weight) {
-    alert('Please fill required fields');
+    alert('Please fill required fields (Product Name and Weight)');
     return;
   }
 
@@ -236,7 +260,7 @@ async function addProduct() {
     });
 
     if (result.success) {
-      alert('Product added successfully!');
+      alert('✅ Product added successfully!');
       closeModal('productModal');
       document.getElementById('productName').value = '';
       document.getElementById('productWeight').value = '';
@@ -247,11 +271,12 @@ async function addProduct() {
       document.getElementById('productStock').value = '';
       loadProducts();
     } else {
-      alert('Error: ' + result.message);
+      alert('❌ Error: ' + result.message);
     }
     hideLoading();
   } catch (error) {
-    alert('Error: ' + error.message);
+    alert('❌ Error: ' + error.message);
+    console.error('Add product error:', error);
     hideLoading();
   }
 }
@@ -290,6 +315,7 @@ async function loadSales() {
     hideLoading();
   } catch (error) {
     console.error('Error loading sales:', error);
+    alert('Error loading sales: ' + error.message);
     hideLoading();
   }
 }
@@ -312,7 +338,7 @@ async function addSale() {
     });
 
     if (result.success) {
-      alert('Sale created successfully!');
+      alert('✅ Sale created successfully!');
       closeModal('saleModal');
       document.getElementById('saleCustomer').value = '';
       document.getElementById('saleAmount').value = '';
@@ -320,11 +346,11 @@ async function addSale() {
       loadSales();
       loadDashboard();
     } else {
-      alert('Error: ' + result.message);
+      alert('❌ Error: ' + result.message);
     }
     hideLoading();
   } catch (error) {
-    alert('Error: ' + error.message);
+    alert('❌ Error: ' + error.message);
     hideLoading();
   }
 }
@@ -346,17 +372,17 @@ async function approveItem() {
     });
 
     if (result.success) {
-      alert('Approved successfully!');
+      alert('✅ Approved successfully!');
       closeModal('approvalModal');
       if (currentApprovalItem.type === 'SALE') loadSales();
       else if (currentApprovalItem.type === 'BUYBACK') loadBuyback();
       else if (currentApprovalItem.type === 'WITHDRAW') loadInventory();
     } else {
-      alert('Error: ' + result.message);
+      alert('❌ Error: ' + result.message);
     }
     hideLoading();
   } catch (error) {
-    alert('Error: ' + error.message);
+    alert('❌ Error: ' + error.message);
     hideLoading();
   }
 }
@@ -377,17 +403,17 @@ async function rejectItem() {
     });
 
     if (result.success) {
-      alert('Rejected successfully!');
+      alert('✅ Rejected successfully!');
       closeModal('approvalModal');
       if (currentApprovalItem.type === 'SALE') loadSales();
       else if (currentApprovalItem.type === 'BUYBACK') loadBuyback();
       else if (currentApprovalItem.type === 'WITHDRAW') loadInventory();
     } else {
-      alert('Error: ' + result.message);
+      alert('❌ Error: ' + result.message);
     }
     hideLoading();
   } catch (error) {
-    alert('Error: ' + error.message);
+    alert('❌ Error: ' + error.message);
     hideLoading();
   }
 }
@@ -400,15 +426,15 @@ async function confirmSale(id) {
     const result = await callAppsScript('CONFIRM_SALE', { id });
 
     if (result.success) {
-      alert('Sale confirmed! Generating receipt...');
+      alert('✅ Sale confirmed! Generating receipt...');
       loadSales();
       loadDashboard();
     } else {
-      alert('Error: ' + result.message);
+      alert('❌ Error: ' + result.message);
     }
     hideLoading();
   } catch (error) {
-    alert('Error: ' + error.message);
+    alert('❌ Error: ' + error.message);
     hideLoading();
   }
 }
@@ -445,6 +471,7 @@ async function loadBuyback() {
     hideLoading();
   } catch (error) {
     console.error('Error loading buyback:', error);
+    alert('Error loading buyback: ' + error.message);
     hideLoading();
   }
 }
@@ -467,7 +494,7 @@ async function addBuyback() {
     });
 
     if (result.success) {
-      alert('Buyback created successfully!');
+      alert('✅ Buyback created successfully!');
       closeModal('buybackModal');
       document.getElementById('buybackCustomer').value = '';
       document.getElementById('buybackAmount').value = '';
@@ -475,11 +502,11 @@ async function addBuyback() {
       loadBuyback();
       loadDashboard();
     } else {
-      alert('Error: ' + result.message);
+      alert('❌ Error: ' + result.message);
     }
     hideLoading();
   } catch (error) {
-    alert('Error: ' + error.message);
+    alert('❌ Error: ' + error.message);
     hideLoading();
   }
 }
@@ -522,6 +549,7 @@ async function loadInventory() {
     hideLoading();
   } catch (error) {
     console.error('Error loading inventory:', error);
+    alert('Error loading inventory: ' + error.message);
     hideLoading();
   }
 }
@@ -542,16 +570,16 @@ async function addWithdraw() {
     });
 
     if (result.success) {
-      alert('Withdraw request created!');
+      alert('✅ Withdraw request created!');
       closeModal('withdrawModal');
       document.getElementById('withdrawQuantity').value = '';
       loadInventory();
     } else {
-      alert('Error: ' + result.message);
+      alert('❌ Error: ' + result.message);
     }
     hideLoading();
   } catch (error) {
-    alert('Error: ' + error.message);
+    alert('❌ Error: ' + error.message);
     hideLoading();
   }
 }
@@ -579,18 +607,18 @@ async function addStockIn() {
     });
 
     if (result.success) {
-      alert('Stock added successfully!');
+      alert('✅ Stock added successfully!');
       closeModal('stockInModal');
       document.getElementById('stockInQuantity').value = '';
       document.getElementById('stockInCost').value = '';
       loadInventory();
       loadProducts();
     } else {
-      alert('Error: ' + result.message);
+      alert('❌ Error: ' + result.message);
     }
     hideLoading();
   } catch (error) {
-    alert('Error: ' + error.message);
+    alert('❌ Error: ' + error.message);
     hideLoading();
   }
 }
@@ -611,17 +639,17 @@ async function addStockOut() {
     });
 
     if (result.success) {
-      alert('Stock out recorded!');
+      alert('✅ Stock out recorded!');
       closeModal('stockOutModal');
       document.getElementById('stockOutQuantity').value = '';
       loadInventory();
       loadProducts();
     } else {
-      alert('Error: ' + result.message);
+      alert('❌ Error: ' + result.message);
     }
     hideLoading();
   } catch (error) {
-    alert('Error: ' + error.message);
+    alert('❌ Error: ' + error.message);
     hideLoading();
   }
 }
@@ -662,6 +690,7 @@ async function loadReports() {
     hideLoading();
   } catch (error) {
     console.error('Error loading reports:', error);
+    alert('Error loading reports: ' + error.message);
     hideLoading();
   }
 }
