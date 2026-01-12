@@ -95,8 +95,8 @@
             <div class="card-title">Total Products</div>
             <div class="card-icon">◑</div>
           </div>
-          <div class="stat-value" id="totalProducts">0</div>
-          <div class="stat-label">Items</div>
+          <div class="stat-value" id="totalProducts">7</div>
+          <div class="stat-label">SKUs</div>
         </div>
       </div>
 
@@ -108,7 +108,7 @@
           <div style="display: flex; flex-direction: column; gap: 15px;">
             <button class="btn-primary" onclick="showSection('sales')" id="quickSales">New Sale</button>
             <button class="btn-primary" onclick="showSection('buyback')" id="quickBuyback">New Buyback</button>
-            <button class="btn-secondary" onclick="showSection('products')">Manage Products</button>
+            <button class="btn-secondary" onclick="showSection('products')">View Products</button>
           </div>
         </div>
         <div class="card">
@@ -124,27 +124,25 @@
 
     <section id="products" class="section">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
-        <h2 style="font-family: 'Cormorant Garamond', serif; font-size: 36px; color: var(--gold-primary);">Product Management</h2>
-        <button class="btn-primary" onclick="openModal('productModal')" id="addProductBtn">+ Add Product</button>
+        <h2 style="font-family: 'Cormorant Garamond', serif; font-size: 36px; color: var(--gold-primary);">Product Pricing</h2>
+        <button class="btn-primary manager-only" onclick="openModal('pricingModal')" id="setPricingBtn">Set Pricing</button>
       </div>
       <div class="table-container">
         <table>
           <thead>
             <tr>
               <th>ID</th>
-              <th>Product</th>
-              <th>Weight (g)</th>
-              <th>Requirement</th>
-              <th>Buy Price</th>
-              <th>Sell Price</th>
-              <th>Exchange Rate</th>
+              <th>Product (SKU)</th>
+              <th>Unit</th>
+              <th>Sell Price (LAK)</th>
+              <th>Buyback Price (LAK)</th>
+              <th>Exchange Rate (LAK/THB)</th>
               <th>Stock</th>
-              <th class="manager-only">Actions</th>
             </tr>
           </thead>
           <tbody id="productsTable">
             <tr>
-              <td colspan="9" style="text-align: center; padding: 40px;">Loading...</td>
+              <td colspan="7" style="text-align: center; padding: 40px;">Loading...</td>
             </tr>
           </tbody>
         </table>
@@ -268,42 +266,19 @@
     </section>
   </div>
 
-  <div id="productModal" class="modal">
+  <div id="pricingModal" class="modal">
     <div class="modal-content">
       <div class="modal-header">
-        <h2 class="modal-title">Add New Product</h2>
+        <h2 class="modal-title">Set Base Pricing</h2>
       </div>
       <div class="form-group">
-        <label class="form-label">Product Name</label>
-        <input type="text" class="form-input" id="productName" placeholder="Enter product name">
-      </div>
-      <div class="form-group">
-        <label class="form-label">Weight (grams)</label>
-        <input type="number" class="form-input" id="productWeight" placeholder="0.00" step="0.01">
-      </div>
-      <div class="form-group">
-        <label class="form-label">Requirement</label>
-        <input type="text" class="form-input" id="productRequirement" placeholder="Enter requirement">
-      </div>
-      <div class="form-group">
-        <label class="form-label">Buy Price (LAK/บาททองคำ)</label>
-        <input type="number" class="form-input" id="productBuyPrice" placeholder="0.00" step="0.01">
-      </div>
-      <div class="form-group">
-        <label class="form-label">Sell Price (LAK/บาททองคำ)</label>
-        <input type="number" class="form-input" id="productSellPrice" placeholder="0.00" step="0.01">
-      </div>
-      <div class="form-group">
-        <label class="form-label">Exchange Rate (LAK/THB or LAK/USD)</label>
-        <input type="number" class="form-input" id="productExchangeRate" placeholder="0.00" step="0.01">
-      </div>
-      <div class="form-group">
-        <label class="form-label">Initial Stock</label>
-        <input type="number" class="form-input" id="productStock" placeholder="0">
+        <label class="form-label">SELL 1 BAHT Price (LAK)</label>
+        <input type="number" class="form-input" id="sell1BahtPrice" placeholder="0" step="1000">
+        <p style="color: var(--text-secondary); font-size: 12px; margin-top: 5px;">This will calculate all product prices automatically</p>
       </div>
       <div class="modal-footer">
-        <button class="btn-secondary" onclick="closeModal('productModal')">Cancel</button>
-        <button class="btn-primary" onclick="addProduct()">Add Product</button>
+        <button class="btn-secondary" onclick="closeModal('pricingModal')">Cancel</button>
+        <button class="btn-primary" onclick="updatePricing()">Update Pricing</button>
       </div>
     </div>
   </div>
