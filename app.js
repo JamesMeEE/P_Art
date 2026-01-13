@@ -1,7 +1,8 @@
 const CONFIG = {
   SHEET_ID: '1FF4odviKZ2LnRvPf8ltM0o_jxM0ZHuJHBlkQCjC3sxA',
   API_KEY: 'AIzaSyAB6yjxTB0TNbEk2C68aOP5u0IkdmK12tg',
-  APPS_SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbziDXIkJa_VIXVJpRnwv5aYDq425OU5O1vkDvMXEDmzj5KAzg80PJQFtN5DKOmlv0qp/exec'
+  APPS_SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbziDXIkJa_VIXVJpRnwv5aYDq425OU5O1vkDvMXEDmzj5KAzg80PJQFtN5DKOmlv0qp/exec',
+  EXCHANGE_API: 'https://api.exchangerate-api.com/v4/latest/LAK'
 };
 
 const FIXED_PRODUCTS = [
@@ -14,10 +15,13 @@ const FIXED_PRODUCTS = [
   { id: 'G07', name: '1 กรัม', unit: '1g' }
 ];
 
-const EXCHANGE_RATES = {
+const EXCHANGE_FEES = {
   'G01': 169000, 'G02': 169000, 'G03': 169000, 'G04': 169000,
   'G05': 99000, 'G06': 99000, 'G07': 99000
 };
+
+const PREMIUM_PRODUCTS = ['G05', 'G06', 'G07'];
+const PREMIUM_PER_PIECE = 120000;
 
 const USERS = {
   manager: { password: 'manager123', role: 'Manager' },
@@ -28,6 +32,15 @@ const USERS = {
 let currentUser = null;
 let currentApprovalItem = null;
 let currentPricing = { sell1Baht: 0 };
+let currentExchangeRates = { THB: 0, USD: 0 };
+let sellProductCounter = 0;
+let buybackProductCounter = 0;
+let tradeinOldCounter = 0;
+let tradeinNewCounter = 0;
+let exchangeOldCounter = 0;
+let exchangeNewCounter = 0;
+let currentTradeinData = null;
+let currentExchangeData = null;
 
 function roundTo1000(value) {
   return Math.round(value / 1000) * 1000;
@@ -65,6 +78,17 @@ function calculateBuybackPrice(productId, sell1Baht) {
   return roundTo1000(price);
 }
 
+async function fetchExchangeRates() {
+  try {
+    const response = await fetch(CONFIG.EXCHANGE_API);
+    const data = await response.json();
+    currentExchangeRates.THB = data.rates.THB;
+    currentExchangeRates.USD = data.rates.USD;
+  } catch (error) {
+    console.error('Failed to fetch exchange rates:', error);
+  }
+}
+
 function login() {
   const username = document.getElementById('loginUsername').value;
   const password = document.getElementById('loginPassword').value;
@@ -82,13 +106,14 @@ function login() {
     
     if (currentUser.role === 'Accountant') {
       document.body.classList.add('accountant-readonly');
-      document.getElementById('quickSales').style.display = 'none';
-      document.getElementById('quickBuyback').style.display = 'none';
-      document.getElementById('addSaleBtn').style.display = 'none';
-      document.getElementById('addBuybackBtn').style.display = 'none';
-      document.getElementById('withdrawBtn').style.display = 'none';
+      const readonlyBtns = ['quickSales', 'quickTradein', 'quickBuyback', 'addSellBtn', 'addTradeinBtn', 'addBuybackBtn', 'addExchangeBtn', 'withdrawBtn'];
+      readonlyBtns.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.style.display = 'none';
+      });
     }
     
+    fetchExchangeRates();
     loadDashboard();
   } else {
     alert('Invalid username or password');
@@ -125,15 +150,48 @@ function showSection(sectionId) {
   
   if (sectionId === 'dashboard') loadDashboard();
   else if (sectionId === 'products') loadProducts();
-  else if (sectionId === 'sales') loadSales();
-  else if (sectionId === 'buyback') loadBuyback();
+  else if (sectionId === 'sell') loadSells();
+  else if (sectionId === 'tradein') loadTradeins();
+  else if (sectionId === 'buyback') loadBuybacks();
+  else if (sectionId === 'exchange') loadExchanges();
   else if (sectionId === 'inventory') loadInventory();
   else if (sectionId === 'reports') loadReports();
 }
 
 function openModal(modalId) {
-  if (modalId === 'saleModal' || modalId === 'buybackModal' || modalId === 'withdrawModal' || 
-      modalId === 'stockInModal' || modalId === 'stockOutModal') {
+  if (modalId === 'sellModal') {
+    sellProductCounter = 0;
+    document.getElementById('sellProducts').innerHTML = '';
+    document.getElementById('sellCustomer').value = '';
+    document.getElementById('sellPrice').value = '';
+    addSellProduct();
+  }
+  if (modalId === 'buybackModal') {
+    buybackProductCounter = 0;
+    document.getElementById('buybackProducts').innerHTML = '';
+    document.getElementById('buybackCustomer').value = '';
+    document.getElementById('buybackPrice').value = '';
+    addBuybackProduct();
+  }
+  if (modalId === 'tradeinModal') {
+    tradeinOldCounter = 0;
+    tradeinNewCounter = 0;
+    document.getElementById('tradeinOldGold').innerHTML = '';
+    document.getElementById('tradeinNewGold').innerHTML = '';
+    document.getElementById('tradeinCustomer').value = '';
+    addTradeinOldGold();
+    addTradeinNewGold();
+  }
+  if (modalId === 'exchangeModal') {
+    exchangeOldCounter = 0;
+    exchangeNewCounter = 0;
+    document.getElementById('exchangeOldGold').innerHTML = '';
+    document.getElementById('exchangeNewGold').innerHTML = '';
+    document.getElementById('exchangeCustomer').value = '';
+    addExchangeOldGold();
+    addExchangeNewGold();
+  }
+  if (modalId === 'withdrawModal' || modalId === 'stockInModal' || modalId === 'stockOutModal') {
     loadProductOptions();
   }
   if (modalId === 'pricingModal') {
@@ -164,7 +222,7 @@ async function callAppsScript(action, params) {
     params.user = currentUser.username;
     params.role = currentUser.role;
     const url = `${CONFIG.APPS_SCRIPT_URL}?action=${action}&${new URLSearchParams(params).toString()}`;
-    const response = await fetch(url);
+    const response = await fetch(url, { method: 'POST' });
     if (!response.ok) throw new Error('Failed to call API');
     const result = await response.json();
     return result;
@@ -177,20 +235,22 @@ async function callAppsScript(action, params) {
 async function loadDashboard() {
   try {
     showLoading();
-    const [salesData, buybackData] = await Promise.all([
-      fetchSheetData('Sales!A:H'),
-      fetchSheetData('Buyback!A:H')
+    const [sellData, tradeinData, buybackData, exchangeData] = await Promise.all([
+      fetchSheetData('Sells!A:I'),
+      fetchSheetData('Tradeins!A:K'),
+      fetchSheetData('Buybacks!A:F'),
+      fetchSheetData('Exchanges!A:J')
     ]);
 
     let gp = 0;
     let fxGainLoss = 0;
 
-    salesData.slice(1).forEach(row => {
-      if (row[6] === 'COMPLETED') gp += parseFloat(row[4]) || 0;
+    sellData.slice(1).forEach(row => {
+      if (row[7] === 'COMPLETED') gp += parseFloat(row[3]) || 0;
     });
 
     buybackData.slice(1).forEach(row => {
-      if (row[6] === 'COMPLETED') gp -= parseFloat(row[4]) || 0;
+      if (row[5] === 'COMPLETED') gp -= parseFloat(row[3]) || 0;
     });
 
     const netProfit = gp + fxGainLoss;
@@ -202,16 +262,20 @@ async function loadDashboard() {
     document.getElementById('summaryContent').innerHTML = `
       <div style="margin: 20px 0;">
         <div style="margin-bottom: 15px;">
-          <span style="color: var(--text-secondary);">Total Sales:</span>
-          <span style="color: var(--gold-primary); font-weight: 600; float: right;">${salesData.length - 1}</span>
+          <span style="color: var(--text-secondary);">Total Sells:</span>
+          <span style="color: var(--gold-primary); font-weight: 600; float: right;">${sellData.length - 1}</span>
         </div>
         <div style="margin-bottom: 15px;">
-          <span style="color: var(--text-secondary);">Total Buyback:</span>
+          <span style="color: var(--text-secondary);">Total Trade-ins:</span>
+          <span style="color: var(--gold-primary); font-weight: 600; float: right;">${tradeinData.length - 1}</span>
+        </div>
+        <div style="margin-bottom: 15px;">
+          <span style="color: var(--text-secondary);">Total Buybacks:</span>
           <span style="color: var(--gold-primary); font-weight: 600; float: right;">${buybackData.length - 1}</span>
         </div>
         <div style="margin-bottom: 15px;">
-          <span style="color: var(--text-secondary);">Total SKUs:</span>
-          <span style="color: var(--gold-primary); font-weight: 600; float: right;">7</span>
+          <span style="color: var(--text-secondary);">Total Exchanges:</span>
+          <span style="color: var(--gold-primary); font-weight: 600; float: right;">${exchangeData.length - 1}</span>
         </div>
       </div>
     `;
@@ -219,7 +283,6 @@ async function loadDashboard() {
     hideLoading();
   } catch (error) {
     console.error('Error loading dashboard:', error);
-    alert('Error loading dashboard: ' + error.message);
     hideLoading();
   }
 }
@@ -243,7 +306,7 @@ async function loadProducts() {
     tbody.innerHTML = FIXED_PRODUCTS.map(product => {
       const sellPrice = calculateSellPrice(product.id, currentPricing.sell1Baht);
       const buybackPrice = calculateBuybackPrice(product.id, currentPricing.sell1Baht);
-      const exchangeRate = EXCHANGE_RATES[product.id];
+      const exchangeFee = EXCHANGE_FEES[product.id];
       const stock = stockMap[product.id] || 0;
       
       return `
@@ -253,7 +316,7 @@ async function loadProducts() {
           <td>${product.unit}</td>
           <td>${formatNumber(sellPrice)}</td>
           <td>${formatNumber(buybackPrice)}</td>
-          <td>${formatNumber(exchangeRate)}</td>
+          <td>${formatNumber(exchangeFee)}</td>
           <td>${stock}</td>
         </tr>
       `;
@@ -271,11 +334,11 @@ async function loadProductOptions() {
     `<option value="${p.id}">${p.name} (${p.unit})</option>`
   ).join('');
   
-  document.getElementById('saleProduct').innerHTML = '<option value="">Select product...</option>' + options;
-  document.getElementById('buybackProduct').innerHTML = '<option value="">Select product...</option>' + options;
-  document.getElementById('withdrawProduct').innerHTML = '<option value="">Select product...</option>' + options;
-  document.getElementById('stockInProduct').innerHTML = '<option value="">Select product...</option>' + options;
-  document.getElementById('stockOutProduct').innerHTML = '<option value="">Select product...</option>' + options;
+  const selects = ['withdrawProduct', 'stockInProduct', 'stockOutProduct'];
+  selects.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.innerHTML = '<option value="">Select product...</option>' + options;
+  });
 }
 
 async function updatePricing() {
@@ -305,68 +368,78 @@ async function updatePricing() {
   }
 }
 
-async function loadSales() {
-  try {
-    showLoading();
-    const data = await fetchSheetData('Sales!A:H');
-    const tbody = document.getElementById('salesTable');
-    
-    if (data.length <= 1) {
-      tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 40px;">No sales records</td></tr>';
-    } else {
-      tbody.innerHTML = data.slice(1).map(row => {
-        let actions = '';
-        if (row[6] === 'PENDING' && currentUser.role === 'Manager') {
-          actions = `<button class="btn-action" onclick="reviewSale('${row[0]}')">ตรวจสอบ</button>`;
-        } else if (row[6] === 'READY' && (currentUser.role === 'Manager' || currentUser.role === 'Teller')) {
-          actions = `<button class="btn-action" onclick="confirmSale('${row[0]}')">ยืนยัน</button>`;
-        }
-        
-        return `
-          <tr>
-            <td>${row[0]}</td>
-            <td>${row[1]}</td>
-            <td>${row[2]}</td>
-            <td>${row[3]}</td>
-            <td>${formatNumber(row[4])}</td>
-            <td>${formatDate(row[5])}</td>
-            <td><span class="status-badge status-${row[6].toLowerCase()}">${row[6]}</span></td>
-            <td>${actions}</td>
-          </tr>
-        `;
-      }).join('');
-    }
-    hideLoading();
-  } catch (error) {
-    console.error('Error loading sales:', error);
-    hideLoading();
-  }
+function addSellProduct() {
+  sellProductCounter++;
+  const html = `
+    <div class="product-row" id="sellProduct${sellProductCounter}">
+      <select class="form-select" onchange="calculateSellTotal()">
+        <option value="">Select product...</option>
+        ${FIXED_PRODUCTS.map(p => `<option value="${p.id}">${p.name}</option>`).join('')}
+      </select>
+      <input type="number" class="form-input" placeholder="Qty" min="1" value="1" onchange="calculateSellTotal()">
+      <button onclick="removeSellProduct(${sellProductCounter})">×</button>
+    </div>
+  `;
+  document.getElementById('sellProducts').insertAdjacentHTML('beforeend', html);
+  calculateSellTotal();
 }
 
-async function addSale() {
-  const customer = document.getElementById('saleCustomer').value;
-  const product = document.getElementById('saleProduct').value;
-  const amount = document.getElementById('saleAmount').value;
-  const price = document.getElementById('salePrice').value;
+function removeSellProduct(id) {
+  const el = document.getElementById(`sellProduct${id}`);
+  if (el) el.remove();
+  calculateSellTotal();
+}
 
-  if (!customer || !product || !amount || !price) {
+function calculateSellTotal() {
+  let total = 0;
+  const products = document.querySelectorAll('#sellProducts .product-row');
+  products.forEach(row => {
+    const productId = row.querySelector('select').value;
+    const qty = parseInt(row.querySelector('input').value) || 0;
+    if (productId && qty > 0) {
+      const price = calculateSellPrice(productId, currentPricing.sell1Baht);
+      total += price * qty;
+    }
+  });
+  document.getElementById('sellPrice').value = total;
+}
+
+async function submitSell() {
+  const customer = document.getElementById('sellCustomer').value;
+  const currency = document.getElementById('sellCurrency').value;
+  const total = parseFloat(document.getElementById('sellPrice').value);
+  
+  const products = [];
+  document.querySelectorAll('#sellProducts .product-row').forEach(row => {
+    const productId = row.querySelector('select').value;
+    const qty = parseInt(row.querySelector('input').value) || 0;
+    if (productId && qty > 0) {
+      products.push({ productId, qty });
+    }
+  });
+
+  if (!customer || products.length === 0 || !total) {
     alert('Please fill all fields');
     return;
   }
 
   try {
     showLoading();
-    const result = await callAppsScript('ADD_SALE', {
-      customer, product, amount, price
+    await fetchExchangeRates();
+    const exchangeRate = currency === 'LAK' ? 1 : (currency === 'THB' ? currentExchangeRates.THB : currentExchangeRates.USD);
+    
+    const result = await callAppsScript('ADD_SELL', {
+      customer,
+      items: JSON.stringify(products),
+      total,
+      currency,
+      exchangeRate
     });
 
     if (result.success) {
-      alert('✅ Sale created successfully!');
-      closeModal('saleModal');
-      document.getElementById('saleCustomer').value = '';
-      document.getElementById('saleAmount').value = '';
-      document.getElementById('salePrice').value = '';
-      loadSales();
+      alert('✅ Sell created successfully!');
+      closeModal('sellModal');
+      loadSells();
       loadDashboard();
     } else {
       alert('❌ Error: ' + result.message);
@@ -378,9 +451,554 @@ async function addSale() {
   }
 }
 
-function reviewSale(id) {
-  currentApprovalItem = { id, type: 'SALE' };
-  document.getElementById('approvalDetails').innerHTML = `<p>รหัสรายการ: ${id}</p><p>ประเภท: Sales</p>`;
+async function loadSells() {
+  try {
+    showLoading();
+    const data = await fetchSheetData('Sells!A:I');
+    const tbody = document.getElementById('sellTable');
+    
+    if (data.length <= 1) {
+      tbody.innerHTML = '<tr><td colspan="9" style="text-align: center; padding: 40px;">No records</td></tr>';
+    } else {
+      tbody.innerHTML = data.slice(1).map(row => {
+        let actions = '';
+        if (row[7] === 'PENDING' && currentUser.role === 'Manager') {
+          actions = `<button class="btn-action" onclick="reviewTransaction('${row[0]}', 'SELL')">ตรวจสอบ</button>`;
+        } else if (row[7] === 'READY' && (currentUser.role === 'Manager' || currentUser.role === 'Teller')) {
+          actions = `<button class="btn-action" onclick="confirmTransaction('${row[0]}', 'SELL')">ยืนยัน</button>`;
+        }
+        
+        return `
+          <tr>
+            <td>${row[0]}</td>
+            <td>${row[1]}</td>
+            <td>${row[2]}</td>
+            <td>${formatNumber(row[3])}</td>
+            <td>${row[4]}</td>
+            <td>${row[5]}</td>
+            <td>${formatDate(row[6])}</td>
+            <td><span class="status-badge status-${row[7].toLowerCase()}">${row[7]}</span></td>
+            <td>${actions}</td>
+          </tr>
+        `;
+      }).join('');
+    }
+    hideLoading();
+  } catch (error) {
+    console.error('Error loading sells:', error);
+    hideLoading();
+  }
+}
+
+function addTradeinOldGold() {
+  tradeinOldCounter++;
+  const html = `
+    <div class="product-row" id="tradeinOld${tradeinOldCounter}">
+      <select class="form-select">
+        <option value="">Select product...</option>
+        ${FIXED_PRODUCTS.map(p => `<option value="${p.id}">${p.name}</option>`).join('')}
+      </select>
+      <input type="number" class="form-input" placeholder="Qty" min="1" value="1">
+      <button onclick="removeTradeinOld(${tradeinOldCounter})">×</button>
+    </div>
+  `;
+  document.getElementById('tradeinOldGold').insertAdjacentHTML('beforeend', html);
+}
+
+function removeTradeinOld(id) {
+  const el = document.getElementById(`tradeinOld${id}`);
+  if (el) el.remove();
+}
+
+function addTradeinNewGold() {
+  tradeinNewCounter++;
+  const html = `
+    <div class="product-row" id="tradeinNew${tradeinNewCounter}">
+      <select class="form-select">
+        <option value="">Select product...</option>
+        ${FIXED_PRODUCTS.map(p => `<option value="${p.id}">${p.name}</option>`).join('')}
+      </select>
+      <input type="number" class="form-input" placeholder="Qty" min="1" value="1">
+      <button onclick="removeTradeinNew(${tradeinNewCounter})">×</button>
+    </div>
+  `;
+  document.getElementById('tradeinNewGold').insertAdjacentHTML('beforeend', html);
+}
+
+function removeTradeinNew(id) {
+  const el = document.getElementById(`tradeinNew${id}`);
+  if (el) el.remove();
+}
+
+function calculateTradein() {
+  const customer = document.getElementById('tradeinCustomer').value;
+  if (!customer) {
+    alert('Please enter customer name');
+    return;
+  }
+
+  const oldGold = [];
+  document.querySelectorAll('#tradeinOldGold .product-row').forEach(row => {
+    const productId = row.querySelector('select').value;
+    const qty = parseInt(row.querySelector('input').value) || 0;
+    if (productId && qty > 0) {
+      oldGold.push({ productId, qty });
+    }
+  });
+
+  const newGold = [];
+  document.querySelectorAll('#tradeinNewGold .product-row').forEach(row => {
+    const productId = row.querySelector('select').value;
+    const qty = parseInt(row.querySelector('input').value) || 0;
+    if (productId && qty > 0) {
+      newGold.push({ productId, qty });
+    }
+  });
+
+  if (oldGold.length === 0 || newGold.length === 0) {
+    alert('Please add both old and new gold');
+    return;
+  }
+
+  let oldValue = 0;
+  oldGold.forEach(item => {
+    oldValue += calculateBuybackPrice(item.productId, currentPricing.sell1Baht) * item.qty;
+  });
+
+  let newValue = 0;
+  newGold.forEach(item => {
+    newValue += calculateSellPrice(item.productId, currentPricing.sell1Baht) * item.qty;
+  });
+
+  let exchangeFee = 0;
+  newGold.forEach(item => {
+    exchangeFee += EXCHANGE_FEES[item.productId] * item.qty;
+  });
+
+  let premium = 0;
+  newGold.forEach(item => {
+    if (PREMIUM_PRODUCTS.includes(item.productId)) {
+      premium += PREMIUM_PER_PIECE * item.qty;
+    }
+  });
+
+  const difference = newValue - oldValue;
+
+  currentTradeinData = {
+    customer,
+    oldGold: JSON.stringify(oldGold),
+    newGold: JSON.stringify(newGold),
+    difference,
+    exchangeFee,
+    premium
+  };
+
+  const oldItems = oldGold.map(i => `${FIXED_PRODUCTS.find(p => p.id === i.productId).name} (${i.qty})`).join(', ');
+  const newItems = newGold.map(i => `${FIXED_PRODUCTS.find(p => p.id === i.productId).name} (${i.qty})`).join(', ');
+
+  document.getElementById('tradeinResult').innerHTML = `
+    <div class="summary-box">
+      <div class="summary-row">
+        <span class="summary-label">Old Gold:</span>
+        <span class="summary-value">${oldItems}</span>
+      </div>
+      <div class="summary-row">
+        <span class="summary-label">Old Value:</span>
+        <span class="summary-value">${formatNumber(oldValue)} LAK</span>
+      </div>
+      <div class="summary-row">
+        <span class="summary-label">New Gold:</span>
+        <span class="summary-value">${newItems}</span>
+      </div>
+      <div class="summary-row">
+        <span class="summary-label">New Value:</span>
+        <span class="summary-value">${formatNumber(newValue)} LAK</span>
+      </div>
+      <div class="summary-row">
+        <span class="summary-label">Difference:</span>
+        <span class="summary-value">${formatNumber(difference)} LAK</span>
+      </div>
+      <div class="summary-row">
+        <span class="summary-label">Exchange Fee:</span>
+        <span class="summary-value">${formatNumber(exchangeFee)} LAK</span>
+      </div>
+      <div class="summary-row">
+        <span class="summary-label">Premium:</span>
+        <span class="summary-value">${formatNumber(premium)} LAK</span>
+      </div>
+      <div class="summary-row">
+        <span class="summary-label">Total to Pay:</span>
+        <span class="summary-value">${formatNumber(difference + exchangeFee + premium)} LAK</span>
+      </div>
+    </div>
+  `;
+
+  closeModal('tradeinModal');
+  openModal('tradeinResultModal');
+}
+
+async function submitTradein() {
+  if (!currentTradeinData) return;
+
+  try {
+    showLoading();
+    const result = await callAppsScript('ADD_TRADEIN', currentTradeinData);
+
+    if (result.success) {
+      alert('✅ Trade-in created successfully!');
+      closeModal('tradeinResultModal');
+      currentTradeinData = null;
+      loadTradeins();
+      loadDashboard();
+    } else {
+      alert('❌ Error: ' + result.message);
+    }
+    hideLoading();
+  } catch (error) {
+    alert('❌ Error: ' + error.message);
+    hideLoading();
+  }
+}
+
+async function loadTradeins() {
+  try {
+    showLoading();
+    const data = await fetchSheetData('Tradeins!A:K');
+    const tbody = document.getElementById('tradeinTable');
+    
+    if (data.length <= 1) {
+      tbody.innerHTML = '<tr><td colspan="10" style="text-align: center; padding: 40px;">No records</td></tr>';
+    } else {
+      tbody.innerHTML = data.slice(1).map(row => {
+        let actions = '';
+        if (row[8] === 'PENDING' && currentUser.role === 'Manager') {
+          actions = `<button class="btn-action" onclick="reviewTransaction('${row[0]}', 'TRADEIN')">ตรวจสอบ</button>`;
+        } else if (row[8] === 'READY' && (currentUser.role === 'Manager' || currentUser.role === 'Teller')) {
+          actions = `<button class="btn-action" onclick="confirmTransaction('${row[0]}', 'TRADEIN')">ยืนยัน</button>`;
+        }
+        
+        return `
+          <tr>
+            <td>${row[0]}</td>
+            <td>${row[1]}</td>
+            <td>${row[2]}</td>
+            <td>${row[3]}</td>
+            <td>${formatNumber(row[4])}</td>
+            <td>${formatNumber(row[5])}</td>
+            <td>${formatNumber(row[6])}</td>
+            <td>${formatDate(row[7])}</td>
+            <td><span class="status-badge status-${row[8].toLowerCase()}">${row[8]}</span></td>
+            <td>${actions}</td>
+          </tr>
+        `;
+      }).join('');
+    }
+    hideLoading();
+  } catch (error) {
+    console.error('Error loading tradeins:', error);
+    hideLoading();
+  }
+}
+
+function addExchangeOldGold() {
+  exchangeOldCounter++;
+  const html = `
+    <div class="product-row" id="exchangeOld${exchangeOldCounter}">
+      <select class="form-select">
+        <option value="">Select product...</option>
+        ${FIXED_PRODUCTS.map(p => `<option value="${p.id}">${p.name}</option>`).join('')}
+      </select>
+      <input type="number" class="form-input" placeholder="Qty" min="1" value="1">
+      <button onclick="removeExchangeOld(${exchangeOldCounter})">×</button>
+    </div>
+  `;
+  document.getElementById('exchangeOldGold').insertAdjacentHTML('beforeend', html);
+}
+
+function removeExchangeOld(id) {
+  const el = document.getElementById(`exchangeOld${id}`);
+  if (el) el.remove();
+}
+
+function addExchangeNewGold() {
+  exchangeNewCounter++;
+  const html = `
+    <div class="product-row" id="exchangeNew${exchangeNewCounter}">
+      <select class="form-select">
+        <option value="">Select product...</option>
+        ${FIXED_PRODUCTS.map(p => `<option value="${p.id}">${p.name}</option>`).join('')}
+      </select>
+      <input type="number" class="form-input" placeholder="Qty" min="1" value="1">
+      <button onclick="removeExchangeNew(${exchangeNewCounter})">×</button>
+    </div>
+  `;
+  document.getElementById('exchangeNewGold').insertAdjacentHTML('beforeend', html);
+}
+
+function removeExchangeNew(id) {
+  const el = document.getElementById(`exchangeNew${id}`);
+  if (el) el.remove();
+}
+
+function calculateExchange() {
+  const customer = document.getElementById('exchangeCustomer').value;
+  if (!customer) {
+    alert('Please enter customer name');
+    return;
+  }
+
+  const oldGold = [];
+  document.querySelectorAll('#exchangeOldGold .product-row').forEach(row => {
+    const productId = row.querySelector('select').value;
+    const qty = parseInt(row.querySelector('input').value) || 0;
+    if (productId && qty > 0) {
+      oldGold.push({ productId, qty });
+    }
+  });
+
+  const newGold = [];
+  document.querySelectorAll('#exchangeNewGold .product-row').forEach(row => {
+    const productId = row.querySelector('select').value;
+    const qty = parseInt(row.querySelector('input').value) || 0;
+    if (productId && qty > 0) {
+      newGold.push({ productId, qty });
+    }
+  });
+
+  if (oldGold.length === 0 || newGold.length === 0) {
+    alert('Please add both old and new gold');
+    return;
+  }
+
+  let exchangeFee = 0;
+  newGold.forEach(item => {
+    exchangeFee += EXCHANGE_FEES[item.productId] * item.qty;
+  });
+
+  let premium = 0;
+  newGold.forEach(item => {
+    if (PREMIUM_PRODUCTS.includes(item.productId)) {
+      premium += PREMIUM_PER_PIECE * item.qty;
+    }
+  });
+
+  currentExchangeData = {
+    customer,
+    oldGold: JSON.stringify(oldGold),
+    newGold: JSON.stringify(newGold),
+    exchangeFee,
+    premium
+  };
+
+  const oldItems = oldGold.map(i => `${FIXED_PRODUCTS.find(p => p.id === i.productId).name} (${i.qty})`).join(', ');
+  const newItems = newGold.map(i => `${FIXED_PRODUCTS.find(p => p.id === i.productId).name} (${i.qty})`).join(', ');
+
+  document.getElementById('exchangeResult').innerHTML = `
+    <div class="summary-box">
+      <div class="summary-row">
+        <span class="summary-label">Old Gold:</span>
+        <span class="summary-value">${oldItems}</span>
+      </div>
+      <div class="summary-row">
+        <span class="summary-label">New Gold:</span>
+        <span class="summary-value">${newItems}</span>
+      </div>
+      <div class="summary-row">
+        <span class="summary-label">Exchange Fee:</span>
+        <span class="summary-value">${formatNumber(exchangeFee)} LAK</span>
+      </div>
+      <div class="summary-row">
+        <span class="summary-label">Premium:</span>
+        <span class="summary-value">${formatNumber(premium)} LAK</span>
+      </div>
+      <div class="summary-row">
+        <span class="summary-label">Total to Pay:</span>
+        <span class="summary-value">${formatNumber(exchangeFee + premium)} LAK</span>
+      </div>
+    </div>
+  `;
+
+  closeModal('exchangeModal');
+  openModal('exchangeResultModal');
+}
+
+async function submitExchange() {
+  if (!currentExchangeData) return;
+
+  try {
+    showLoading();
+    const result = await callAppsScript('ADD_EXCHANGE', currentExchangeData);
+
+    if (result.success) {
+      alert('✅ Exchange created successfully!');
+      closeModal('exchangeResultModal');
+      currentExchangeData = null;
+      loadExchanges();
+      loadDashboard();
+    } else {
+      alert('❌ Error: ' + result.message);
+    }
+    hideLoading();
+  } catch (error) {
+    alert('❌ Error: ' + error.message);
+    hideLoading();
+  }
+}
+
+async function loadExchanges() {
+  try {
+    showLoading();
+    const data = await fetchSheetData('Exchanges!A:J');
+    const tbody = document.getElementById('exchangeTable');
+    
+    if (data.length <= 1) {
+      tbody.innerHTML = '<tr><td colspan="9" style="text-align: center; padding: 40px;">No records</td></tr>';
+    } else {
+      tbody.innerHTML = data.slice(1).map(row => {
+        let actions = '';
+        if (row[7] === 'PENDING' && currentUser.role === 'Manager') {
+          actions = `<button class="btn-action" onclick="reviewTransaction('${row[0]}', 'EXCHANGE')">ตรวจสอบ</button>`;
+        } else if (row[7] === 'READY' && (currentUser.role === 'Manager' || currentUser.role === 'Teller')) {
+          actions = `<button class="btn-action" onclick="confirmTransaction('${row[0]}', 'EXCHANGE')">ยืนยัน</button>`;
+        }
+        
+        return `
+          <tr>
+            <td>${row[0]}</td>
+            <td>${row[1]}</td>
+            <td>${row[2]}</td>
+            <td>${row[3]}</td>
+            <td>${formatNumber(row[4])}</td>
+            <td>${formatNumber(row[5])}</td>
+            <td>${formatDate(row[6])}</td>
+            <td><span class="status-badge status-${row[7].toLowerCase()}">${row[7]}</span></td>
+            <td>${actions}</td>
+          </tr>
+        `;
+      }).join('');
+    }
+    hideLoading();
+  } catch (error) {
+    console.error('Error loading exchanges:', error);
+    hideLoading();
+  }
+}
+
+function addBuybackProduct() {
+  buybackProductCounter++;
+  const html = `
+    <div class="product-row" id="buybackProduct${buybackProductCounter}">
+      <select class="form-select" onchange="calculateBuybackTotal()">
+        <option value="">Select product...</option>
+        ${FIXED_PRODUCTS.map(p => `<option value="${p.id}">${p.name}</option>`).join('')}
+      </select>
+      <input type="number" class="form-input" placeholder="Qty" min="1" value="1" onchange="calculateBuybackTotal()">
+      <button onclick="removeBuybackProduct(${buybackProductCounter})">×</button>
+    </div>
+  `;
+  document.getElementById('buybackProducts').insertAdjacentHTML('beforeend', html);
+  calculateBuybackTotal();
+}
+
+function removeBuybackProduct(id) {
+  const el = document.getElementById(`buybackProduct${id}`);
+  if (el) el.remove();
+  calculateBuybackTotal();
+}
+
+function calculateBuybackTotal() {
+  let total = 0;
+  const products = document.querySelectorAll('#buybackProducts .product-row');
+  products.forEach(row => {
+    const productId = row.querySelector('select').value;
+    const qty = parseInt(row.querySelector('input').value) || 0;
+    if (productId && qty > 0) {
+      const price = calculateBuybackPrice(productId, currentPricing.sell1Baht);
+      total += price * qty;
+    }
+  });
+  document.getElementById('buybackPrice').value = total;
+}
+
+async function submitBuyback() {
+  const customer = document.getElementById('buybackCustomer').value;
+  const total = parseFloat(document.getElementById('buybackPrice').value);
+  
+  const products = [];
+  document.querySelectorAll('#buybackProducts .product-row').forEach(row => {
+    const productId = row.querySelector('select').value;
+    const qty = parseInt(row.querySelector('input').value) || 0;
+    if (productId && qty > 0) {
+      products.push({ productId, qty });
+    }
+  });
+
+  if (!customer || products.length === 0 || !total) {
+    alert('Please fill all fields');
+    return;
+  }
+
+  try {
+    showLoading();
+    const result = await callAppsScript('ADD_BUYBACK', {
+      customer,
+      items: JSON.stringify(products),
+      total
+    });
+
+    if (result.success) {
+      alert('✅ Buyback created successfully!');
+      closeModal('buybackModal');
+      loadBuybacks();
+      loadDashboard();
+    } else {
+      alert('❌ Error: ' + result.message);
+    }
+    hideLoading();
+  } catch (error) {
+    alert('❌ Error: ' + error.message);
+    hideLoading();
+  }
+}
+
+async function loadBuybacks() {
+  try {
+    showLoading();
+    const data = await fetchSheetData('Buybacks!A:G');
+    const tbody = document.getElementById('buybackTable');
+    
+    if (data.length <= 1) {
+      tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 40px;">No records</td></tr>';
+    } else {
+      tbody.innerHTML = data.slice(1).map(row => {
+        let actions = '';
+        if (row[5] === 'PENDING' && currentUser.role === 'Manager') {
+          actions = `<button class="btn-action" onclick="reviewTransaction('${row[0]}', 'BUYBACK')">ตรวจสอบ</button>`;
+        }
+        
+        return `
+          <tr>
+            <td>${row[0]}</td>
+            <td>${row[1]}</td>
+            <td>${row[2]}</td>
+            <td>${formatNumber(row[3])}</td>
+            <td>${formatDate(row[4])}</td>
+            <td><span class="status-badge status-${row[5].toLowerCase()}">${row[5]}</span></td>
+            <td>${actions}</td>
+          </tr>
+        `;
+      }).join('');
+    }
+    hideLoading();
+  } catch (error) {
+    console.error('Error loading buybacks:', error);
+    hideLoading();
+  }
+}
+
+function reviewTransaction(id, type) {
+  currentApprovalItem = { id, type };
+  document.getElementById('approvalDetails').innerHTML = `<p>รหัสรายการ: ${id}</p><p>ประเภท: ${type}</p>`;
   openModal('approvalModal');
 }
 
@@ -397,8 +1015,10 @@ async function approveItem() {
     if (result.success) {
       alert('✅ Approved successfully!');
       closeModal('approvalModal');
-      if (currentApprovalItem.type === 'SALE') loadSales();
-      else if (currentApprovalItem.type === 'BUYBACK') loadBuyback();
+      if (currentApprovalItem.type === 'SELL') loadSells();
+      else if (currentApprovalItem.type === 'TRADEIN') loadTradeins();
+      else if (currentApprovalItem.type === 'BUYBACK') loadBuybacks();
+      else if (currentApprovalItem.type === 'EXCHANGE') loadExchanges();
       else if (currentApprovalItem.type === 'WITHDRAW') loadInventory();
     } else {
       alert('❌ Error: ' + result.message);
@@ -428,8 +1048,10 @@ async function rejectItem() {
     if (result.success) {
       alert('✅ Rejected successfully!');
       closeModal('approvalModal');
-      if (currentApprovalItem.type === 'SALE') loadSales();
-      else if (currentApprovalItem.type === 'BUYBACK') loadBuyback();
+      if (currentApprovalItem.type === 'SELL') loadSells();
+      else if (currentApprovalItem.type === 'TRADEIN') loadTradeins();
+      else if (currentApprovalItem.type === 'BUYBACK') loadBuybacks();
+      else if (currentApprovalItem.type === 'EXCHANGE') loadExchanges();
       else if (currentApprovalItem.type === 'WITHDRAW') loadInventory();
     } else {
       alert('❌ Error: ' + result.message);
@@ -441,16 +1063,18 @@ async function rejectItem() {
   }
 }
 
-async function confirmSale(id) {
-  if (!confirm('Confirm this sale?')) return;
+async function confirmTransaction(id, type) {
+  if (!confirm('Confirm this transaction?')) return;
   
   try {
     showLoading();
-    const result = await callAppsScript('CONFIRM_SALE', { id });
+    const result = await callAppsScript('CONFIRM_TRANSACTION', { id, type });
 
     if (result.success) {
-      alert('✅ Sale confirmed!');
-      loadSales();
+      alert('✅ Transaction confirmed!');
+      if (type === 'SELL') loadSells();
+      else if (type === 'TRADEIN') loadTradeins();
+      else if (type === 'EXCHANGE') loadExchanges();
       loadDashboard();
       loadProducts();
     } else {
@@ -461,83 +1085,6 @@ async function confirmSale(id) {
     alert('❌ Error: ' + error.message);
     hideLoading();
   }
-}
-
-async function loadBuyback() {
-  try {
-    showLoading();
-    const data = await fetchSheetData('Buyback!A:H');
-    const tbody = document.getElementById('buybackTable');
-    
-    if (data.length <= 1) {
-      tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 40px;">No buyback records</td></tr>';
-    } else {
-      tbody.innerHTML = data.slice(1).map(row => {
-        let actions = '';
-        if (row[6] === 'PENDING' && currentUser.role === 'Manager') {
-          actions = `<button class="btn-action" onclick="reviewBuyback('${row[0]}')">ตรวจสอบ</button>`;
-        }
-        
-        return `
-          <tr>
-            <td>${row[0]}</td>
-            <td>${row[1]}</td>
-            <td>${row[2]}</td>
-            <td>${row[3]}</td>
-            <td>${formatNumber(row[4])}</td>
-            <td>${formatDate(row[5])}</td>
-            <td><span class="status-badge status-${row[6].toLowerCase()}">${row[6]}</span></td>
-            <td>${actions}</td>
-          </tr>
-        `;
-      }).join('');
-    }
-    hideLoading();
-  } catch (error) {
-    console.error('Error loading buyback:', error);
-    hideLoading();
-  }
-}
-
-async function addBuyback() {
-  const customer = document.getElementById('buybackCustomer').value;
-  const product = document.getElementById('buybackProduct').value;
-  const amount = document.getElementById('buybackAmount').value;
-  const price = document.getElementById('buybackPrice').value;
-
-  if (!customer || !product || !amount || !price) {
-    alert('Please fill all fields');
-    return;
-  }
-
-  try {
-    showLoading();
-    const result = await callAppsScript('ADD_BUYBACK', {
-      customer, product, amount, price
-    });
-
-    if (result.success) {
-      alert('✅ Buyback created successfully!');
-      closeModal('buybackModal');
-      document.getElementById('buybackCustomer').value = '';
-      document.getElementById('buybackAmount').value = '';
-      document.getElementById('buybackPrice').value = '';
-      loadBuyback();
-      loadDashboard();
-    } else {
-      alert('❌ Error: ' + result.message);
-    }
-    hideLoading();
-  } catch (error) {
-    alert('❌ Error: ' + error.message);
-    hideLoading();
-  }
-}
-
-function reviewBuyback(id) {
-  currentApprovalItem = { id, type: 'BUYBACK' };
-  document.getElementById('approvalDetails').innerHTML = `<p>รหัสรายการ: ${id}</p><p>ประเภท: Buyback</p>`;
-  openModal('approvalModal');
 }
 
 async function loadInventory() {
@@ -552,7 +1099,7 @@ async function loadInventory() {
       tbody.innerHTML = data.slice(1).map(row => {
         let actions = '';
         if (row[6] === 'PENDING' && row[2] === 'WITHDRAW' && currentUser.role === 'Manager') {
-          actions = `<button class="btn-action" onclick="reviewWithdraw('${row[0]}')">ตรวจสอบ</button>`;
+          actions = `<button class="btn-action" onclick="reviewTransaction('${row[0]}', 'WITHDRAW')">ตรวจสอบ</button>`;
         }
         
         return `
@@ -587,9 +1134,7 @@ async function addWithdraw() {
 
   try {
     showLoading();
-    const result = await callAppsScript('ADD_WITHDRAW', {
-      product, quantity
-    });
+    const result = await callAppsScript('ADD_WITHDRAW', { product, quantity });
 
     if (result.success) {
       alert('✅ Withdraw request created!');
@@ -606,12 +1151,6 @@ async function addWithdraw() {
   }
 }
 
-function reviewWithdraw(id) {
-  currentApprovalItem = { id, type: 'WITHDRAW' };
-  document.getElementById('approvalDetails').innerHTML = `<p>รหัสรายการ: ${id}</p><p>ประเภท: Withdraw</p>`;
-  openModal('approvalModal');
-}
-
 async function addStockIn() {
   const product = document.getElementById('stockInProduct').value;
   const quantity = document.getElementById('stockInQuantity').value;
@@ -624,9 +1163,7 @@ async function addStockIn() {
 
   try {
     showLoading();
-    const result = await callAppsScript('ADD_STOCK_IN', {
-      product, quantity, cost
-    });
+    const result = await callAppsScript('ADD_STOCK_IN', { product, quantity, cost });
 
     if (result.success) {
       alert('✅ Stock added successfully!');
@@ -656,9 +1193,7 @@ async function addStockOut() {
 
   try {
     showLoading();
-    const result = await callAppsScript('ADD_STOCK_OUT', {
-      product, quantity
-    });
+    const result = await callAppsScript('ADD_STOCK_OUT', { product, quantity });
 
     if (result.success) {
       alert('✅ Stock out recorded!');
@@ -679,17 +1214,18 @@ async function addStockOut() {
 async function loadReports() {
   try {
     showLoading();
-    const [salesData, buybackData] = await Promise.all([
-      fetchSheetData('Sales!A:H'),
-      fetchSheetData('Buyback!A:H')
+    const [sellData, tradeinData, buybackData] = await Promise.all([
+      fetchSheetData('Sells!A:I'),
+      fetchSheetData('Tradeins!A:K'),
+      fetchSheetData('Buybacks!A:G')
     ]);
 
     let gp = 0;
-    salesData.slice(1).forEach(row => {
-      if (row[6] === 'COMPLETED') gp += parseFloat(row[4]) || 0;
+    sellData.slice(1).forEach(row => {
+      if (row[7] === 'COMPLETED') gp += parseFloat(row[3]) || 0;
     });
     buybackData.slice(1).forEach(row => {
-      if (row[6] === 'COMPLETED') gp -= parseFloat(row[4]) || 0;
+      if (row[5] === 'COMPLETED') gp -= parseFloat(row[3]) || 0;
     });
 
     document.getElementById('reportContent').innerHTML = `
