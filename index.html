@@ -7,7 +7,10 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600;700&family=Montserrat:wght@200;300;400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css">
+  <script>
+    const cacheBuster = localStorage.getItem('cacheBuster') || Date.now();
+    document.write(`<link rel="stylesheet" href="style.css?v=${cacheBuster}">`);
+  </script>
 </head>
 <body>
   <div class="luxury-bg"></div>
@@ -581,6 +584,11 @@
     </div>
   </div>
 
-  <script src="app.js"></script>
+  <script>
+    const cacheBuster = localStorage.getItem('cacheBuster') || Date.now();
+    const script = document.createElement('script');
+    script.src = `app.js?v=${cacheBuster}`;
+    document.body.appendChild(script);
+  </script>
 </body>
 </html>
