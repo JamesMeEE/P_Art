@@ -126,9 +126,13 @@
     </section>
 
     <section id="products" class="section">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
         <h2 style="font-family: 'Cormorant Garamond', serif; font-size: 36px; color: var(--gold-primary);">Product Pricing</h2>
         <button class="btn-primary manager-only" onclick="openModal('pricingModal')" id="setPricingBtn">Set Pricing</button>
+      </div>
+      <div style="background: rgba(212, 175, 55, 0.1); border: 1px solid var(--gold-primary); border-radius: 12px; padding: 15px 20px; margin-bottom: 30px;">
+        <span style="color: var(--text-secondary); font-size: 14px;">Current Base Price (SELL 1 BAHT):</span>
+        <span id="currentPriceDisplay" style="color: var(--gold-primary); font-weight: 600; font-size: 18px; margin-left: 15px;">0 LAK</span>
       </div>
       <div class="table-container">
         <table>
@@ -412,6 +416,7 @@
       <div id="tradeinResult"></div>
       <div class="modal-footer">
         <button class="btn-secondary" onclick="closeModal('tradeinResultModal')">Cancel</button>
+        <button class="btn-secondary" onclick="backToTradein()">Back</button>
         <button class="btn-primary" onclick="submitTradein()">Confirm</button>
       </div>
     </div>
@@ -451,6 +456,7 @@
       <div id="exchangeResult"></div>
       <div class="modal-footer">
         <button class="btn-secondary" onclick="closeModal('exchangeResultModal')">Cancel</button>
+        <button class="btn-secondary" onclick="backToExchange()">Back</button>
         <button class="btn-primary" onclick="submitExchange()">Confirm</button>
       </div>
     </div>
