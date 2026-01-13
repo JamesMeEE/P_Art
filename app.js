@@ -1360,8 +1360,23 @@ function formatDateOnly(dateInput) {
   if (!dateInput) return '-';
   
   let d;
+  
   if (typeof dateInput === 'string') {
-    d = new Date(dateInput);
+    if (dateInput.includes('/') && dateInput.includes(':')) {
+      const parts = dateInput.split(' ')[0].split('/');
+      const month = parts[0];
+      const day = parts[1];
+      const year = parts[2];
+      d = new Date(`${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`);
+    } else if (dateInput.includes('/')) {
+      const parts = dateInput.split('/');
+      const month = parts[0];
+      const day = parts[1];
+      const year = parts[2];
+      d = new Date(`${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`);
+    } else {
+      d = new Date(dateInput);
+    }
   } else if (typeof dateInput === 'number') {
     d = new Date((dateInput - 25569) * 86400 * 1000);
   } else if (dateInput instanceof Date) {
@@ -1382,8 +1397,24 @@ function formatDateTime(dateInput) {
   if (!dateInput) return '-';
   
   let d;
+  
   if (typeof dateInput === 'string') {
-    d = new Date(dateInput);
+    if (dateInput.includes('/') && dateInput.includes(':')) {
+      const [datePart, timePart] = dateInput.split(' ');
+      const dateParts = datePart.split('/');
+      const month = dateParts[0];
+      const day = dateParts[1];
+      const year = dateParts[2];
+      d = new Date(`${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}T${timePart}`);
+    } else if (dateInput.includes('/')) {
+      const parts = dateInput.split('/');
+      const month = parts[0];
+      const day = parts[1];
+      const year = parts[2];
+      d = new Date(`${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`);
+    } else {
+      d = new Date(dateInput);
+    }
   } else if (typeof dateInput === 'number') {
     d = new Date((dateInput - 25569) * 86400 * 1000);
   } else if (dateInput instanceof Date) {
