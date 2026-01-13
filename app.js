@@ -187,6 +187,12 @@ function logout() {
   document.getElementById('loginUsername').value = '';
   document.getElementById('loginPassword').value = '';
   document.body.className = '';
+  
+  localStorage.setItem('cacheBuster', Date.now());
+  
+  setTimeout(() => {
+    window.location.reload();
+  }, 100);
 }
 
 function showLoading() {
