@@ -543,15 +543,19 @@ tbody tr:hover {
 }
 
 .manager-only {
-  display: none !important;
+  display: none;
 }
 
-.role-manager .manager-only {
-  display: table-cell !important;
+body.role-m .manager-only {
+  display: block;
 }
 
-.role-manager button.manager-only {
-  display: inline-block !important;
+body.role-m td.manager-only {
+  display: table-cell;
+}
+
+body.role-m button.manager-only {
+  display: inline-block;
 }
 
 .accountant-readonly .btn-primary,
