@@ -1359,78 +1359,82 @@ function formatNumber(num) {
 function formatDateOnly(dateInput) {
   if (!dateInput) return '-';
   
-  let d;
-  
-  if (typeof dateInput === 'string') {
-    if (dateInput.includes('/') && dateInput.includes(':')) {
+  try {
+    let d;
+    
+    if (typeof dateInput === 'string') {
       const parts = dateInput.split(' ')[0].split('/');
-      const month = parts[0];
-      const day = parts[1];
-      const year = parts[2];
-      d = new Date(`${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`);
-    } else if (dateInput.includes('/')) {
-      const parts = dateInput.split('/');
-      const month = parts[0];
-      const day = parts[1];
-      const year = parts[2];
-      d = new Date(`${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`);
+      if (parts.length === 3) {
+        const month = parseInt(parts[0]);
+        const day = parseInt(parts[1]);
+        const year = parseInt(parts[2]);
+        d = new Date(year, month - 1, day);
+      } else {
+        d = new Date(dateInput);
+      }
+    } else if (typeof dateInput === 'number') {
+      d = new Date((dateInput - 25569) * 86400 * 1000);
+    } else if (dateInput instanceof Date) {
+      d = dateInput;
     } else {
-      d = new Date(dateInput);
+      return '-';
     }
-  } else if (typeof dateInput === 'number') {
-    d = new Date((dateInput - 25569) * 86400 * 1000);
-  } else if (dateInput instanceof Date) {
-    d = dateInput;
-  } else {
+    
+    if (isNaN(d.getTime())) return '-';
+    
+    const day = String(d.getDate()).padStart(2, '0');
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const year = d.getFullYear();
+    return `${day}/${month}/${year}`;
+  } catch (error) {
+    console.error('formatDateOnly error:', error, dateInput);
     return '-';
   }
-  
-  if (isNaN(d.getTime())) return '-';
-  
-  const day = String(d.getDate()).padStart(2, '0');
-  const month = String(d.getMonth() + 1).padStart(2, '0');
-  const year = d.getFullYear();
-  return `${day}/${month}/${year}`;
 }
 
 function formatDateTime(dateInput) {
   if (!dateInput) return '-';
   
-  let d;
-  
-  if (typeof dateInput === 'string') {
-    if (dateInput.includes('/') && dateInput.includes(':')) {
-      const [datePart, timePart] = dateInput.split(' ');
-      const dateParts = datePart.split('/');
-      const month = dateParts[0];
-      const day = dateParts[1];
-      const year = dateParts[2];
-      d = new Date(`${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}T${timePart}`);
-    } else if (dateInput.includes('/')) {
-      const parts = dateInput.split('/');
-      const month = parts[0];
-      const day = parts[1];
-      const year = parts[2];
-      d = new Date(`${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`);
+  try {
+    let d;
+    
+    if (typeof dateInput === 'string') {
+      if (dateInput.includes('/') && dateInput.includes(':')) {
+        const [datePart, timePart] = dateInput.split(' ');
+        const dateParts = datePart.split('/');
+        const timeParts = timePart.split(':');
+        
+        const month = parseInt(dateParts[0]);
+        const day = parseInt(dateParts[1]);
+        const year = parseInt(dateParts[2]);
+        const hour = parseInt(timeParts[0]);
+        const minute = parseInt(timeParts[1]);
+        const second = timeParts[2] ? parseInt(timeParts[2]) : 0;
+        
+        d = new Date(year, month - 1, day, hour, minute, second);
+      } else {
+        d = new Date(dateInput);
+      }
+    } else if (typeof dateInput === 'number') {
+      d = new Date((dateInput - 25569) * 86400 * 1000);
+    } else if (dateInput instanceof Date) {
+      d = dateInput;
     } else {
-      d = new Date(dateInput);
+      return '-';
     }
-  } else if (typeof dateInput === 'number') {
-    d = new Date((dateInput - 25569) * 86400 * 1000);
-  } else if (dateInput instanceof Date) {
-    d = dateInput;
-  } else {
+    
+    if (isNaN(d.getTime())) return '-';
+    
+    const day = String(d.getDate()).padStart(2, '0');
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const year = d.getFullYear();
+    const hour = String(d.getHours()).padStart(2, '0');
+    const minute = String(d.getMinutes()).padStart(2, '0');
+    return `${day}/${month}/${year} ${hour}:${minute}`;
+  } catch (error) {
+    console.error('formatDateTime error:', error, dateInput);
     return '-';
   }
-  
-  if (isNaN(d.getTime())) return '-';
-  
-  const day = String(d.getDate()).padStart(2, '0');
-  const month = String(d.getMonth() + 1).padStart(2, '0');
-  const year = d.getFullYear();
-  const hour = String(d.getHours()).padStart(2, '0');
-  const minute = String(d.getMinutes()).padStart(2, '0');
-  return `${day}/${month}/${year} ${hour}:${minute}`;
 }
 
 document.querySelectorAll('.modal').forEach(modal => {
