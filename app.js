@@ -78,6 +78,19 @@ function calculateBuybackPrice(productId, sell1Baht) {
   return roundTo1000(price);
 }
 
+function formatItemsForDisplay(items) {
+  const parsed = JSON.parse(items);
+  return parsed.map(item => {
+    const product = FIXED_PRODUCTS.find(p => p.id === item.productId);
+    return `${product.name}: ${item.qty} unit`;
+  }).join('\n');
+}
+
+function formatItemsForTable(items) {
+  const lines = formatItemsForDisplay(items).split('\n');
+  return lines.join('<br>');
+}
+
 async function fetchExchangeRates() {
   try {
     const response = await fetch(CONFIG.EXCHANGE_API);
@@ -204,6 +217,16 @@ function closeModal(modalId) {
   document.getElementById(modalId).classList.remove('active');
 }
 
+function backToTradein() {
+  closeModal('tradeinResultModal');
+  openModal('tradeinModal');
+}
+
+function backToExchange() {
+  closeModal('exchangeResultModal');
+  openModal('exchangeModal');
+}
+
 async function fetchSheetData(range) {
   try {
     const url = `https://sheets.googleapis.com/v4/spreadsheets/${CONFIG.SHEET_ID}/values/${range}?key=${CONFIG.API_KEY}`;
@@ -296,6 +319,8 @@ async function loadProducts() {
     if (pricingData.length > 1) {
       currentPricing.sell1Baht = parseFloat(pricingData[1][0]) || 0;
     }
+    
+    document.getElementById('currentPriceDisplay').textContent = formatNumber(currentPricing.sell1Baht) + ' LAK';
     
     const stockMap = {};
     stockData.slice(1).forEach(row => {
@@ -472,11 +497,11 @@ async function loadSells() {
           <tr>
             <td>${row[0]}</td>
             <td>${row[1]}</td>
-            <td>${row[2]}</td>
+            <td>${formatItemsForTable(row[2])}</td>
             <td>${formatNumber(row[3])}</td>
             <td>${row[4]}</td>
             <td>${row[5]}</td>
-            <td>${formatDate(row[6])}</td>
+            <td>${formatDateOnly(row[6])}</td>
             <td><span class="status-badge status-${row[7].toLowerCase()}">${row[7]}</span></td>
             <td>${actions}</td>
           </tr>
@@ -681,12 +706,12 @@ async function loadTradeins() {
           <tr>
             <td>${row[0]}</td>
             <td>${row[1]}</td>
-            <td>${row[2]}</td>
-            <td>${row[3]}</td>
+            <td>${formatItemsForTable(row[2])}</td>
+            <td>${formatItemsForTable(row[3])}</td>
             <td>${formatNumber(row[4])}</td>
             <td>${formatNumber(row[5])}</td>
             <td>${formatNumber(row[6])}</td>
-            <td>${formatDate(row[7])}</td>
+            <td>${formatDateOnly(row[7])}</td>
             <td><span class="status-badge status-${row[8].toLowerCase()}">${row[8]}</span></td>
             <td>${actions}</td>
           </tr>
@@ -866,11 +891,11 @@ async function loadExchanges() {
           <tr>
             <td>${row[0]}</td>
             <td>${row[1]}</td>
-            <td>${row[2]}</td>
-            <td>${row[3]}</td>
+            <td>${formatItemsForTable(row[2])}</td>
+            <td>${formatItemsForTable(row[3])}</td>
             <td>${formatNumber(row[4])}</td>
             <td>${formatNumber(row[5])}</td>
-            <td>${formatDate(row[6])}</td>
+            <td>${formatDateOnly(row[6])}</td>
             <td><span class="status-badge status-${row[7].toLowerCase()}">${row[7]}</span></td>
             <td>${actions}</td>
           </tr>
@@ -980,9 +1005,9 @@ async function loadBuybacks() {
           <tr>
             <td>${row[0]}</td>
             <td>${row[1]}</td>
-            <td>${row[2]}</td>
+            <td>${formatItemsForTable(row[2])}</td>
             <td>${formatNumber(row[3])}</td>
-            <td>${formatDate(row[4])}</td>
+            <td>${formatDateOnly(row[4])}</td>
             <td><span class="status-badge status-${row[5].toLowerCase()}">${row[5]}</span></td>
             <td>${actions}</td>
           </tr>
@@ -1109,7 +1134,7 @@ async function loadInventory() {
             <td>${row[2]}</td>
             <td>${row[3]}</td>
             <td>${row[4] ? formatNumber(row[4]) : '-'}</td>
-            <td>${formatDate(row[5])}</td>
+            <td>${formatDateOnly(row[5])}</td>
             <td><span class="status-badge status-${row[6].toLowerCase()}">${row[6]}</span></td>
             <td>${actions}</td>
           </tr>
@@ -1258,9 +1283,24 @@ function formatNumber(num) {
   }).format(num);
 }
 
-function formatDate(date) {
+function formatDateOnly(date) {
   if (!date) return '-';
-  return new Date(date).toLocaleString('en-US');
+  const d = new Date(date);
+  const day = String(d.getDate()).padStart(2, '0');
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const year = d.getFullYear();
+  return `${day}/${month}/${year}`;
+}
+
+function formatDateTime(date) {
+  if (!date) return '-';
+  const d = new Date(date);
+  const day = String(d.getDate()).padStart(2, '0');
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const year = d.getFullYear();
+  const hour = String(d.getHours()).padStart(2, '0');
+  const minute = String(d.getMinutes()).padStart(2, '0');
+  return `${day}/${month}/${year} ${hour}:${minute}`;
 }
 
 document.querySelectorAll('.modal').forEach(modal => {
