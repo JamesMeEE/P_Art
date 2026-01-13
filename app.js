@@ -24,9 +24,9 @@ const PREMIUM_PRODUCTS = ['G05', 'G06', 'G07'];
 const PREMIUM_PER_PIECE = 120000;
 
 const USERS = {
-  manager: { password: 'manager123', role: 'Manager' },
-  teller: { password: 'teller123', role: 'Teller' },
-  accountant: { password: 'accountant123', role: 'Accountant' }
+  m: { password: 'm', role: 'Manager' },
+  t: { password: 't', role: 'Teller' },
+  a: { password: 'a', role: 'Accountant' }
 };
 
 let currentUser = null;
@@ -79,7 +79,17 @@ function calculateBuybackPrice(productId, sell1Baht) {
 }
 
 function formatItemsForDisplay(items) {
-  const parsed = JSON.parse(items);
+  let parsed;
+  if (typeof items === 'string') {
+    try {
+      parsed = JSON.parse(items);
+    } catch (e) {
+      return items;
+    }
+  } else {
+    parsed = items;
+  }
+  
   return parsed.map(item => {
     const product = FIXED_PRODUCTS.find(p => p.id === item.productId);
     return `${product.name}: ${item.qty} unit`;
@@ -89,6 +99,42 @@ function formatItemsForDisplay(items) {
 function formatItemsForTable(items) {
   const lines = formatItemsForDisplay(items).split('\n');
   return lines.join('<br>');
+}
+
+async function checkStock(productId, requiredQty) {
+  try {
+    const stockData = await fetchSheetData('Stock!A:E');
+    let currentStock = 0;
+    
+    stockData.slice(1).forEach(row => {
+      if (row[0] === productId) {
+        currentStock += parseInt(row[3]) || 0;
+      }
+    });
+    
+    return currentStock >= requiredQty;
+  } catch (error) {
+    console.error('Error checking stock:', error);
+    return false;
+  }
+}
+
+async function getCurrentStock(productId) {
+  try {
+    const stockData = await fetchSheetData('Stock!A:E');
+    let currentStock = 0;
+    
+    stockData.slice(1).forEach(row => {
+      if (row[0] === productId) {
+        currentStock += parseInt(row[3]) || 0;
+      }
+    });
+    
+    return currentStock;
+  } catch (error) {
+    console.error('Error getting stock:', error);
+    return 0;
+  }
 }
 
 async function fetchExchangeRates() {
@@ -314,7 +360,7 @@ async function loadProducts() {
   try {
     showLoading();
     const pricingData = await fetchSheetData('Pricing!A:B');
-    const stockData = await fetchSheetData('Stock!A:B');
+    const stockData = await fetchSheetData('Stock!A:E');
     
     if (pricingData.length > 1) {
       currentPricing.sell1Baht = parseFloat(pricingData[1][0]) || 0;
@@ -324,7 +370,10 @@ async function loadProducts() {
     
     const stockMap = {};
     stockData.slice(1).forEach(row => {
-      stockMap[row[0]] = parseInt(row[1]) || 0;
+      const productId = row[0];
+      const qty = parseInt(row[3]) || 0;
+      if (!stockMap[productId]) stockMap[productId] = 0;
+      stockMap[productId] += qty;
     });
     
     const tbody = document.getElementById('productsTable');
@@ -447,6 +496,19 @@ async function submitSell() {
     alert('Please fill all fields');
     return;
   }
+
+  showLoading();
+  for (const product of products) {
+    const hasStock = await checkStock(product.productId, product.qty);
+    if (!hasStock) {
+      const currentStock = await getCurrentStock(product.productId);
+      const productName = FIXED_PRODUCTS.find(p => p.id === product.productId).name;
+      hideLoading();
+      alert(`❌ Insufficient stock for ${productName}!\nRequired: ${product.qty}, Available: ${currentStock}`);
+      return;
+    }
+  }
+  hideLoading();
 
   try {
     showLoading();
@@ -1150,12 +1212,23 @@ async function loadInventory() {
 
 async function addWithdraw() {
   const product = document.getElementById('withdrawProduct').value;
-  const quantity = document.getElementById('withdrawQuantity').value;
+  const quantity = parseInt(document.getElementById('withdrawQuantity').value);
 
   if (!product || !quantity) {
     alert('Please fill all fields');
     return;
   }
+
+  showLoading();
+  const hasStock = await checkStock(product, quantity);
+  if (!hasStock) {
+    const currentStock = await getCurrentStock(product);
+    const productName = FIXED_PRODUCTS.find(p => p.id === product).name;
+    hideLoading();
+    alert(`❌ Insufficient stock for ${productName}!\nRequired: ${quantity}, Available: ${currentStock}`);
+    return;
+  }
+  hideLoading();
 
   try {
     showLoading();
