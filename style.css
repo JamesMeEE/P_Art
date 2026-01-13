@@ -311,9 +311,9 @@ header {
 }
 
 .stat-value {
-  font-family: 'Cormorant Garamond', serif;
+  font-family: 'Montserrat', sans-serif;
   font-size: 36px;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--gold-primary);
   margin-bottom: 5px;
 }
