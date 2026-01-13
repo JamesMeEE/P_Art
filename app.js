@@ -1365,8 +1365,8 @@ function formatDateOnly(dateInput) {
     if (typeof dateInput === 'string') {
       const parts = dateInput.split(' ')[0].split('/');
       if (parts.length === 3) {
-        const month = parseInt(parts[0]);
-        const day = parseInt(parts[1]);
+        const day = parseInt(parts[0]);
+        const month = parseInt(parts[1]);
         const year = parseInt(parts[2]);
         d = new Date(year, month - 1, day);
       } else {
@@ -1404,8 +1404,8 @@ function formatDateTime(dateInput) {
         const dateParts = datePart.split('/');
         const timeParts = timePart.split(':');
         
-        const month = parseInt(dateParts[0]);
-        const day = parseInt(dateParts[1]);
+        const day = parseInt(dateParts[0]);
+        const month = parseInt(dateParts[1]);
         const year = parseInt(dateParts[2]);
         const hour = parseInt(timeParts[0]);
         const minute = parseInt(timeParts[1]);
