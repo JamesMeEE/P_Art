@@ -1356,18 +1356,44 @@ function formatNumber(num) {
   }).format(num);
 }
 
-function formatDateOnly(date) {
-  if (!date) return '-';
-  const d = new Date(date);
+function formatDateOnly(dateInput) {
+  if (!dateInput) return '-';
+  
+  let d;
+  if (typeof dateInput === 'string') {
+    d = new Date(dateInput);
+  } else if (typeof dateInput === 'number') {
+    d = new Date((dateInput - 25569) * 86400 * 1000);
+  } else if (dateInput instanceof Date) {
+    d = dateInput;
+  } else {
+    return '-';
+  }
+  
+  if (isNaN(d.getTime())) return '-';
+  
   const day = String(d.getDate()).padStart(2, '0');
   const month = String(d.getMonth() + 1).padStart(2, '0');
   const year = d.getFullYear();
   return `${day}/${month}/${year}`;
 }
 
-function formatDateTime(date) {
-  if (!date) return '-';
-  const d = new Date(date);
+function formatDateTime(dateInput) {
+  if (!dateInput) return '-';
+  
+  let d;
+  if (typeof dateInput === 'string') {
+    d = new Date(dateInput);
+  } else if (typeof dateInput === 'number') {
+    d = new Date((dateInput - 25569) * 86400 * 1000);
+  } else if (dateInput instanceof Date) {
+    d = dateInput;
+  } else {
+    return '-';
+  }
+  
+  if (isNaN(d.getTime())) return '-';
+  
   const day = String(d.getDate()).padStart(2, '0');
   const month = String(d.getMonth() + 1).padStart(2, '0');
   const year = d.getFullYear();
