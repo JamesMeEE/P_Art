@@ -78,43 +78,88 @@
       <button class="nav-btn" onclick="showSection('buyback')">◑ Buyback</button>
       <button class="nav-btn" onclick="showSection('exchange')">◍ Exchange</button>
       <button class="nav-btn" onclick="showSection('inventory')">◒ Inventory</button>
-      <button class="nav-btn" onclick="showSection('reconciliation')">◓ Reconciliation</button>
-      <button class="nav-btn" onclick="showSection('reports')">◕ Reports</button>
+      <button class="nav-btn" onclick="showSection('cashbank')">◔ Cash/Bank</button>
+      <button class="nav-btn" onclick="showSection('accounting')">◕ Accounting</button>
+      <button class="nav-btn" onclick="showSection('reports')">◖ Reports</button>
     </nav>
 
     <section id="dashboard" class="section active">
+      <div style="margin-bottom: 20px;">
+        <h2 style="font-family: 'Cormorant Garamond', serif; font-size: 36px; color: var(--gold-primary);">Dashboard</h2>
+        <p style="color: var(--text-secondary); margin-top: 5px;">Daily Report: <span id="dashboardDate"></span></p>
+      </div>
       <div class="dashboard-stats">
         <div class="stat-card">
           <div class="card-header">
-            <div class="card-title">Gross Profit (GP)</div>
+            <div class="card-title">Sell</div>
             <div class="card-icon">◈</div>
           </div>
-          <div class="stat-value" id="grossProfit">0</div>
-          <div class="stat-label">LAK</div>
+          <div class="stat-value" id="dashSell">0</div>
+          <div class="stat-label">Transactions</div>
         </div>
         <div class="stat-card">
           <div class="card-header">
-            <div class="card-title">FX Gain/Loss</div>
+            <div class="card-title">Buyback</div>
             <div class="card-icon">◉</div>
           </div>
-          <div class="stat-value" id="fxGainLoss">0</div>
-          <div class="stat-label">LAK</div>
+          <div class="stat-value" id="dashBuyback">0</div>
+          <div class="stat-label">Transactions</div>
         </div>
         <div class="stat-card">
           <div class="card-header">
-            <div class="card-title">Net Profit</div>
+            <div class="card-title">Trade-in</div>
             <div class="card-icon">◐</div>
           </div>
-          <div class="stat-value" id="netProfit">0</div>
+          <div class="stat-value" id="dashTradein">0</div>
+          <div class="stat-label">Transactions</div>
+        </div>
+        <div class="stat-card">
+          <div class="card-header">
+            <div class="card-title">Exchange</div>
+            <div class="card-icon">◑</div>
+          </div>
+          <div class="stat-value" id="dashExchange">0</div>
+          <div class="stat-label">Transactions</div>
+        </div>
+        <div class="stat-card">
+          <div class="card-header">
+            <div class="card-title">Gold Flow</div>
+            <div class="card-icon">◍</div>
+          </div>
+          <div class="stat-value" id="dashGoldFlow">0</div>
+          <div class="stat-label">Baht</div>
+        </div>
+        <div class="stat-card">
+          <div class="card-header">
+            <div class="card-title">Gold Flow (g)</div>
+            <div class="card-icon">◒</div>
+          </div>
+          <div class="stat-value" id="dashGoldFlowG">0</div>
+          <div class="stat-label">Grams</div>
+        </div>
+        <div class="stat-card">
+          <div class="card-header">
+            <div class="card-title">Cash</div>
+            <div class="card-icon">◔</div>
+          </div>
+          <div class="stat-value" id="dashCash">0</div>
           <div class="stat-label">LAK</div>
         </div>
         <div class="stat-card">
           <div class="card-header">
-            <div class="card-title">Total Products</div>
-            <div class="card-icon">◑</div>
+            <div class="card-title">Bank Transfer</div>
+            <div class="card-icon">◕</div>
           </div>
-          <div class="stat-value" id="totalProducts">7</div>
-          <div class="stat-label">SKUs</div>
+          <div class="stat-value" id="dashBank">0</div>
+          <div class="stat-label">LAK</div>
+        </div>
+        <div class="stat-card">
+          <div class="card-header">
+            <div class="card-title">Total Asset</div>
+            <div class="card-icon">◖</div>
+          </div>
+          <div class="stat-value" id="dashAsset">0</div>
+          <div class="stat-label">Grams</div>
         </div>
       </div>
 
@@ -319,15 +364,142 @@
       </div>
     </section>
 
-    <section id="reconciliation" class="section">
-      <div style="margin-bottom: 30px;">
-        <h2 style="font-family: 'Cormorant Garamond', serif; font-size: 36px; color: var(--gold-primary);">Reconciliation</h2>
-      </div>
-      <div class="card">
-        <div class="card-header">
-          <div class="card-title">Coming Soon</div>
+    <section id="cashbank" class="section">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+        <h2 style="font-family: 'Cormorant Garamond', serif; font-size: 36px; color: var(--gold-primary);">Cash/Bank Management</h2>
+        <div style="display: flex; gap: 10px;">
+          <button class="btn-primary manager-only" onclick="openModal('ownerDepositModal')">Owner Deposit</button>
+          <button class="btn-primary manager-only" onclick="openModal('otherIncomeModal')">Other Income</button>
+          <button class="btn-primary manager-only" onclick="openModal('bankDepositModal')">Bank Deposit</button>
+          <button class="btn-primary manager-only" onclick="openModal('otherExpenseModal')">Other Expense</button>
         </div>
-        <p style="color: var(--text-secondary); text-align: center; padding: 40px;">This feature is under development.</p>
+      </div>
+      <div class="dashboard-stats" style="margin-bottom: 30px;">
+        <div class="stat-card">
+          <div class="card-header">
+            <div class="card-title">Cash Balance</div>
+            <div class="card-icon">◈</div>
+          </div>
+          <div class="stat-value" id="cashBalance">0</div>
+          <div class="stat-label">LAK</div>
+        </div>
+        <div class="stat-card">
+          <div class="card-header">
+            <div class="card-title">Bank Balance</div>
+            <div class="card-icon">◉</div>
+          </div>
+          <div class="stat-value" id="bankBalance">0</div>
+          <div class="stat-label">LAK</div>
+        </div>
+        <div class="stat-card">
+          <div class="card-header">
+            <div class="card-title">Total Balance</div>
+            <div class="card-icon">◐</div>
+          </div>
+          <div class="stat-value" id="totalBalance">0</div>
+          <div class="stat-label">LAK</div>
+        </div>
+      </div>
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Type</th>
+              <th>Amount (LAK)</th>
+              <th>Method</th>
+              <th>Note</th>
+              <th>Date</th>
+              <th>Created By</th>
+            </tr>
+          </thead>
+          <tbody id="cashbankTable">
+            <tr>
+              <td colspan="7" style="text-align: center; padding: 40px;">Loading...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="accounting" class="section">
+      <div style="margin-bottom: 30px;">
+        <h2 style="font-family: 'Cormorant Garamond', serif; font-size: 36px; color: var(--gold-primary);">Accounting (Daily Reconciliation)</h2>
+        <p style="color: var(--text-secondary); margin-top: 10px;">Current date: <span id="accountingDate"></span></p>
+      </div>
+      <div class="dashboard-stats">
+        <div class="stat-card" onclick="openReconcileModal('transactions')" style="cursor: pointer;">
+          <div class="card-header">
+            <div class="card-title">Total Transactions</div>
+            <div class="card-icon">◈</div>
+          </div>
+          <div class="stat-value" id="accTransactions">0</div>
+          <div class="stat-label">Transactions</div>
+        </div>
+        <div class="stat-card" onclick="openReconcileModal('cashbank')" style="cursor: pointer;">
+          <div class="card-header">
+            <div class="card-title">Cash/Bank Reconcile</div>
+            <div class="card-icon">◉</div>
+          </div>
+          <div class="stat-value" id="accCashBank">0</div>
+          <div class="stat-label">LAK</div>
+        </div>
+        <div class="stat-card" onclick="openReconcileModal('revenue')" style="cursor: pointer;">
+          <div class="card-header">
+            <div class="card-title">Revenue - Expense</div>
+            <div class="card-icon">◐</div>
+          </div>
+          <div class="stat-value" id="accRevenue">0</div>
+          <div class="stat-label">LAK</div>
+        </div>
+        <div class="stat-card" onclick="openReconcileModal('pl')" style="cursor: pointer;">
+          <div class="card-header">
+            <div class="card-title">P/L</div>
+            <div class="card-icon">◑</div>
+          </div>
+          <div class="stat-value" id="accPL">0</div>
+          <div class="stat-label">LAK</div>
+        </div>
+        <div class="stat-card" onclick="openReconcileModal('cost')" style="cursor: pointer;">
+          <div class="card-header">
+            <div class="card-title">Cost</div>
+            <div class="card-icon">◍</div>
+          </div>
+          <div class="stat-value" id="accCost">0</div>
+          <div class="stat-label">LAK</div>
+        </div>
+        <div class="stat-card" onclick="openReconcileModal('asset')" style="cursor: pointer;">
+          <div class="card-header">
+            <div class="card-title">Asset (Gold)</div>
+            <div class="card-icon">◒</div>
+          </div>
+          <div class="stat-value" id="accAsset">0</div>
+          <div class="stat-label">Grams</div>
+        </div>
+      </div>
+      <div style="margin-top: 30px;">
+        <h3 style="color: var(--gold-primary); margin-bottom: 20px;">Reconciliation History</h3>
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Transactions</th>
+                <th>Cash/Bank</th>
+                <th>Revenue-Expense</th>
+                <th>P/L</th>
+                <th>Cost</th>
+                <th>Asset (g)</th>
+                <th>Created By</th>
+              </tr>
+            </thead>
+            <tbody id="reconcileHistoryTable">
+              <tr>
+                <td colspan="8" style="text-align: center; padding: 40px;">No records</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
     </section>
 
@@ -587,6 +759,133 @@
       <div class="modal-footer">
         <button class="btn-secondary" onclick="closeModal('stockOutModal')">Cancel</button>
         <button class="btn-primary" onclick="addStockOut()">Submit</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="ownerDepositModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title">Owner Deposit</h2>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Amount (LAK)</label>
+        <input type="number" class="form-input" id="ownerDepositAmount" placeholder="0" step="1000">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Method</label>
+        <select class="form-select" id="ownerDepositMethod">
+          <option value="CASH">Cash</option>
+          <option value="BANK">Bank Transfer</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Note</label>
+        <input type="text" class="form-input" id="ownerDepositNote" placeholder="Optional note">
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" onclick="closeModal('ownerDepositModal')">Cancel</button>
+        <button class="btn-primary" onclick="submitOwnerDeposit()">Submit</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="otherIncomeModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title">Other Income</h2>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Amount (LAK)</label>
+        <input type="number" class="form-input" id="otherIncomeAmount" placeholder="0" step="1000">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Method</label>
+        <select class="form-select" id="otherIncomeMethod">
+          <option value="CASH">Cash</option>
+          <option value="BANK">Bank Transfer</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Note</label>
+        <input type="text" class="form-input" id="otherIncomeNote" placeholder="Optional note">
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" onclick="closeModal('otherIncomeModal')">Cancel</button>
+        <button class="btn-primary" onclick="submitOtherIncome()">Submit</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="bankDepositModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title">Bank Deposit</h2>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Amount (LAK)</label>
+        <input type="number" class="form-input" id="bankDepositAmount" placeholder="0" step="1000">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Note</label>
+        <input type="text" class="form-input" id="bankDepositNote" placeholder="Optional note">
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" onclick="closeModal('bankDepositModal')">Cancel</button>
+        <button class="btn-primary" onclick="submitBankDeposit()">Submit</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="otherExpenseModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title">Other Expense</h2>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Amount (LAK)</label>
+        <input type="number" class="form-input" id="otherExpenseAmount" placeholder="0" step="1000">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Method</label>
+        <select class="form-select" id="otherExpenseMethod">
+          <option value="CASH">Cash</option>
+          <option value="BANK">Bank Transfer</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Note</label>
+        <input type="text" class="form-input" id="otherExpenseNote" placeholder="Optional note">
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" onclick="closeModal('otherExpenseModal')">Cancel</button>
+        <button class="btn-primary" onclick="submitOtherExpense()">Submit</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="reconcileModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title" id="reconcileModalTitle">Reconcile</h2>
+      </div>
+      <div id="reconcileModalContent">
+        <div class="form-group">
+          <label class="form-label">System Value</label>
+          <input type="text" class="form-input" id="reconcileSystemValue" readonly>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Actual Value (Manual Count)</label>
+          <input type="number" class="form-input" id="reconcileActualValue" placeholder="Enter actual value" step="0.01">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Difference</label>
+          <input type="text" class="form-input" id="reconcileDifference" readonly>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" onclick="closeModal('reconcileModal')">Cancel</button>
+        <button class="btn-primary" onclick="submitReconcile()">Save</button>
       </div>
     </div>
   </div>
