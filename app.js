@@ -154,6 +154,9 @@ function login() {
 
   if (USERS[username] && USERS[username].password === password) {
     currentUser = { username, ...USERS[username] };
+    
+    localStorage.setItem('currentUser', JSON.stringify(currentUser));
+    
     document.getElementById('loginScreen').classList.remove('active');
     document.getElementById('mainHeader').style.display = 'block';
     document.getElementById('mainContainer').style.display = 'block';
@@ -181,6 +184,9 @@ function login() {
 
 function logout() {
   currentUser = null;
+  
+  localStorage.removeItem('currentUser');
+  
   document.getElementById('loginScreen').classList.add('active');
   document.getElementById('mainHeader').style.display = 'none';
   document.getElementById('mainContainer').style.display = 'none';
@@ -1450,3 +1456,35 @@ document.querySelectorAll('.modal').forEach(modal => {
     }
   });
 });
+
+(function checkSession() {
+  const savedUser = localStorage.getItem('currentUser');
+  if (savedUser) {
+    try {
+      currentUser = JSON.parse(savedUser);
+      document.getElementById('loginScreen').classList.remove('active');
+      document.getElementById('mainHeader').style.display = 'block';
+      document.getElementById('mainContainer').style.display = 'block';
+      document.getElementById('userName').textContent = currentUser.role;
+      document.getElementById('userRole').textContent = currentUser.role;
+      document.getElementById('userAvatar').textContent = currentUser.role[0];
+      
+      document.body.className = 'role-' + currentUser.username;
+      
+      if (currentUser.role === 'Accountant') {
+        document.body.classList.add('accountant-readonly');
+        const readonlyBtns = ['quickSales', 'quickTradein', 'quickBuyback', 'addSellBtn', 'addTradeinBtn', 'addBuybackBtn', 'addExchangeBtn', 'withdrawBtn'];
+        readonlyBtns.forEach(id => {
+          const el = document.getElementById(id);
+          if (el) el.style.display = 'none';
+        });
+      }
+      
+      fetchExchangeRates();
+      loadDashboard();
+    } catch (error) {
+      console.error('Session restore error:', error);
+      localStorage.removeItem('currentUser');
+    }
+  }
+})();
