@@ -7,9 +7,16 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600;700&family=Montserrat:wght@200;300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
   <script>
-    const cacheBuster = localStorage.getItem('cacheBuster') || Date.now();
-    document.write(`<link rel="stylesheet" href="style.css?v=${cacheBuster}">`);
+    (function() {
+      const cb = localStorage.getItem('cacheBuster') || Date.now();
+      if (!localStorage.getItem('cacheBuster')) {
+        localStorage.setItem('cacheBuster', cb);
+      }
+      const link = document.querySelector('link[href="style.css"]');
+      if (link) link.href = `style.css?v=${cb}`;
+    })();
   </script>
 </head>
 <body>
@@ -585,10 +592,15 @@
   </div>
 
   <script>
-    const cacheBuster = localStorage.getItem('cacheBuster') || Date.now();
-    const script = document.createElement('script');
-    script.src = `app.js?v=${cacheBuster}`;
-    document.body.appendChild(script);
+    (function() {
+      const cb = localStorage.getItem('cacheBuster') || Date.now();
+      if (!localStorage.getItem('cacheBuster')) {
+        localStorage.setItem('cacheBuster', cb);
+      }
+      const script = document.createElement('script');
+      script.src = `app.js?v=${cb}`;
+      document.body.appendChild(script);
+    })();
   </script>
 </body>
 </html>
