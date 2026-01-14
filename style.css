@@ -289,6 +289,15 @@ header {
   transform: translateY(-2px);
 }
 
+.stat-card.reconciled {
+  border-color: var(--success);
+  background: rgba(16, 185, 129, 0.05);
+}
+
+.stat-card.reconciled .card-icon {
+  color: var(--success);
+}
+
 .card-header {
   display: flex;
   justify-content: space-between;
