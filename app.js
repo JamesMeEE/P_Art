@@ -1689,39 +1689,77 @@ let currentReconcileData = {};
 async function loadCashBank() {
   try {
     showLoading();
-    const data = await fetchSheetData('CashBank!A:G');
+    const [cashbankData, sellData, buybackData, tradeinData, exchangeData] = await Promise.all([
+      fetchSheetData('CashBank!A:G'),
+      fetchSheetData('Sells!A:I'),
+      fetchSheetData('Buybacks!A:G'),
+      fetchSheetData('Tradeins!A:K'),
+      fetchSheetData('Exchanges!A:J')
+    ]);
     
     let cash = 0;
     let bank = 0;
     
-    if (data.length > 1) {
-      data.slice(1).forEach(row => {
+    if (cashbankData.length > 1) {
+      cashbankData.slice(1).forEach(row => {
         const amount = parseFloat(row[2]) || 0;
         const method = row[3];
         const type = row[1];
         
-        if (type === 'OWNER_DEPOSIT' || type === 'OTHER_INCOME' || type === 'SELL' || type === 'TRADEIN' || type === 'EXCHANGE') {
+        if (type === 'OWNER_DEPOSIT' || type === 'OTHER_INCOME') {
           if (method === 'CASH') cash += amount;
           else if (method === 'BANK') bank += amount;
         } else if (type === 'BANK_DEPOSIT') {
           cash -= amount;
           bank += amount;
-        } else if (type === 'OTHER_EXPENSE' || type === 'BUYBACK') {
+        } else if (type === 'OTHER_EXPENSE') {
           if (method === 'CASH') cash -= amount;
           else if (method === 'BANK') bank -= amount;
         }
       });
     }
     
+    sellData.slice(1).forEach(row => {
+      if (row[7] === 'COMPLETED') {
+        const amount = parseFloat(row[3]) || 0;
+        const currency = row[4];
+        if (currency === 'LAK') cash += amount;
+        else bank += amount;
+      }
+    });
+    
+    buybackData.slice(1).forEach(row => {
+      if (row[5] === 'COMPLETED') {
+        cash -= parseFloat(row[3]) || 0;
+      }
+    });
+    
+    tradeinData.slice(1).forEach(row => {
+      if (row[8] === 'COMPLETED') {
+        const diff = parseFloat(row[4]) || 0;
+        const fee = parseFloat(row[5]) || 0;
+        const premium = parseFloat(row[6]) || 0;
+        cash += (diff + fee + premium);
+      }
+    });
+    
+    exchangeData.slice(1).forEach(row => {
+      if (row[7] === 'COMPLETED') {
+        const fee = parseFloat(row[4]) || 0;
+        const premium = parseFloat(row[5]) || 0;
+        cash += (fee + premium);
+      }
+    });
+    
     document.getElementById('cashBalance').textContent = formatNumber(cash);
     document.getElementById('bankBalance').textContent = formatNumber(bank);
     document.getElementById('totalBalance').textContent = formatNumber(cash + bank);
     
     const tbody = document.getElementById('cashbankTable');
-    if (data.length <= 1) {
+    if (cashbankData.length <= 1) {
       tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 40px;">No records</td></tr>';
     } else {
-      tbody.innerHTML = data.slice(1).reverse().map(row => `
+      tbody.innerHTML = cashbankData.slice(1).reverse().map(row => `
         <tr>
           <td>${row[0]}</td>
           <td>${row[1]}</td>
@@ -2025,8 +2063,14 @@ function openReconcileModal(type) {
   };
   
   document.getElementById('reconcileSystemValue').value = systemValues[type];
-  document.getElementById('reconcileActualValue').value = '';
-  document.getElementById('reconcileDifference').value = '';
+  
+  if (currentReconcileData[type]) {
+    document.getElementById('reconcileActualValue').value = currentReconcileData[type].actual;
+    document.getElementById('reconcileDifference').value = currentReconcileData[type].difference;
+  } else {
+    document.getElementById('reconcileActualValue').value = '';
+    document.getElementById('reconcileDifference').value = '';
+  }
   
   document.getElementById('reconcileActualValue').oninput = function() {
     const system = parseFloat(systemValues[type].replace(/,/g, '')) || 0;
@@ -2050,31 +2094,65 @@ async function submitReconcile() {
     difference: document.getElementById('reconcileDifference').value
   };
   
-  const requiredTypes = ['transactions', 'cashbank', 'revenue', 'asset'];
-  const completed = requiredTypes.filter(t => currentReconcileData[t]);
+  const cardIds = {
+    'transactions': 'accTransCard',
+    'cashbank': 'accCashCard',
+    'revenue': 'accRevCard',
+    'pl': 'accPLCard',
+    'cost': 'accCostCard',
+    'asset': 'accAssetCard'
+  };
   
-  if (completed.length === requiredTypes.length) {
-    try {
-      showLoading();
-      const result = await callAppsScript('ADD_RECONCILE', {
-        data: JSON.stringify(currentReconcileData)
-      });
+  const actualIds = {
+    'transactions': 'accTransActual',
+    'cashbank': 'accCashActual',
+    'revenue': 'accRevActual',
+    'pl': 'accPLActual',
+    'cost': 'accCostActual',
+    'asset': 'accAssetActual'
+  };
+  
+  document.getElementById(cardIds[currentReconcileType]).classList.add('reconciled');
+  document.getElementById(actualIds[currentReconcileType]).textContent = `Actual: ${actualValue}`;
+  
+  closeModal('reconcileModal');
+}
+
+async function submitDailyReconcile() {
+  if (Object.keys(currentReconcileData).length === 0) {
+    alert('Please reconcile at least one item before submitting');
+    return;
+  }
+  
+  if (!confirm('Submit daily reconciliation?')) return;
+  
+  try {
+    showLoading();
+    const result = await callAppsScript('ADD_RECONCILE', {
+      data: JSON.stringify(currentReconcileData)
+    });
+    
+    if (result.success) {
+      alert('✅ Daily reconciliation submitted successfully!');
+      currentReconcileData = {};
       
-      if (result.success) {
-        alert('✅ Daily reconciliation completed!');
-        currentReconcileData = {};
-        closeModal('reconcileModal');
-        loadAccounting();
-      } else {
-        alert('❌ Error: ' + result.message);
-      }
-      hideLoading();
-    } catch (error) {
-      alert('❌ Error: ' + error.message);
-      hideLoading();
+      document.querySelectorAll('.stat-card.reconciled').forEach(card => {
+        card.classList.remove('reconciled');
+      });
+      document.getElementById('accTransActual').textContent = '';
+      document.getElementById('accCashActual').textContent = '';
+      document.getElementById('accRevActual').textContent = '';
+      document.getElementById('accPLActual').textContent = '';
+      document.getElementById('accCostActual').textContent = '';
+      document.getElementById('accAssetActual').textContent = '';
+      
+      loadAccounting();
+    } else {
+      alert('❌ Error: ' + result.message);
     }
-  } else {
-    alert(`✅ ${currentReconcileType} saved! Complete all reconciliations to submit.`);
-    closeModal('reconcileModal');
+    hideLoading();
+  } catch (error) {
+    alert('❌ Error: ' + error.message);
+    hideLoading();
   }
 }
