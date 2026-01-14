@@ -428,57 +428,67 @@
         <p style="color: var(--text-secondary); margin-top: 10px;">Current date: <span id="accountingDate"></span></p>
       </div>
       <div class="dashboard-stats">
-        <div class="stat-card" onclick="openReconcileModal('transactions')" style="cursor: pointer;">
+        <div class="stat-card" id="accTransCard" onclick="openReconcileModal('transactions')" style="cursor: pointer;">
           <div class="card-header">
             <div class="card-title">Total Transactions</div>
             <div class="card-icon">◈</div>
           </div>
           <div class="stat-value" id="accTransactions">0</div>
           <div class="stat-label">Transactions</div>
+          <div style="color: var(--success); font-size: 12px; margin-top: 5px;" id="accTransActual"></div>
         </div>
-        <div class="stat-card" onclick="openReconcileModal('cashbank')" style="cursor: pointer;">
+        <div class="stat-card" id="accCashCard" onclick="openReconcileModal('cashbank')" style="cursor: pointer;">
           <div class="card-header">
             <div class="card-title">Cash/Bank Reconcile</div>
             <div class="card-icon">◉</div>
           </div>
           <div class="stat-value" id="accCashBank">0</div>
           <div class="stat-label">LAK</div>
+          <div style="color: var(--success); font-size: 12px; margin-top: 5px;" id="accCashActual"></div>
         </div>
-        <div class="stat-card" onclick="openReconcileModal('revenue')" style="cursor: pointer;">
+        <div class="stat-card" id="accRevCard" onclick="openReconcileModal('revenue')" style="cursor: pointer;">
           <div class="card-header">
             <div class="card-title">Revenue - Expense</div>
             <div class="card-icon">◐</div>
           </div>
           <div class="stat-value" id="accRevenue">0</div>
           <div class="stat-label">LAK</div>
+          <div style="color: var(--success); font-size: 12px; margin-top: 5px;" id="accRevActual"></div>
         </div>
-        <div class="stat-card" onclick="openReconcileModal('pl')" style="cursor: pointer;">
+        <div class="stat-card" id="accPLCard" onclick="openReconcileModal('pl')" style="cursor: pointer;">
           <div class="card-header">
             <div class="card-title">P/L</div>
             <div class="card-icon">◑</div>
           </div>
           <div class="stat-value" id="accPL">0</div>
           <div class="stat-label">LAK</div>
+          <div style="color: var(--success); font-size: 12px; margin-top: 5px;" id="accPLActual"></div>
         </div>
-        <div class="stat-card" onclick="openReconcileModal('cost')" style="cursor: pointer;">
+        <div class="stat-card" id="accCostCard" onclick="openReconcileModal('cost')" style="cursor: pointer;">
           <div class="card-header">
             <div class="card-title">Cost</div>
             <div class="card-icon">◍</div>
           </div>
           <div class="stat-value" id="accCost">0</div>
           <div class="stat-label">LAK</div>
+          <div style="color: var(--success); font-size: 12px; margin-top: 5px;" id="accCostActual"></div>
         </div>
-        <div class="stat-card" onclick="openReconcileModal('asset')" style="cursor: pointer;">
+        <div class="stat-card" id="accAssetCard" onclick="openReconcileModal('asset')" style="cursor: pointer;">
           <div class="card-header">
             <div class="card-title">Asset (Gold)</div>
             <div class="card-icon">◒</div>
           </div>
           <div class="stat-value" id="accAsset">0</div>
           <div class="stat-label">Grams</div>
+          <div style="color: var(--success); font-size: 12px; margin-top: 5px;" id="accAssetActual"></div>
         </div>
       </div>
+      <div style="text-align: center; margin: 30px 0;">
+        <button class="btn-primary manager-only" onclick="submitDailyReconcile()" style="padding: 15px 40px; font-size: 16px;">Submit Daily Reconciliation</button>
+      </div>
       <div style="margin-top: 30px;">
-        <h3 style="color: var(--gold-primary); margin-bottom: 20px;">Reconciliation History</h3>
+        <h3 style="color: var(--gold-primary); margin-bottom: 10px;">Reconciliation History</h3>
+        <p style="color: var(--text-secondary); font-size: 13px; margin-bottom: 20px;">Note: Values shown as (System / Actual)</p>
         <div class="table-container">
           <table>
             <thead>
