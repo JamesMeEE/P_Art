@@ -226,6 +226,8 @@ function showSection(sectionId) {
   else if (sectionId === 'buyback') loadBuybacks();
   else if (sectionId === 'exchange') loadExchanges();
   else if (sectionId === 'inventory') loadInventory();
+  else if (sectionId === 'cashbank') loadCashBank();
+  else if (sectionId === 'accounting') loadAccounting();
   else if (sectionId === 'reports') loadReports();
 }
 
@@ -278,11 +280,65 @@ function closeModal(modalId) {
 function backToTradein() {
   closeModal('tradeinResultModal');
   openModal('tradeinModal');
+  
+  if (currentTradeinData) {
+    document.getElementById('tradeinCustomer').value = currentTradeinData.customer;
+    
+    const oldGold = JSON.parse(currentTradeinData.oldGold);
+    const newGold = JSON.parse(currentTradeinData.newGold);
+    
+    document.getElementById('tradeinOldGold').innerHTML = '';
+    tradeinOldCounter = 0;
+    oldGold.forEach(item => {
+      addTradeinOldGold();
+      const rows = document.querySelectorAll('#tradeinOldGold .product-row');
+      const lastRow = rows[rows.length - 1];
+      lastRow.querySelector('select').value = item.productId;
+      lastRow.querySelector('input').value = item.qty;
+    });
+    
+    document.getElementById('tradeinNewGold').innerHTML = '';
+    tradeinNewCounter = 0;
+    newGold.forEach(item => {
+      addTradeinNewGold();
+      const rows = document.querySelectorAll('#tradeinNewGold .product-row');
+      const lastRow = rows[rows.length - 1];
+      lastRow.querySelector('select').value = item.productId;
+      lastRow.querySelector('input').value = item.qty;
+    });
+  }
 }
 
 function backToExchange() {
   closeModal('exchangeResultModal');
   openModal('exchangeModal');
+  
+  if (currentExchangeData) {
+    document.getElementById('exchangeCustomer').value = currentExchangeData.customer;
+    
+    const oldGold = JSON.parse(currentExchangeData.oldGold);
+    const newGold = JSON.parse(currentExchangeData.newGold);
+    
+    document.getElementById('exchangeOldGold').innerHTML = '';
+    exchangeOldCounter = 0;
+    oldGold.forEach(item => {
+      addExchangeOldGold();
+      const rows = document.querySelectorAll('#exchangeOldGold .product-row');
+      const lastRow = rows[rows.length - 1];
+      lastRow.querySelector('select').value = item.productId;
+      lastRow.querySelector('input').value = item.qty;
+    });
+    
+    document.getElementById('exchangeNewGold').innerHTML = '';
+    exchangeNewCounter = 0;
+    newGold.forEach(item => {
+      addExchangeNewGold();
+      const rows = document.querySelectorAll('#exchangeNewGold .product-row');
+      const lastRow = rows[rows.length - 1];
+      lastRow.querySelector('select').value = item.productId;
+      lastRow.querySelector('input').value = item.qty;
+    });
+  }
 }
 
 async function fetchSheetData(range) {
@@ -316,29 +372,108 @@ async function callAppsScript(action, params) {
 async function loadDashboard() {
   try {
     showLoading();
-    const [sellData, tradeinData, buybackData, exchangeData] = await Promise.all([
+    
+    const today = new Date();
+    const todayStr = formatDateOnly(today);
+    document.getElementById('dashboardDate').textContent = todayStr;
+    
+    const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 0, 1);
+    const todayEnd = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 23, 59);
+    
+    const [sellData, tradeinData, buybackData, exchangeData, cashbankData, stockData] = await Promise.all([
       fetchSheetData('Sells!A:I'),
       fetchSheetData('Tradeins!A:K'),
-      fetchSheetData('Buybacks!A:F'),
-      fetchSheetData('Exchanges!A:J')
+      fetchSheetData('Buybacks!A:G'),
+      fetchSheetData('Exchanges!A:J'),
+      fetchSheetData('CashBank!A:G'),
+      fetchSheetData('Stock!A:F')
     ]);
-
-    let gp = 0;
-    let fxGainLoss = 0;
-
+    
+    let sellCount = 0, buybackCount = 0, tradeinCount = 0, exchangeCount = 0;
+    let goldFlowBaht = 0;
+    let cashFlow = 0, bankFlow = 0;
+    
+    const goldWeights = { 'G01': 10, 'G02': 5, 'G03': 2, 'G04': 1, 'G05': 0.5, 'G06': 0.25, 'G07': 1/15 };
+    
     sellData.slice(1).forEach(row => {
-      if (row[7] === 'COMPLETED') gp += parseFloat(row[3]) || 0;
+      const date = new Date(row[6]);
+      if (date >= todayStart && date <= todayEnd && row[7] === 'COMPLETED') {
+        sellCount++;
+        const items = JSON.parse(row[2]);
+        items.forEach(item => {
+          goldFlowBaht -= goldWeights[item.productId] * item.qty;
+        });
+        const amount = parseFloat(row[3]) || 0;
+        if (row[4] === 'LAK') cashFlow += amount;
+        else bankFlow += amount;
+      }
     });
-
+    
     buybackData.slice(1).forEach(row => {
-      if (row[5] === 'COMPLETED') gp -= parseFloat(row[3]) || 0;
+      const date = new Date(row[4]);
+      if (date >= todayStart && date <= todayEnd && row[5] === 'COMPLETED') {
+        buybackCount++;
+        const items = JSON.parse(row[2]);
+        items.forEach(item => {
+          goldFlowBaht += goldWeights[item.productId] * item.qty;
+        });
+        cashFlow -= parseFloat(row[3]) || 0;
+      }
     });
-
-    const netProfit = gp + fxGainLoss;
-
-    document.getElementById('grossProfit').textContent = formatNumber(gp);
-    document.getElementById('fxGainLoss').textContent = formatNumber(fxGainLoss);
-    document.getElementById('netProfit').textContent = formatNumber(netProfit);
+    
+    tradeinData.slice(1).forEach(row => {
+      const date = new Date(row[7]);
+      if (date >= todayStart && date <= todayEnd && row[8] === 'COMPLETED') {
+        tradeinCount++;
+      }
+    });
+    
+    exchangeData.slice(1).forEach(row => {
+      const date = new Date(row[6]);
+      if (date >= todayStart && date <= todayEnd && row[7] === 'COMPLETED') {
+        exchangeCount++;
+      }
+    });
+    
+    cashbankData.slice(1).forEach(row => {
+      const amount = parseFloat(row[2]) || 0;
+      const method = row[3];
+      const type = row[1];
+      if (type === 'OWNER_DEPOSIT' || type === 'OTHER_INCOME') {
+        if (method === 'CASH') cashFlow += amount;
+        else bankFlow += amount;
+      } else if (type === 'OTHER_EXPENSE') {
+        if (method === 'CASH') cashFlow -= amount;
+        else bankFlow -= amount;
+      }
+    });
+    
+    const goldFlowGrams = goldFlowBaht * 15;
+    
+    let totalGoldBaht = 0;
+    const stockMap = {};
+    stockData.slice(1).forEach(row => {
+      const productId = row[0];
+      const qty = parseInt(row[3]) || 0;
+      if (!stockMap[productId]) stockMap[productId] = 0;
+      stockMap[productId] += qty;
+    });
+    
+    Object.keys(stockMap).forEach(productId => {
+      totalGoldBaht += stockMap[productId] * goldWeights[productId];
+    });
+    
+    const assetGrams = totalGoldBaht * 15;
+    
+    document.getElementById('dashSell').textContent = sellCount;
+    document.getElementById('dashBuyback').textContent = buybackCount;
+    document.getElementById('dashTradein').textContent = tradeinCount;
+    document.getElementById('dashExchange').textContent = exchangeCount;
+    document.getElementById('dashGoldFlow').textContent = goldFlowBaht.toFixed(2);
+    document.getElementById('dashGoldFlowG').textContent = goldFlowGrams.toFixed(2);
+    document.getElementById('dashCash').textContent = formatNumber(cashFlow);
+    document.getElementById('dashBank').textContent = formatNumber(bankFlow);
+    document.getElementById('dashAsset').textContent = assetGrams.toFixed(2);
 
     document.getElementById('summaryContent').innerHTML = `
       <div style="margin: 20px 0;">
@@ -739,6 +874,21 @@ function calculateTradein() {
 async function submitTradein() {
   if (!currentTradeinData) return;
 
+  const newGold = JSON.parse(currentTradeinData.newGold);
+  
+  showLoading();
+  for (const item of newGold) {
+    const hasStock = await checkStock(item.productId, item.qty);
+    if (!hasStock) {
+      const currentStock = await getCurrentStock(item.productId);
+      const productName = FIXED_PRODUCTS.find(p => p.id === item.productId).name;
+      hideLoading();
+      alert(`❌ Insufficient stock for ${productName}!\nRequired: ${item.qty}, Available: ${currentStock}`);
+      return;
+    }
+  }
+  hideLoading();
+
   try {
     showLoading();
     const result = await callAppsScript('ADD_TRADEIN', currentTradeinData);
@@ -869,6 +1019,35 @@ function calculateExchange() {
     return;
   }
 
+  const goldWeights = {
+    'G01': 10, 'G02': 5, 'G03': 2, 'G04': 1,
+    'G05': 0.5, 'G06': 0.25, 'G07': 1/15
+  };
+
+  let oldWeight = 0;
+  let oldHas1g = false;
+  oldGold.forEach(item => {
+    oldWeight += goldWeights[item.productId] * item.qty;
+    if (item.productId === 'G07') oldHas1g = true;
+  });
+
+  let newWeight = 0;
+  let newHas1g = false;
+  newGold.forEach(item => {
+    newWeight += goldWeights[item.productId] * item.qty;
+    if (item.productId === 'G07') newHas1g = true;
+  });
+
+  if (Math.abs(oldWeight - newWeight) > 0.01) {
+    alert(`❌ Exchange must have equal weight!\nOld gold: ${oldWeight.toFixed(2)} baht\nNew gold: ${newWeight.toFixed(2)} baht`);
+    return;
+  }
+
+  if (oldHas1g !== newHas1g) {
+    alert('❌ 1 gram gold can only be exchanged with 1 gram gold!');
+    return;
+  }
+
   let exchangeFee = 0;
   newGold.forEach(item => {
     exchangeFee += EXCHANGE_FEES[item.productId] * item.qty;
@@ -923,6 +1102,21 @@ function calculateExchange() {
 
 async function submitExchange() {
   if (!currentExchangeData) return;
+
+  const newGold = JSON.parse(currentExchangeData.newGold);
+  
+  showLoading();
+  for (const item of newGold) {
+    const hasStock = await checkStock(item.productId, item.qty);
+    if (!hasStock) {
+      const currentStock = await getCurrentStock(item.productId);
+      const productName = FIXED_PRODUCTS.find(p => p.id === item.productId).name;
+      hideLoading();
+      alert(`❌ Insufficient stock for ${productName}!\nRequired: ${item.qty}, Available: ${currentStock}`);
+      return;
+    }
+  }
+  hideLoading();
 
   try {
     showLoading();
@@ -1488,3 +1682,399 @@ document.querySelectorAll('.modal').forEach(modal => {
     }
   }
 })();
+
+let currentReconcileType = null;
+let currentReconcileData = {};
+
+async function loadCashBank() {
+  try {
+    showLoading();
+    const data = await fetchSheetData('CashBank!A:G');
+    
+    let cash = 0;
+    let bank = 0;
+    
+    if (data.length > 1) {
+      data.slice(1).forEach(row => {
+        const amount = parseFloat(row[2]) || 0;
+        const method = row[3];
+        const type = row[1];
+        
+        if (type === 'OWNER_DEPOSIT' || type === 'OTHER_INCOME' || type === 'SELL' || type === 'TRADEIN' || type === 'EXCHANGE') {
+          if (method === 'CASH') cash += amount;
+          else if (method === 'BANK') bank += amount;
+        } else if (type === 'BANK_DEPOSIT') {
+          cash -= amount;
+          bank += amount;
+        } else if (type === 'OTHER_EXPENSE' || type === 'BUYBACK') {
+          if (method === 'CASH') cash -= amount;
+          else if (method === 'BANK') bank -= amount;
+        }
+      });
+    }
+    
+    document.getElementById('cashBalance').textContent = formatNumber(cash);
+    document.getElementById('bankBalance').textContent = formatNumber(bank);
+    document.getElementById('totalBalance').textContent = formatNumber(cash + bank);
+    
+    const tbody = document.getElementById('cashbankTable');
+    if (data.length <= 1) {
+      tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 40px;">No records</td></tr>';
+    } else {
+      tbody.innerHTML = data.slice(1).reverse().map(row => `
+        <tr>
+          <td>${row[0]}</td>
+          <td>${row[1]}</td>
+          <td>${formatNumber(row[2])}</td>
+          <td>${row[3]}</td>
+          <td>${row[4] || '-'}</td>
+          <td>${formatDateOnly(row[5])}</td>
+          <td>${row[6]}</td>
+        </tr>
+      `).join('');
+    }
+    
+    hideLoading();
+  } catch (error) {
+    console.error('Error loading cash/bank:', error);
+    hideLoading();
+  }
+}
+
+async function submitOwnerDeposit() {
+  const amount = document.getElementById('ownerDepositAmount').value;
+  const method = document.getElementById('ownerDepositMethod').value;
+  const note = document.getElementById('ownerDepositNote').value;
+  
+  if (!amount) {
+    alert('Please enter amount');
+    return;
+  }
+  
+  try {
+    showLoading();
+    const result = await callAppsScript('ADD_CASHBANK', {
+      type: 'OWNER_DEPOSIT',
+      amount,
+      method,
+      note
+    });
+    
+    if (result.success) {
+      alert('✅ Owner deposit recorded!');
+      closeModal('ownerDepositModal');
+      document.getElementById('ownerDepositAmount').value = '';
+      document.getElementById('ownerDepositNote').value = '';
+      loadCashBank();
+    } else {
+      alert('❌ Error: ' + result.message);
+    }
+    hideLoading();
+  } catch (error) {
+    alert('❌ Error: ' + error.message);
+    hideLoading();
+  }
+}
+
+async function submitOtherIncome() {
+  const amount = document.getElementById('otherIncomeAmount').value;
+  const method = document.getElementById('otherIncomeMethod').value;
+  const note = document.getElementById('otherIncomeNote').value;
+  
+  if (!amount) {
+    alert('Please enter amount');
+    return;
+  }
+  
+  try {
+    showLoading();
+    const result = await callAppsScript('ADD_CASHBANK', {
+      type: 'OTHER_INCOME',
+      amount,
+      method,
+      note
+    });
+    
+    if (result.success) {
+      alert('✅ Other income recorded!');
+      closeModal('otherIncomeModal');
+      document.getElementById('otherIncomeAmount').value = '';
+      document.getElementById('otherIncomeNote').value = '';
+      loadCashBank();
+    } else {
+      alert('❌ Error: ' + result.message);
+    }
+    hideLoading();
+  } catch (error) {
+    alert('❌ Error: ' + error.message);
+    hideLoading();
+  }
+}
+
+async function submitBankDeposit() {
+  const amount = document.getElementById('bankDepositAmount').value;
+  const note = document.getElementById('bankDepositNote').value;
+  
+  if (!amount) {
+    alert('Please enter amount');
+    return;
+  }
+  
+  try {
+    showLoading();
+    const result = await callAppsScript('ADD_CASHBANK', {
+      type: 'BANK_DEPOSIT',
+      amount,
+      method: 'BANK',
+      note
+    });
+    
+    if (result.success) {
+      alert('✅ Bank deposit recorded!');
+      closeModal('bankDepositModal');
+      document.getElementById('bankDepositAmount').value = '';
+      document.getElementById('bankDepositNote').value = '';
+      loadCashBank();
+    } else {
+      alert('❌ Error: ' + result.message);
+    }
+    hideLoading();
+  } catch (error) {
+    alert('❌ Error: ' + error.message);
+    hideLoading();
+  }
+}
+
+async function submitOtherExpense() {
+  const amount = document.getElementById('otherExpenseAmount').value;
+  const method = document.getElementById('otherExpenseMethod').value;
+  const note = document.getElementById('otherExpenseNote').value;
+  
+  if (!amount) {
+    alert('Please enter amount');
+    return;
+  }
+  
+  try {
+    showLoading();
+    const result = await callAppsScript('ADD_CASHBANK', {
+      type: 'OTHER_EXPENSE',
+      amount,
+      method,
+      note
+    });
+    
+    if (result.success) {
+      alert('✅ Other expense recorded!');
+      closeModal('otherExpenseModal');
+      document.getElementById('otherExpenseAmount').value = '';
+      document.getElementById('otherExpenseNote').value = '';
+      loadCashBank();
+    } else {
+      alert('❌ Error: ' + result.message);
+    }
+    hideLoading();
+  } catch (error) {
+    alert('❌ Error: ' + error.message);
+    hideLoading();
+  }
+}
+
+async function loadAccounting() {
+  try {
+    showLoading();
+    const today = new Date();
+    const todayStr = formatDateOnly(today);
+    document.getElementById('accountingDate').textContent = todayStr;
+    
+    const [sellData, tradeinData, buybackData, exchangeData, cashbankData, stockData] = await Promise.all([
+      fetchSheetData('Sells!A:I'),
+      fetchSheetData('Tradeins!A:K'),
+      fetchSheetData('Buybacks!A:G'),
+      fetchSheetData('Exchanges!A:J'),
+      fetchSheetData('CashBank!A:G'),
+      fetchSheetData('Stock!A:F')
+    ]);
+    
+    const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 0, 1);
+    const todayEnd = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 23, 59);
+    
+    let totalTransactions = 0;
+    let cashbank = 0;
+    let revenue = 0;
+    let expense = 0;
+    let cost = 0;
+    
+    sellData.slice(1).forEach(row => {
+      const date = new Date(row[6]);
+      if (date >= todayStart && date <= todayEnd && row[7] === 'COMPLETED') {
+        totalTransactions++;
+        revenue += parseFloat(row[3]) || 0;
+      }
+    });
+    
+    buybackData.slice(1).forEach(row => {
+      const date = new Date(row[4]);
+      if (date >= todayStart && date <= todayEnd && row[5] === 'COMPLETED') {
+        totalTransactions++;
+        expense += parseFloat(row[3]) || 0;
+      }
+    });
+    
+    tradeinData.slice(1).forEach(row => {
+      const date = new Date(row[7]);
+      if (date >= todayStart && date <= todayEnd && row[8] === 'COMPLETED') {
+        totalTransactions++;
+        revenue += parseFloat(row[4]) || 0;
+        revenue += parseFloat(row[5]) || 0;
+        revenue += parseFloat(row[6]) || 0;
+      }
+    });
+    
+    exchangeData.slice(1).forEach(row => {
+      const date = new Date(row[6]);
+      if (date >= todayStart && date <= todayEnd && row[7] === 'COMPLETED') {
+        totalTransactions++;
+        revenue += parseFloat(row[4]) || 0;
+        revenue += parseFloat(row[5]) || 0;
+      }
+    });
+    
+    cashbankData.slice(1).forEach(row => {
+      const amount = parseFloat(row[2]) || 0;
+      const type = row[1];
+      if (type === 'OWNER_DEPOSIT' || type === 'OTHER_INCOME') {
+        cashbank += amount;
+      } else if (type === 'OTHER_EXPENSE') {
+        cashbank -= amount;
+      }
+    });
+    
+    const pl = revenue - expense;
+    
+    const goldWeights = { 'G01': 10, 'G02': 5, 'G03': 2, 'G04': 1, 'G05': 0.5, 'G06': 0.25, 'G07': 1/15 };
+    let totalGoldBaht = 0;
+    const stockMap = {};
+    stockData.slice(1).forEach(row => {
+      const productId = row[0];
+      const qty = parseInt(row[3]) || 0;
+      if (!stockMap[productId]) stockMap[productId] = 0;
+      stockMap[productId] += qty;
+    });
+    
+    Object.keys(stockMap).forEach(productId => {
+      totalGoldBaht += stockMap[productId] * goldWeights[productId];
+    });
+    
+    const assetBaht = ((cashbank / currentPricing.sell1Baht) || 0) + totalGoldBaht;
+    const assetGrams = assetBaht * 15;
+    
+    document.getElementById('accTransactions').textContent = totalTransactions;
+    document.getElementById('accCashBank').textContent = formatNumber(cashbank);
+    document.getElementById('accRevenue').textContent = formatNumber(revenue - expense);
+    document.getElementById('accPL').textContent = formatNumber(pl);
+    document.getElementById('accCost').textContent = formatNumber(cost);
+    document.getElementById('accAsset').textContent = assetGrams.toFixed(2);
+    
+    const reconcileData = await fetchSheetData('Reconcile!A:I');
+    const tbody = document.getElementById('reconcileHistoryTable');
+    if (reconcileData.length <= 1) {
+      tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 40px;">No records</td></tr>';
+    } else {
+      tbody.innerHTML = reconcileData.slice(1).reverse().map(row => `
+        <tr>
+          <td>${formatDateOnly(row[0])}</td>
+          <td>${row[1]} / ${row[2]}</td>
+          <td>${formatNumber(row[3])} / ${formatNumber(row[4])}</td>
+          <td>${formatNumber(row[5])} / ${formatNumber(row[6])}</td>
+          <td>-</td>
+          <td>-</td>
+          <td>${row[7]} / ${row[8]}</td>
+          <td>${row[9]}</td>
+        </tr>
+      `).join('');
+    }
+    
+    hideLoading();
+  } catch (error) {
+    console.error('Error loading accounting:', error);
+    hideLoading();
+  }
+}
+
+function openReconcileModal(type) {
+  currentReconcileType = type;
+  const titles = {
+    'transactions': 'Reconcile Transactions',
+    'cashbank': 'Reconcile Cash/Bank',
+    'revenue': 'Reconcile Revenue-Expense',
+    'pl': 'Reconcile P/L',
+    'cost': 'Reconcile Cost',
+    'asset': 'Reconcile Asset (Gold)'
+  };
+  
+  document.getElementById('reconcileModalTitle').textContent = titles[type];
+  
+  const systemValues = {
+    'transactions': document.getElementById('accTransactions').textContent,
+    'cashbank': document.getElementById('accCashBank').textContent,
+    'revenue': document.getElementById('accRevenue').textContent,
+    'pl': document.getElementById('accPL').textContent,
+    'cost': document.getElementById('accCost').textContent,
+    'asset': document.getElementById('accAsset').textContent
+  };
+  
+  document.getElementById('reconcileSystemValue').value = systemValues[type];
+  document.getElementById('reconcileActualValue').value = '';
+  document.getElementById('reconcileDifference').value = '';
+  
+  document.getElementById('reconcileActualValue').oninput = function() {
+    const system = parseFloat(systemValues[type].replace(/,/g, '')) || 0;
+    const actual = parseFloat(this.value) || 0;
+    document.getElementById('reconcileDifference').value = (actual - system).toFixed(2);
+  };
+  
+  openModal('reconcileModal');
+}
+
+async function submitReconcile() {
+  const actualValue = document.getElementById('reconcileActualValue').value;
+  if (!actualValue) {
+    alert('Please enter actual value');
+    return;
+  }
+  
+  currentReconcileData[currentReconcileType] = {
+    system: document.getElementById('reconcileSystemValue').value.replace(/,/g, ''),
+    actual: actualValue,
+    difference: document.getElementById('reconcileDifference').value
+  };
+  
+  const requiredTypes = ['transactions', 'cashbank', 'revenue', 'asset'];
+  const completed = requiredTypes.filter(t => currentReconcileData[t]);
+  
+  if (completed.length === requiredTypes.length) {
+    try {
+      showLoading();
+      const result = await callAppsScript('ADD_RECONCILE', {
+        data: JSON.stringify(currentReconcileData)
+      });
+      
+      if (result.success) {
+        alert('✅ Daily reconciliation completed!');
+        currentReconcileData = {};
+        closeModal('reconcileModal');
+        loadAccounting();
+      } else {
+        alert('❌ Error: ' + result.message);
+      }
+      hideLoading();
+    } catch (error) {
+      alert('❌ Error: ' + error.message);
+      hideLoading();
+    }
+  } else {
+    alert(`✅ ${currentReconcileType} saved! Complete all reconciliations to submit.`);
+    closeModal('reconcileModal');
+  }
+}
