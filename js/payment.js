@@ -1,6 +1,21 @@
 async function openPaymentModal(sellId) {
   try {
     showLoading();
+    
+    // โหลดอัตราแลกเปลี่ยนก่อน
+    if (currentPriceRates.thbSell === 0 || currentPriceRates.usdSell === 0) {
+      const rateData = await fetchSheetData('PriceRate!A:F');
+      if (rateData.length > 1) {
+        const latestRate = rateData[rateData.length - 1];
+        currentPriceRates = {
+          thbSell: parseFloat(latestRate[1]) || 0,
+          usdSell: parseFloat(latestRate[2]) || 0,
+          thbBuy: parseFloat(latestRate[3]) || 0,
+          usdBuy: parseFloat(latestRate[4]) || 0
+        };
+      }
+    }
+    
     const data = await fetchSheetData('Sells!A:I');
     const sell = data.slice(1).find(row => row[0] === sellId);
     
@@ -80,18 +95,25 @@ function calculatePayment() {
   const rateGroup = document.getElementById('exchangeRateGroup');
   
   if (currency === 'THB') {
-    rate = currentPriceRates.thbSell;
+    rate = currentPriceRates.thbSell || 270; // fallback
     amountToPay = totalLAK / rate;
     rateGroup.style.display = 'block';
     document.getElementById('paymentExchangeRate').value = `1 THB = ${formatNumber(rate)} LAK`;
   } else if (currency === 'USD') {
-    rate = currentPriceRates.usdSell;
+    rate = currentPriceRates.usdSell || 21500; // fallback
     amountToPay = totalLAK / rate;
     rateGroup.style.display = 'block';
     document.getElementById('paymentExchangeRate').value = `1 USD = ${formatNumber(rate)} LAK`;
   } else {
     rateGroup.style.display = 'none';
   }
+  
+  console.log('💰 Payment calculation:', {
+    currency,
+    totalLAK,
+    rate,
+    amountToPay: amountToPay.toFixed(2)
+  });
   
   document.getElementById('paymentAmount').value = `${formatNumber(amountToPay.toFixed(2))} ${currency}`;
   document.getElementById('paymentAmountLAK').value = formatNumber(totalLAK) + ' LAK';
