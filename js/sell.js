@@ -2,7 +2,7 @@ async function loadSells() {
   try {
     console.log('🚀 loadSells() called');
     showLoading();
-    const data = await fetchSheetData('Sells!A:I');
+    const data = await fetchSheetData('Sells!A:L');
     console.log('📊 Raw data from sheet:', data);
     
     let filteredData = data.slice(1);
@@ -10,15 +10,15 @@ async function loadSells() {
     
     if (currentUser.role === 'User' || currentUser.role === 'Manager') {
       console.log('🔍 Filtering for:', currentUser.role, currentUser.nickname);
-      filteredData = filterTodayData(filteredData, 6, 8);
+      filteredData = filterTodayData(filteredData, 9, 11);
     }
     
     console.log('✅ After filter:', filteredData.length, 'rows');
     
     if (sellSortOrder === 'asc') {
-      filteredData.sort((a, b) => new Date(a[6]) - new Date(b[6]));
+      filteredData.sort((a, b) => new Date(a[9]) - new Date(b[9]));
     } else {
-      filteredData.sort((a, b) => new Date(b[6]) - new Date(a[6]));
+      filteredData.sort((a, b) => new Date(b[9]) - new Date(a[9]));
     }
     
     const tbody = document.getElementById('sellTable');
@@ -30,27 +30,24 @@ async function loadSells() {
       tbody.innerHTML = filteredData.map(row => {
         const items = formatItemsForTable(row[2]);
         const premium = calculatePremiumFromItems(row[2]);
-        const saleName = row[8];
-        const status = row[7];
+        const saleName = row[11];
+        const status = row[10];
         
         let actions = '';
         
         if (status === 'PENDING') {
-          // User สร้างแล้ว รอ Manager ตรวจสอบ
           if (currentUser.role === 'Manager') {
             actions = `<button class="btn-action" onclick="reviewSell('${row[0]}')">Review</button>`;
           } else {
             actions = '<span style="color: var(--text-secondary);">Waiting for review</span>';
           }
         } else if (status === 'READY') {
-          // Manager ตรวจสอบแล้ว รอ User ยืนยัน
           if (currentUser.role === 'User') {
             actions = `<button class="btn-action" onclick="openPaymentModal('${row[0]}')">Confirm</button>`;
           } else {
             actions = '<span style="color: var(--text-secondary);">Waiting for confirmation</span>';
           }
         } else {
-          // COMPLETED
           actions = '-';
         }
         
