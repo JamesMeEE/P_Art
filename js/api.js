@@ -6,14 +6,17 @@ async function fetchSheetData(range) {
 }
 
 async function callAppsScript(action, params = {}) {
-  const response = await fetch(CONFIG.SCRIPT_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      action,
-      ...params,
-      user: currentUser?.nickname || currentUser?.role || 'Unknown'
-    })
+  const queryParams = new URLSearchParams({
+    action,
+    ...params,
+    user: currentUser?.nickname || currentUser?.role || 'Unknown'
+  });
+  
+  const url = `${CONFIG.SCRIPT_URL}?${queryParams.toString()}`;
+  
+  const response = await fetch(url, {
+    method: 'GET',
+    redirect: 'follow'
   });
   
   const result = await response.json();
