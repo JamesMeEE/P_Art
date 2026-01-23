@@ -1,13 +1,19 @@
 async function loadSells() {
   try {
+    console.log('🚀 loadSells() called');
     showLoading();
     const data = await fetchSheetData('Sells!A:I');
+    console.log('📊 Raw data from sheet:', data);
     
     let filteredData = data.slice(1);
+    console.log('📋 After slice(1):', filteredData.length, 'rows');
     
     if (currentUser.role === 'User' || currentUser.role === 'Manager') {
+      console.log('🔍 Filtering for:', currentUser.role, currentUser.nickname);
       filteredData = filterTodayData(filteredData, 6, 8);
     }
+    
+    console.log('✅ After filter:', filteredData.length, 'rows');
     
     if (sellSortOrder === 'asc') {
       filteredData.sort((a, b) => new Date(a[6]) - new Date(b[6]));
@@ -17,8 +23,10 @@ async function loadSells() {
     
     const tbody = document.getElementById('sellTable');
     if (filteredData.length === 0) {
+      console.log('⚠️ No data to display');
       tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 40px;">No records</td></tr>';
     } else {
+      console.log('✨ Rendering', filteredData.length, 'rows');
       tbody.innerHTML = filteredData.map(row => {
         const items = formatItemsForTable(row[2]);
         const premium = calculatePremiumFromItems(row[2]);
@@ -52,7 +60,7 @@ async function loadSells() {
     
     hideLoading();
   } catch (error) {
-    console.error('Error loading sells:', error);
+    console.error('❌ Error loading sells:', error);
     hideLoading();
   }
 }
