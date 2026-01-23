@@ -18,7 +18,8 @@ const FIXED_PRODUCTS = [
   { id: 'G03', name: '2 บาท', unit: 'แท่ง', weight: 2 },
   { id: 'G04', name: '1 บาท', unit: 'แท่ง', weight: 1 },
   { id: 'G05', name: '2 สลึง', unit: 'แท่ง', weight: 0.25 },
-  { id: 'G06', name: '1 สลึง', unit: 'แท่ง', weight: 0.125 }
+  { id: 'G06', name: '1 สลึง', unit: 'แท่ง', weight: 0.125 },
+  { id: 'G07', name: '1 กรัม', unit: 'แท่ง', weight: 1/15 }
 ];
 
 const GOLD_WEIGHTS = {
@@ -27,10 +28,11 @@ const GOLD_WEIGHTS = {
   'G03': 2, 
   'G04': 1,
   'G05': 0.25, 
-  'G06': 0.125
+  'G06': 0.125,
+  'G07': 1/15
 };
 
-const PREMIUM_PRODUCTS = ['G05', 'G06'];
+const PREMIUM_PRODUCTS = ['G05', 'G06', 'G07'];
 let PREMIUM_PER_PIECE = 100000;
 
 const EXCHANGE_FEES = {
@@ -39,7 +41,8 @@ const EXCHANGE_FEES = {
   'G03': 200000,
   'G04': 100000,
   'G05': 25000,
-  'G06': 12500
+  'G06': 12500,
+  'G07': 10000
 };
 
 let currentUser = null;
