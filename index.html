@@ -73,10 +73,12 @@
     <nav class="navigation" id="mainNav">
       <button class="nav-btn active" onclick="showSection('dashboard')">✦ Dashboard</button>
       <button class="nav-btn" onclick="showSection('products')">◈ Products</button>
+      <button class="nav-btn" onclick="showSection('pricerate')">◇ Price Rate</button>
       <button class="nav-btn" onclick="showSection('sell')">◐ Sell</button>
       <button class="nav-btn" onclick="showSection('tradein')">◎ Trade-in</button>
       <button class="nav-btn" onclick="showSection('buyback')">◑ Buyback</button>
       <button class="nav-btn" onclick="showSection('exchange')">◍ Exchange</button>
+      <button class="nav-btn" onclick="showSection('withdraw')">◌ Withdraw</button>
       <button class="nav-btn" onclick="showSection('inventory')">◒ Inventory</button>
       <button class="nav-btn" onclick="showSection('cashbank')">◔ Cash/Bank</button>
       <button class="nav-btn" onclick="showSection('accounting')">◕ Accounting</button>
@@ -217,29 +219,118 @@
       </div>
     </section>
 
-    <section id="sell" class="section">
+    <section id="pricerate" class="section">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
-        <h2 style="font-family: 'Cormorant Garamond', serif; font-size: 36px; color: var(--gold-primary);">Sell Management</h2>
-        <button class="btn-primary" onclick="openModal('sellModal')" id="addSellBtn">+ New Sell</button>
+        <h2 style="font-family: 'Cormorant Garamond', serif; font-size: 36px; color: var(--gold-primary);">Price Rate Management</h2>
+        <button class="btn-primary manager-only" onclick="openModal('priceRateModal')">Update Price Rate</button>
+      </div>
+      <div class="dashboard-stats" style="margin-bottom: 30px;">
+        <div class="stat-card">
+          <div class="card-header">
+            <div class="card-title">THB/LAK (Sell)</div>
+            <div class="card-icon">◈</div>
+          </div>
+          <div class="stat-value" id="rateTHBSell">0</div>
+          <div class="stat-label">LAK per THB</div>
+        </div>
+        <div class="stat-card">
+          <div class="card-header">
+            <div class="card-title">USD/LAK (Sell)</div>
+            <div class="card-icon">◉</div>
+          </div>
+          <div class="stat-value" id="rateUSDSell">0</div>
+          <div class="stat-label">LAK per USD</div>
+        </div>
+        <div class="stat-card">
+          <div class="card-header">
+            <div class="card-title">THB/LAK (Buyback)</div>
+            <div class="card-icon">◐</div>
+          </div>
+          <div class="stat-value" id="rateTHBBuy">0</div>
+          <div class="stat-label">LAK per THB</div>
+        </div>
+        <div class="stat-card">
+          <div class="card-header">
+            <div class="card-title">USD/LAK (Buyback)</div>
+            <div class="card-icon">◑</div>
+          </div>
+          <div class="stat-value" id="rateUSDBuy">0</div>
+          <div class="stat-label">LAK per USD</div>
+        </div>
+      </div>
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>THB/LAK (Sell)</th>
+              <th>USD/LAK (Sell)</th>
+              <th>THB/LAK (Buyback)</th>
+              <th>USD/LAK (Buyback)</th>
+              <th>Updated By</th>
+            </tr>
+          </thead>
+          <tbody id="priceRateTable">
+            <tr>
+              <td colspan="6" style="text-align: center; padding: 40px;">Loading...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="withdraw" class="section">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+        <h2 style="font-family: 'Cormorant Garamond', serif; font-size: 36px; color: var(--gold-primary);">Withdraw Management</h2>
+        <button class="btn-primary" onclick="openModal('withdrawModal')" id="addWithdrawBtn">+ New Withdraw</button>
       </div>
       <div class="table-container">
         <table>
           <thead>
             <tr>
               <th>ID</th>
-              <th>Customer</th>
-              <th>Items</th>
-              <th>Total (LAK)</th>
-              <th>Currency</th>
-              <th>Exchange Rate</th>
+              <th>Product</th>
+              <th>Quantity</th>
               <th>Date</th>
               <th>Status</th>
+              <th>Created By</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="withdrawTable">
+            <tr>
+              <td colspan="7" style="text-align: center; padding: 40px;">Loading...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="sell" class="section">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+        <h2 style="font-family: 'Cormorant Garamond', serif; font-size: 36px; color: var(--gold-primary);">Sell Management</h2>
+        <div style="display: flex; gap: 10px; align-items: center;">
+          <button class="btn-secondary" onclick="toggleSellSort()" id="sellSortBtn">Sort: Newest First</button>
+          <button class="btn-primary" onclick="openModal('sellModal')" id="addSellBtn">+ New Sell</button>
+        </div>
+      </div>
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Transaction ID</th>
+              <th>Customer</th>
+              <th>Items</th>
+              <th>Premium (LAK)</th>
+              <th>Total (LAK)</th>
+              <th>Status</th>
+              <th>Sale</th>
               <th>Actions</th>
             </tr>
           </thead>
           <tbody id="sellTable">
             <tr>
-              <td colspan="9" style="text-align: center; padding: 40px;">Loading...</td>
+              <td colspan="8" style="text-align: center; padding: 40px;">Loading...</td>
             </tr>
           </tbody>
         </table>
@@ -896,6 +987,90 @@
       <div class="modal-footer">
         <button class="btn-secondary" onclick="closeModal('reconcileModal')">Cancel</button>
         <button class="btn-primary" onclick="submitReconcile()">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="priceRateModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title">Update Price Rate</h2>
+      </div>
+      <div class="form-group">
+        <label class="form-label">THB/LAK (Sell)</label>
+        <input type="number" class="form-input" id="rateTHBSellInput" placeholder="0" step="0.01">
+      </div>
+      <div class="form-group">
+        <label class="form-label">USD/LAK (Sell)</label>
+        <input type="number" class="form-input" id="rateUSDSellInput" placeholder="0" step="0.01">
+      </div>
+      <div class="form-group">
+        <label class="form-label">THB/LAK (Buyback)</label>
+        <input type="number" class="form-input" id="rateTHBBuyInput" placeholder="0" step="0.01">
+      </div>
+      <div class="form-group">
+        <label class="form-label">USD/LAK (Buyback)</label>
+        <input type="number" class="form-input" id="rateUSDBuyInput" placeholder="0" step="0.01">
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" onclick="closeModal('priceRateModal')">Cancel</button>
+        <button class="btn-primary" onclick="submitPriceRate()">Update</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="paymentModal" class="modal">
+    <div class="modal-content modal-large">
+      <div class="modal-header">
+        <h2 class="modal-title">Payment Confirmation</h2>
+      </div>
+      <div id="paymentDetails" style="margin-bottom: 20px;"></div>
+      <div class="form-group">
+        <label class="form-label">Payment Method</label>
+        <select class="form-select" id="paymentMethod" onchange="updatePaymentMethod()">
+          <option value="CASH">Cash</option>
+          <option value="BANK">Bank Transfer</option>
+        </select>
+      </div>
+      <div class="form-group" id="bankSelectionGroup" style="display: none;">
+        <label class="form-label">Select Bank</label>
+        <select class="form-select" id="bankSelection">
+          <option value="LDB">LDB Bank</option>
+          <option value="BCEL">BCEL Bank</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Currency</label>
+        <select class="form-select" id="paymentCurrency" onchange="calculatePayment()">
+          <option value="LAK">LAK</option>
+          <option value="THB">THB</option>
+          <option value="USD">USD</option>
+        </select>
+      </div>
+      <div class="form-group" id="exchangeRateGroup" style="display: none;">
+        <label class="form-label">Exchange Rate</label>
+        <input type="text" class="form-input" id="paymentExchangeRate" readonly>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Amount to Pay</label>
+        <input type="text" class="form-input" id="paymentAmount" readonly>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Amount in LAK</label>
+        <input type="text" class="form-input" id="paymentAmountLAK" readonly>
+      </div>
+      <div class="form-group" id="receivedGroup">
+        <label class="form-label">Received Amount</label>
+        <input type="number" class="form-input" id="paymentReceived" placeholder="0" step="0.01" oninput="calculateChange()">
+      </div>
+      <div class="form-group" id="changeGroup">
+        <label class="form-label">Change (LAK only)</label>
+        <input type="text" class="form-input" id="paymentChange" readonly>
+        <p style="color: var(--warning); font-size: 12px; margin-top: 5px;">Note: Change will be given in LAK only</p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" onclick="closeModal('paymentModal')">Cancel</button>
+        <button class="btn-primary" onclick="confirmPayment()">Confirm Payment</button>
       </div>
     </div>
   </div>
