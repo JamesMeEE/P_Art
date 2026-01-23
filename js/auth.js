@@ -44,7 +44,12 @@ function login() {
     }
     
     fetchExchangeRates();
-    loadDashboard();
+    
+    if (currentUser.role === 'User') {
+      showSection('sell');
+    } else {
+      loadDashboard();
+    }
   } else {
     alert('Invalid username or password');
   }
@@ -111,7 +116,12 @@ function logout() {
       }
       
       fetchExchangeRates();
-      loadDashboard();
+      
+      if (currentUser.role === 'User') {
+        showSection('sell');
+      } else {
+        loadDashboard();
+      }
     } catch (error) {
       console.error('Session restore error:', error);
       localStorage.removeItem('currentUser');
