@@ -93,19 +93,23 @@ function calculatePayment() {
   let rate = 1;
   
   const rateGroup = document.getElementById('exchangeRateGroup');
+  const receivedLabel = document.getElementById('receivedAmountLabel');
   
   if (currency === 'THB') {
-    rate = currentPriceRates.thbSell || 270; // fallback
+    rate = currentPriceRates.thbSell || 270;
     amountToPay = totalLAK / rate;
     rateGroup.style.display = 'block';
     document.getElementById('paymentExchangeRate').value = `1 THB = ${formatNumber(rate)} LAK`;
+    if (receivedLabel) receivedLabel.textContent = 'Received Amount (THB)';
   } else if (currency === 'USD') {
-    rate = currentPriceRates.usdSell || 21500; // fallback
+    rate = currentPriceRates.usdSell || 21500;
     amountToPay = totalLAK / rate;
     rateGroup.style.display = 'block';
     document.getElementById('paymentExchangeRate').value = `1 USD = ${formatNumber(rate)} LAK`;
+    if (receivedLabel) receivedLabel.textContent = 'Received Amount (USD)';
   } else {
     rateGroup.style.display = 'none';
+    if (receivedLabel) receivedLabel.textContent = 'Received Amount (LAK)';
   }
   
   console.log('💰 Payment calculation:', {
@@ -144,24 +148,44 @@ async function confirmPayment() {
   const currency = document.getElementById('paymentCurrency').value;
   const received = parseFloat(document.getElementById('paymentReceived').value) || 0;
   
-  if (method === 'CASH' && received <= 0) {
-    alert('Please enter received amount');
-    return;
-  }
+  let customerPaid = 0;
+  let exchangeRate = 1;
   
   if (method === 'CASH') {
+    if (received <= 0) {
+      alert('Please enter received amount');
+      return;
+    }
+    
     const totalLAK = currentPaymentData.total;
     let receivedInLAK = received;
     
     if (currency === 'THB') {
-      receivedInLAK = received * currentPriceRates.thbSell;
+      exchangeRate = currentPriceRates.thbSell || 270;
+      receivedInLAK = received * exchangeRate;
+      customerPaid = received;
     } else if (currency === 'USD') {
-      receivedInLAK = received * currentPriceRates.usdSell;
+      exchangeRate = currentPriceRates.usdSell || 21500;
+      receivedInLAK = received * exchangeRate;
+      customerPaid = received;
+    } else {
+      customerPaid = received;
+      exchangeRate = 1;
     }
     
     if (receivedInLAK < totalLAK) {
       alert('Received amount is less than total');
       return;
+    }
+  } else {
+    // BANK - ใช้ total เป็น customerPaid
+    customerPaid = currentPaymentData.total;
+    if (currency === 'THB') {
+      exchangeRate = currentPriceRates.thbSell || 270;
+      customerPaid = currentPaymentData.total / exchangeRate;
+    } else if (currency === 'USD') {
+      exchangeRate = currentPriceRates.usdSell || 21500;
+      customerPaid = currentPaymentData.total / exchangeRate;
     }
   }
   
@@ -174,7 +198,10 @@ async function confirmPayment() {
       sellId: currentPaymentData.id,
       method,
       currency,
-      bank
+      bank,
+      customerPaid: customerPaid,
+      customerCurrency: currency,
+      exchangeRate: exchangeRate
     });
     
     if (result.success) {
