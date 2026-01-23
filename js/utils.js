@@ -127,17 +127,38 @@ function filterTodayData(data, dateColumnIndex, createdByIndex) {
   const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 0, 0, 0);
   const todayEnd = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 23, 59, 59);
   
-  return data.filter(row => {
+  console.log('🔍 Filter Debug:', {
+    todayStart,
+    todayEnd,
+    userRole: currentUser?.role,
+    userNickname: currentUser?.nickname,
+    totalRows: data.length
+  });
+  
+  const filtered = data.filter(row => {
     const rowDate = new Date(row[dateColumnIndex]);
+    const createdBy = row[createdByIndex];
     const isToday = rowDate >= todayStart && rowDate <= todayEnd;
+    
+    console.log('Row check:', {
+      date: row[dateColumnIndex],
+      parsedDate: rowDate,
+      isToday,
+      createdBy,
+      matches: currentUser.role === 'Manager' ? 'Manager sees all' : (createdBy === currentUser.nickname)
+    });
     
     if (currentUser.role === 'Manager') {
       return isToday;
     } else if (currentUser.role === 'User') {
-      return isToday && row[createdByIndex] === currentUser.nickname;
+      return isToday && createdBy === currentUser.nickname;
     }
     return isToday;
   });
+  
+  console.log('✅ Filtered result:', filtered.length, 'rows');
+  
+  return filtered;
 }
 
 function showLoading() {
