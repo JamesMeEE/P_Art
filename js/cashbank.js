@@ -3,7 +3,7 @@ async function loadCashBank() {
     showLoading();
     const [cashbankData, sellData, buybackData, tradeinData, exchangeData] = await Promise.all([
       fetchSheetData('CashBank!A:G'),
-      fetchSheetData('Sells!A:I'),
+      fetchSheetData('Sells!A:L'),
       fetchSheetData('Buybacks!A:G'),
       fetchSheetData('Tradeins!A:K'),
       fetchSheetData('Exchanges!A:J')
@@ -32,7 +32,7 @@ async function loadCashBank() {
     }
     
     sellData.slice(1).forEach(row => {
-      if (row[7] === 'COMPLETED') {
+      if (row[10] === 'COMPLETED') {
         const amount = parseFloat(row[3]) || 0;
         const currency = row[4];
         if (currency === 'LAK') cash += amount;
