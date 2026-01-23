@@ -117,11 +117,13 @@ function logout() {
       
       fetchExchangeRates();
       
-      if (currentUser.role === 'User') {
-        showSection('sell');
-      } else {
-        loadDashboard();
-      }
+      setTimeout(() => {
+        if (currentUser.role === 'User') {
+          showSection('sell');
+        } else {
+          loadDashboard();
+        }
+      }, 100);
     } catch (error) {
       console.error('Session restore error:', error);
       localStorage.removeItem('currentUser');
