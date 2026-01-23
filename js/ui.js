@@ -1,4 +1,6 @@
 function showSection(sectionId) {
+  console.log('📄 showSection called:', sectionId);
+  
   document.querySelectorAll('.section').forEach(section => {
     section.classList.remove('active');
   });
@@ -9,6 +11,9 @@ function showSection(sectionId) {
   const targetSection = document.getElementById(sectionId);
   if (targetSection) {
     targetSection.classList.add('active');
+    console.log('✅ Section activated:', sectionId);
+  } else {
+    console.error('❌ Section not found:', sectionId);
   }
   
   document.querySelectorAll('.nav-btn').forEach(btn => {
@@ -20,7 +25,10 @@ function showSection(sectionId) {
   if (sectionId === 'dashboard') loadDashboard();
   else if (sectionId === 'products') loadProducts();
   else if (sectionId === 'pricerate') loadPriceRate();
-  else if (sectionId === 'sell') loadSells();
+  else if (sectionId === 'sell') {
+    console.log('🛒 Loading Sell section...');
+    loadSells();
+  }
   else if (sectionId === 'tradein') loadTradeins();
   else if (sectionId === 'buyback') loadBuybacks();
   else if (sectionId === 'exchange') loadExchanges();
