@@ -5,8 +5,17 @@ function showSection(sectionId) {
   document.querySelectorAll('.nav-btn').forEach(btn => {
     btn.classList.remove('active');
   });
-  document.getElementById(sectionId).classList.add('active');
-  event.target.classList.add('active');
+  
+  const targetSection = document.getElementById(sectionId);
+  if (targetSection) {
+    targetSection.classList.add('active');
+  }
+  
+  document.querySelectorAll('.nav-btn').forEach(btn => {
+    if (btn.textContent.toLowerCase().includes(sectionId.replace('tradein', 'trade-in'))) {
+      btn.classList.add('active');
+    }
+  });
   
   if (sectionId === 'dashboard') loadDashboard();
   else if (sectionId === 'products') loadProducts();
