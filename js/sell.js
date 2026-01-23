@@ -183,3 +183,30 @@ async function getCurrentStock(productId) {
 function viewSellDetails(sellId) {
   alert(`View details for ${sellId} (Manager view only)`);
 }
+
+function calculateSellTotal() {
+  let totalPrice = 0;
+  let premium = 0;
+  
+  document.querySelectorAll('#sellProducts .product-row').forEach(row => {
+    const productId = row.querySelector('select').value;
+    const qty = parseInt(row.querySelector('input').value) || 0;
+    
+    if (productId && qty > 0) {
+      const weight = GOLD_WEIGHTS[productId];
+      const price = weight * currentPricing.sell1Baht;
+      totalPrice += price * qty;
+      
+      if (PREMIUM_PRODUCTS.includes(productId)) {
+        premium += PREMIUM_PER_PIECE * qty;
+      }
+    }
+  });
+  
+  totalPrice += premium;
+  
+  const totalElement = document.getElementById('sellTotal');
+  if (totalElement) {
+    totalElement.textContent = formatNumber(totalPrice) + ' LAK';
+  }
+}
