@@ -136,12 +136,26 @@ function filterTodayData(data, dateColumnIndex, createdByIndex) {
   });
   
   const filtered = data.filter(row => {
-    const rowDate = new Date(row[dateColumnIndex]);
+    const dateStr = row[dateColumnIndex];
     const createdBy = row[createdByIndex];
+    
+    // Parse DD/MM/YYYY HH:mm format
+    let rowDate;
+    if (typeof dateStr === 'string' && dateStr.includes('/')) {
+      const parts = dateStr.split(' ');
+      const dateParts = parts[0].split('/');
+      const day = parseInt(dateParts[0]);
+      const month = parseInt(dateParts[1]) - 1; // Month is 0-indexed
+      const year = parseInt(dateParts[2]);
+      rowDate = new Date(year, month, day);
+    } else {
+      rowDate = new Date(dateStr);
+    }
+    
     const isToday = rowDate >= todayStart && rowDate <= todayEnd;
     
     console.log('Row check:', {
-      date: row[dateColumnIndex],
+      date: dateStr,
       parsedDate: rowDate,
       isToday,
       createdBy,
