@@ -31,15 +31,26 @@ async function loadSells() {
         const items = formatItemsForTable(row[2]);
         const premium = calculatePremiumFromItems(row[2]);
         const saleName = row[8];
+        const status = row[7];
         
         let actions = '';
-        if (row[7] === 'PENDING') {
+        
+        if (status === 'PENDING') {
+          // User สร้างแล้ว รอ Manager ตรวจสอบ
+          if (currentUser.role === 'Manager') {
+            actions = `<button class="btn-action" onclick="reviewSell('${row[0]}')">Review</button>`;
+          } else {
+            actions = '<span style="color: var(--text-secondary);">Waiting for review</span>';
+          }
+        } else if (status === 'READY') {
+          // Manager ตรวจสอบแล้ว รอ User ยืนยัน
           if (currentUser.role === 'User') {
             actions = `<button class="btn-action" onclick="openPaymentModal('${row[0]}')">Confirm</button>`;
-          } else if (currentUser.role === 'Manager') {
-            actions = `<button class="btn-secondary" onclick="viewSellDetails('${row[0]}')">View</button>`;
+          } else {
+            actions = '<span style="color: var(--text-secondary);">Waiting for confirmation</span>';
           }
         } else {
+          // COMPLETED
           actions = '-';
         }
         
@@ -50,7 +61,7 @@ async function loadSells() {
             <td>${items}</td>
             <td>${formatNumber(premium)}</td>
             <td>${formatNumber(row[3])}</td>
-            <td><span class="status-badge status-${row[7].toLowerCase()}">${row[7]}</span></td>
+            <td><span class="status-badge status-${status.toLowerCase()}">${status}</span></td>
             <td>${saleName}</td>
             <td>${actions}</td>
           </tr>
@@ -193,6 +204,27 @@ async function getCurrentStock(productId) {
 
 function viewSellDetails(sellId) {
   alert(`View details for ${sellId} (Manager view only)`);
+}
+
+async function reviewSell(sellId) {
+  if (!confirm('Approve this sell transaction?')) return;
+  
+  try {
+    showLoading();
+    const result = await callAppsScript('REVIEW_SELL', { sellId });
+    
+    if (result.success) {
+      alert('✅ Transaction reviewed and ready for confirmation!');
+      loadSells();
+      loadDashboard();
+    } else {
+      alert('❌ Error: ' + result.message);
+    }
+    hideLoading();
+  } catch (error) {
+    alert('❌ Error: ' + error.message);
+    hideLoading();
+  }
 }
 
 function calculateSellTotal() {
