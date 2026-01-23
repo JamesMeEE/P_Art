@@ -73,11 +73,11 @@ function addSellProduct() {
   row.className = 'product-row';
   row.id = `sellProduct${sellCounter}`;
   row.innerHTML = `
-    <select class="form-select">
+    <select class="form-select" onchange="calculateSellTotal()">
       <option value="">เลือกสินค้า...</option>
       ${FIXED_PRODUCTS.map(p => `<option value="${p.id}">${p.name}</option>`).join('')}
     </select>
-    <input type="number" class="form-input" placeholder="จำนวน" min="1" step="1">
+    <input type="number" class="form-input" placeholder="จำนวน" min="1" step="1" oninput="calculateSellTotal()">
     <button type="button" class="btn-remove" onclick="removeSellProduct(${sellCounter})">×</button>
   `;
   container.appendChild(row);
@@ -85,7 +85,10 @@ function addSellProduct() {
 
 function removeSellProduct(id) {
   const row = document.getElementById(`sellProduct${id}`);
-  if (row) row.remove();
+  if (row) {
+    row.remove();
+    calculateSellTotal();
+  }
 }
 
 async function submitSell() {
@@ -205,8 +208,34 @@ function calculateSellTotal() {
   
   totalPrice += premium;
   
-  const totalElement = document.getElementById('sellTotal');
-  if (totalElement) {
-    totalElement.textContent = formatNumber(totalPrice) + ' LAK';
+  const priceElement = document.getElementById('sellPrice');
+  if (priceElement) {
+    priceElement.value = Math.round(totalPrice);
+  }
+}
+
+async function openSellModal() {
+  if (currentPricing.sell1Baht === 0) {
+    showLoading();
+    const data = await fetchSheetData('Pricing!A:C');
+    if (data.length > 1) {
+      const latestPricing = data[data.length - 1];
+      currentPricing = {
+        sell1Baht: parseFloat(latestPricing[1]) || 0,
+        buyback1Baht: parseFloat(latestPricing[2]) || 0
+      };
+    }
+    hideLoading();
+  }
+  
+  if (currentPricing.sell1Baht === 0) {
+    alert('กรุณากำหนดราคาก่อนใช้งาน (Products → Set Pricing)');
+    return;
+  }
+  
+  openModal('sellModal');
+  
+  if (document.querySelectorAll('#sellProducts .product-row').length === 0) {
+    addSellProduct();
   }
 }
