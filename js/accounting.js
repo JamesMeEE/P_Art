@@ -6,7 +6,7 @@ async function loadAccounting() {
     document.getElementById('accountingDate').textContent = todayStr;
     
     const [sellData, tradeinData, buybackData, exchangeData, cashbankData, stockData] = await Promise.all([
-      fetchSheetData('Sells!A:I'),
+      fetchSheetData('Sells!A:L'),
       fetchSheetData('Tradeins!A:K'),
       fetchSheetData('Buybacks!A:G'),
       fetchSheetData('Exchanges!A:J'),
@@ -24,8 +24,8 @@ async function loadAccounting() {
     let cost = 0;
     
     sellData.slice(1).forEach(row => {
-      const date = new Date(row[6]);
-      if (date >= todayStart && date <= todayEnd && row[7] === 'COMPLETED') {
+      const date = new Date(row[9]);
+      if (date >= todayStart && date <= todayEnd && row[10] === 'COMPLETED') {
         totalTransactions++;
         revenue += parseFloat(row[3]) || 0;
       }
