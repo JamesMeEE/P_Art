@@ -459,35 +459,99 @@
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
         <h2 style="font-family: 'Cormorant Garamond', serif; font-size: 36px; color: var(--gold-primary);">Cash/Bank Management</h2>
         <div style="display: flex; gap: 10px;">
-          <button class="btn-primary manager-only" onclick="openModal('ownerDepositModal')">Owner Deposit</button>
+          <button class="btn-primary manager-only" onclick="openModal('cashModal')">Cash</button>
+          <button class="btn-primary manager-only" onclick="openModal('bankModal')">Bank</button>
           <button class="btn-primary manager-only" onclick="openModal('otherIncomeModal')">Other Income</button>
-          <button class="btn-primary manager-only" onclick="openModal('bankDepositModal')">Bank Deposit</button>
           <button class="btn-primary manager-only" onclick="openModal('otherExpenseModal')">Other Expense</button>
         </div>
       </div>
-      <div class="dashboard-stats" style="margin-bottom: 30px;">
+      
+      <!-- Cash Row -->
+      <h3 style="margin: 20px 0 10px 0; color: var(--gold-primary);">💵 Cash</h3>
+      <div class="dashboard-stats" style="margin-bottom: 20px;">
         <div class="stat-card">
           <div class="card-header">
-            <div class="card-title">Cash Balance</div>
-            <div class="card-icon">◈</div>
+            <div class="card-title">LAK</div>
+            <div class="card-icon">₭</div>
           </div>
-          <div class="stat-value" id="cashBalance">0</div>
+          <div class="stat-value" id="cashLAK">0</div>
           <div class="stat-label">LAK</div>
         </div>
         <div class="stat-card">
           <div class="card-header">
-            <div class="card-title">Bank Balance</div>
-            <div class="card-icon">◉</div>
+            <div class="card-title">THB</div>
+            <div class="card-icon">฿</div>
           </div>
-          <div class="stat-value" id="bankBalance">0</div>
+          <div class="stat-value" id="cashTHB">0</div>
+          <div class="stat-label">THB</div>
+        </div>
+        <div class="stat-card">
+          <div class="card-header">
+            <div class="card-title">USD</div>
+            <div class="card-icon">$</div>
+          </div>
+          <div class="stat-value" id="cashUSD">0</div>
+          <div class="stat-label">USD</div>
+        </div>
+      </div>
+      
+      <!-- BCEL Bank Row -->
+      <h3 style="margin: 20px 0 10px 0; color: var(--gold-primary);">🏦 BCEL Bank</h3>
+      <div class="dashboard-stats" style="margin-bottom: 20px;">
+        <div class="stat-card">
+          <div class="card-header">
+            <div class="card-title">LAK</div>
+            <div class="card-icon">₭</div>
+          </div>
+          <div class="stat-value" id="bcelLAK">0</div>
           <div class="stat-label">LAK</div>
         </div>
         <div class="stat-card">
           <div class="card-header">
-            <div class="card-title">Total Balance</div>
-            <div class="card-icon">◐</div>
+            <div class="card-title">THB</div>
+            <div class="card-icon">฿</div>
           </div>
-          <div class="stat-value" id="totalBalance">0</div>
+          <div class="stat-value" id="bcelTHB">0</div>
+          <div class="stat-label">THB</div>
+        </div>
+        <div class="stat-card">
+          <div class="card-header">
+            <div class="card-title">USD</div>
+            <div class="card-icon">$</div>
+          </div>
+          <div class="stat-value" id="bcelUSD">0</div>
+          <div class="stat-label">USD</div>
+        </div>
+      </div>
+      
+      <!-- LDB Bank Row -->
+      <h3 style="margin: 20px 0 10px 0; color: var(--gold-primary);">🏦 LDB Bank</h3>
+      <div class="dashboard-stats" style="margin-bottom: 20px;">
+        <div class="stat-card">
+          <div class="card-header">
+            <div class="card-title">LAK</div>
+            <div class="card-icon">₭</div>
+          </div>
+          <div class="stat-value" id="ldbLAK">0</div>
+          <div class="stat-label">LAK</div>
+        </div>
+        <div class="stat-card">
+          <div class="card-header">
+            <div class="card-title">THB</div>
+            <div class="card-icon">฿</div>
+          </div>
+          <div class="stat-value" id="ldbTHB">0</div>
+          <div class="stat-label">THB</div>
+        </div>
+        <div class="stat-card">
+          <div class="card-header">
+            <div class="card-title">USD</div>
+            <div class="card-icon">$</div>
+          </div>
+          <div class="stat-value" id="ldbUSD">0</div>
+          <div class="stat-label">USD</div>
+        </div>
+      </div>
           <div class="stat-label">LAK</div>
         </div>
       </div>
@@ -864,47 +928,115 @@
     </div>
   </div>
 
-  <div id="ownerDepositModal" class="modal">
+  <!-- Cash Modal -->
+  <div id="cashModal" class="modal">
     <div class="modal-content">
       <div class="modal-header">
-        <h2 class="modal-title">Owner Deposit</h2>
+        <h2 class="modal-title">Cash Transaction</h2>
       </div>
       <div class="form-group">
-        <label class="form-label">Amount (LAK)</label>
-        <input type="number" class="form-input" id="ownerDepositAmount" placeholder="0" step="1000">
+        <label class="form-label">Transaction Type</label>
+        <select class="form-select" id="cashType">
+          <option value="IN">เอาเงินเข้าร้าน (Cash In)</option>
+          <option value="OUT">เอาเงินออกจากร้าน (Cash Out)</option>
+        </select>
       </div>
       <div class="form-group">
-        <label class="form-label">Method</label>
-        <select class="form-select" id="ownerDepositMethod">
-          <option value="CASH">Cash</option>
-          <option value="BANK">Bank Transfer</option>
+        <label class="form-label">Amount</label>
+        <input type="number" class="form-input" id="cashAmount" placeholder="0" step="0.01">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Currency</label>
+        <select class="form-select" id="cashCurrency">
+          <option value="LAK">LAK</option>
+          <option value="THB">THB</option>
+          <option value="USD">USD</option>
         </select>
       </div>
       <div class="form-group">
         <label class="form-label">Note</label>
-        <input type="text" class="form-input" id="ownerDepositNote" placeholder="Optional note">
+        <input type="text" class="form-input" id="cashNote" placeholder="Optional note">
       </div>
       <div class="modal-footer">
-        <button class="btn-secondary" onclick="closeModal('ownerDepositModal')">Cancel</button>
-        <button class="btn-primary" onclick="submitOwnerDeposit()">Submit</button>
+        <button class="btn-secondary" onclick="closeModal('cashModal')">Cancel</button>
+        <button class="btn-primary" onclick="submitCash()">Submit</button>
       </div>
     </div>
   </div>
 
+  <!-- Bank Modal -->
+  <div id="bankModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title">Bank Transaction</h2>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Transaction Type</label>
+        <select class="form-select" id="bankType">
+          <option value="DEPOSIT">ฝากเงิน (Deposit)</option>
+          <option value="WITHDRAW">ถอนเงิน (Withdraw)</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Bank</label>
+        <select class="form-select" id="bankName">
+          <option value="BCEL">BCEL Bank</option>
+          <option value="LDB">LDB Bank</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Amount</label>
+        <input type="number" class="form-input" id="bankAmount" placeholder="0" step="0.01">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Currency</label>
+        <select class="form-select" id="bankCurrency">
+          <option value="LAK">LAK</option>
+          <option value="THB">THB</option>
+          <option value="USD">USD</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Note</label>
+        <input type="text" class="form-input" id="bankNote" placeholder="Optional note">
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" onclick="closeModal('bankModal')">Cancel</button>
+        <button class="btn-primary" onclick="submitBank()">Submit</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Other Income Modal -->
   <div id="otherIncomeModal" class="modal">
     <div class="modal-content">
       <div class="modal-header">
         <h2 class="modal-title">Other Income</h2>
       </div>
       <div class="form-group">
-        <label class="form-label">Amount (LAK)</label>
-        <input type="number" class="form-input" id="otherIncomeAmount" placeholder="0" step="1000">
+        <label class="form-label">Method</label>
+        <select class="form-select" id="otherIncomeMethod" onchange="toggleOtherIncomeBank()">
+          <option value="CASH">Cash</option>
+          <option value="BANK">Bank</option>
+        </select>
+      </div>
+      <div class="form-group" id="otherIncomeBankGroup" style="display: none;">
+        <label class="form-label">Bank</label>
+        <select class="form-select" id="otherIncomeBank">
+          <option value="BCEL">BCEL Bank</option>
+          <option value="LDB">LDB Bank</option>
+        </select>
       </div>
       <div class="form-group">
-        <label class="form-label">Method</label>
-        <select class="form-select" id="otherIncomeMethod">
-          <option value="CASH">Cash</option>
-          <option value="BANK">Bank Transfer</option>
+        <label class="form-label">Amount</label>
+        <input type="number" class="form-input" id="otherIncomeAmount" placeholder="0" step="0.01">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Currency</label>
+        <select class="form-select" id="otherIncomeCurrency">
+          <option value="LAK">LAK</option>
+          <option value="THB">THB</option>
+          <option value="USD">USD</option>
         </select>
       </div>
       <div class="form-group">
@@ -918,40 +1050,36 @@
     </div>
   </div>
 
-  <div id="bankDepositModal" class="modal">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h2 class="modal-title">Bank Deposit</h2>
-      </div>
-      <div class="form-group">
-        <label class="form-label">Amount (LAK)</label>
-        <input type="number" class="form-input" id="bankDepositAmount" placeholder="0" step="1000">
-      </div>
-      <div class="form-group">
-        <label class="form-label">Note</label>
-        <input type="text" class="form-input" id="bankDepositNote" placeholder="Optional note">
-      </div>
-      <div class="modal-footer">
-        <button class="btn-secondary" onclick="closeModal('bankDepositModal')">Cancel</button>
-        <button class="btn-primary" onclick="submitBankDeposit()">Submit</button>
-      </div>
-    </div>
-  </div>
-
+  <!-- Other Expense Modal -->
   <div id="otherExpenseModal" class="modal">
     <div class="modal-content">
       <div class="modal-header">
         <h2 class="modal-title">Other Expense</h2>
       </div>
       <div class="form-group">
-        <label class="form-label">Amount (LAK)</label>
-        <input type="number" class="form-input" id="otherExpenseAmount" placeholder="0" step="1000">
+        <label class="form-label">Method</label>
+        <select class="form-select" id="otherExpenseMethod" onchange="toggleOtherExpenseBank()">
+          <option value="CASH">Cash</option>
+          <option value="BANK">Bank</option>
+        </select>
+      </div>
+      <div class="form-group" id="otherExpenseBankGroup" style="display: none;">
+        <label class="form-label">Bank</label>
+        <select class="form-select" id="otherExpenseBank">
+          <option value="BCEL">BCEL Bank</option>
+          <option value="LDB">LDB Bank</option>
+        </select>
       </div>
       <div class="form-group">
-        <label class="form-label">Method</label>
-        <select class="form-select" id="otherExpenseMethod">
-          <option value="CASH">Cash</option>
-          <option value="BANK">Bank Transfer</option>
+        <label class="form-label">Amount</label>
+        <input type="number" class="form-input" id="otherExpenseAmount" placeholder="0" step="0.01">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Currency</label>
+        <select class="form-select" id="otherExpenseCurrency">
+          <option value="LAK">LAK</option>
+          <option value="THB">THB</option>
+          <option value="USD">USD</option>
         </select>
       </div>
       <div class="form-group">
@@ -964,6 +1092,10 @@
       </div>
     </div>
   </div>
+      </div>
+    </div>
+  </div>
+
 
   <div id="reconcileModal" class="modal">
     <div class="modal-content">
