@@ -205,14 +205,31 @@
               <th>Product (SKU)</th>
               <th>Unit</th>
               <th>Sell Price (LAK)</th>
-              <th>Buyback Price (LAK)</th>
+              <th>Buyback (LAK)</th>
               <th>Exchange Fee (LAK)</th>
-              <th>Stock</th>
             </tr>
           </thead>
           <tbody id="productsTable">
             <tr>
-              <td colspan="7" style="text-align: center; padding: 40px;">Loading...</td>
+              <td colspan="6" style="text-align: center; padding: 40px;">Loading...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      
+      <h3 style="margin: 30px 0 15px 0; color: var(--gold-primary); font-size: 20px; font-weight: 600;">📊 Price History (Sell 1 Baht)</h3>
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Sell 1 Baht (LAK)</th>
+              <th>Updated By</th>
+            </tr>
+          </thead>
+          <tbody id="priceHistoryTable">
+            <tr>
+              <td colspan="3" style="text-align: center; padding: 40px;">Loading...</td>
             </tr>
           </tbody>
         </table>
@@ -692,6 +709,11 @@
         <label class="form-label">SELL 1 BAHT Price (LAK)</label>
         <input type="number" class="form-input" id="sell1BahtPrice" placeholder="0" step="1000">
         <p style="color: var(--text-secondary); font-size: 12px; margin-top: 5px;">This will calculate all product prices automatically</p>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Premium Per Piece (LAK)</label>
+        <input type="number" class="form-input" id="premiumPrice" placeholder="120000" step="1000">
+        <p style="color: var(--text-secondary); font-size: 12px; margin-top: 5px;">Premium for G05, G06, G07</p>
       </div>
       <div class="modal-footer">
         <button class="btn-secondary" onclick="closeModal('pricingModal')">Cancel</button>
