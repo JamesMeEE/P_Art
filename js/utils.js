@@ -204,9 +204,9 @@ function calculateSellPrice(productId, sell1Baht) {
     case 'G02': price = sell1Baht * 5; break;
     case 'G03': price = sell1Baht * 2; break;
     case 'G04': price = sell1Baht; break;
-    case 'G05': price = (sell1Baht / 4) + 120000; break;
-    case 'G06': price = (sell1Baht / 8) + 120000; break;
-    case 'G07': price = (sell1Baht / 15) + 120000; break;
+    case 'G05': price = (sell1Baht / 2); break;
+    case 'G06': price = (sell1Baht / 4); break;
+    case 'G07': price = (sell1Baht / 15); break;
   }
   return roundTo1000(price);
 }
