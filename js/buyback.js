@@ -1,12 +1,12 @@
 async function loadBuybacks() {
   try {
     showLoading();
-    const data = await fetchSheetData('Buybacks!A:H');
+    const data = await fetchSheetData('Buybacks!A:J');
     
     let filteredData = data.slice(1);
     
     if (currentUser.role === 'User' || currentUser.role === 'Manager') {
-      filteredData = filterTodayData(filteredData, 5, 7);
+      filteredData = filterTodayData(filteredData, 7, 9);
     }
     
     const tbody = document.getElementById('buybackTable');
@@ -15,8 +15,9 @@ async function loadBuybacks() {
     } else {
       tbody.innerHTML = filteredData.reverse().map(row => {
         const items = formatItemsForTable(row[2]);
-        const saleName = row[7];
-        const status = row[6];
+        const total = row[6] || row[3];
+        const saleName = row[9];
+        const status = row[8];
         
         let actions = '';
         
@@ -35,7 +36,7 @@ async function loadBuybacks() {
             <td>${row[0]}</td>
             <td>${row[1]}</td>
             <td>${items}</td>
-            <td>${formatNumber(row[3])}</td>
+            <td>${formatNumber(total)}</td>
             <td><span class="status-badge status-${status.toLowerCase()}">${status}</span></td>
             <td>${saleName}</td>
             <td>${actions}</td>
@@ -157,7 +158,7 @@ async function calculateBuyback() {
 async function openBuybackPaymentModalFromList(buybackId) {
   try {
     showLoading();
-    const data = await fetchSheetData('Buybacks!A:H');
+    const data = await fetchSheetData('Buybacks!A:J');
     const buyback = data.slice(1).find(row => row[0] === buybackId);
     
     if (!buyback) {
