@@ -1,26 +1,38 @@
 async function loadExchanges() {
   try {
     showLoading();
-    const data = await fetchSheetData('Exchanges!A:J');
+    const data = await fetchSheetData('Exchanges!A:N');
     
     let filteredData = data.slice(1);
     
     if (currentUser.role === 'User' || currentUser.role === 'Manager') {
-      filteredData = filterTodayData(filteredData, 6, 9);
+      filteredData = filterTodayData(filteredData, 11, 13);
     }
     
     const tbody = document.getElementById('exchangeTable');
     if (filteredData.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 40px;">No records</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="10" style="text-align: center; padding: 40px;">No records</td></tr>';
     } else {
       tbody.innerHTML = filteredData.reverse().map(row => {
         const oldGold = formatItemsForTable(row[2]);
         const newGold = formatItemsForTable(row[3]);
+        const premium = calculatePremiumFromItems(row[3]);
+        const saleName = row[13];
+        const status = row[12];
         
         let actions = '';
-        if (row[7] === 'PENDING') {
-          if (currentUser.role === 'Manager' || currentUser.role === 'Teller') {
-            actions = `<button class="btn-action" onclick="confirmExchange('${row[0]}')">Confirm</button>`;
+        
+        if (status === 'PENDING') {
+          if (currentUser.role === 'Manager') {
+            actions = `<button class="btn-action" onclick="reviewExchange('${row[0]}')">Review</button>`;
+          } else {
+            actions = '<span style="color: var(--text-secondary);">Waiting for review</span>';
+          }
+        } else if (status === 'READY') {
+          if (currentUser.role === 'User') {
+            actions = `<button class="btn-action" onclick="openExchangePaymentModal('${row[0]}')">Confirm</button>`;
+          } else {
+            actions = '<span style="color: var(--text-secondary);">Waiting for confirmation</span>';
           }
         } else {
           actions = '-';
@@ -33,8 +45,10 @@ async function loadExchanges() {
             <td>${oldGold}</td>
             <td>${newGold}</td>
             <td>${formatNumber(row[4])}</td>
-            <td>${formatNumber(row[5])}</td>
-            <td><span class="status-badge status-${row[7].toLowerCase()}">${row[7]}</span></td>
+            <td>${formatNumber(premium)}</td>
+            <td>${formatNumber(row[6])}</td>
+            <td><span class="status-badge status-${status.toLowerCase()}">${status}</span></td>
+            <td>${saleName}</td>
             <td>${actions}</td>
           </tr>
         `;
@@ -43,56 +57,52 @@ async function loadExchanges() {
     
     hideLoading();
   } catch (error) {
-    console.error('Error loading exchanges:', error);
     hideLoading();
   }
 }
 
+let exchangeOldCounter = 0;
+let exchangeNewCounter = 0;
+
 function addExchangeOldGold() {
   exchangeOldCounter++;
   const container = document.getElementById('exchangeOldGold');
-  const row = document.createElement('div');
-  row.className = 'product-row';
-  row.id = `exchangeOld${exchangeOldCounter}`;
-  row.innerHTML = `
-    <select class="form-select">
-      <option value="">เลือกสินค้า...</option>
-      ${FIXED_PRODUCTS.map(p => `<option value="${p.id}">${p.name}</option>`).join('')}
-    </select>
-    <input type="number" class="form-input" placeholder="จำนวน" min="1" step="1">
-    <button type="button" class="btn-remove" onclick="removeExchangeOldGold(${exchangeOldCounter})">×</button>
-  `;
-  container.appendChild(row);
-}
-
-function removeExchangeOldGold(id) {
-  const row = document.getElementById(`exchangeOld${id}`);
-  if (row) row.remove();
+  const productOptions = FIXED_PRODUCTS.filter(p => p.id !== 'G07').map(p => 
+    `<option value="${p.id}">${p.name}</option>`
+  ).join('');
+  
+  container.insertAdjacentHTML('beforeend', `
+    <div class="product-row" id="oldGold${exchangeOldCounter}">
+      <select class="form-select" style="flex: 2;">
+        <option value="">Select Product</option>
+        ${productOptions}
+      </select>
+      <input type="number" class="form-input" placeholder="Qty" min="1" style="flex: 1;">
+      <button type="button" class="btn-remove" onclick="document.getElementById('oldGold${exchangeOldCounter}').remove()">×</button>
+    </div>
+  `);
 }
 
 function addExchangeNewGold() {
   exchangeNewCounter++;
   const container = document.getElementById('exchangeNewGold');
-  const row = document.createElement('div');
-  row.className = 'product-row';
-  row.id = `exchangeNew${exchangeNewCounter}`;
-  row.innerHTML = `
-    <select class="form-select">
-      <option value="">เลือกสินค้า...</option>
-      ${FIXED_PRODUCTS.map(p => `<option value="${p.id}">${p.name}</option>`).join('')}
-    </select>
-    <input type="number" class="form-input" placeholder="จำนวน" min="1" step="1">
-    <button type="button" class="btn-remove" onclick="removeExchangeNewGold(${exchangeNewCounter})">×</button>
-  `;
-  container.appendChild(row);
+  const productOptions = FIXED_PRODUCTS.filter(p => p.id !== 'G07').map(p => 
+    `<option value="${p.id}">${p.name}</option>`
+  ).join('');
+  
+  container.insertAdjacentHTML('beforeend', `
+    <div class="product-row" id="newGold${exchangeNewCounter}">
+      <select class="form-select" style="flex: 2;">
+        <option value="">Select Product</option>
+        ${productOptions}
+      </select>
+      <input type="number" class="form-input" placeholder="Qty" min="1" style="flex: 1;">
+      <button type="button" class="btn-remove" onclick="document.getElementById('newGold${exchangeNewCounter}').remove()">×</button>
+    </div>
+  `);
 }
 
-function removeExchangeNewGold(id) {
-  const row = document.getElementById(`exchangeNew${id}`);
-  if (row) row.remove();
-}
-
-function calculateExchange() {
+async function calculateExchange() {
   const customer = document.getElementById('exchangeCustomer').value;
   if (!customer) {
     alert('กรุณากรอกชื่อลูกค้า');
@@ -123,155 +133,252 @@ function calculateExchange() {
   }
 
   let oldWeight = 0;
-  let oldHas1g = false;
   oldGold.forEach(item => {
-    oldWeight += GOLD_WEIGHTS[item.productId] * item.qty;
-    if (item.productId === 'G07') oldHas1g = true;
+    const product = FIXED_PRODUCTS.find(p => p.id === item.productId);
+    oldWeight += product.weight * item.qty;
   });
 
   let newWeight = 0;
-  let newHas1g = false;
   newGold.forEach(item => {
-    newWeight += GOLD_WEIGHTS[item.productId] * item.qty;
-    if (item.productId === 'G07') newHas1g = true;
+    const product = FIXED_PRODUCTS.find(p => p.id === item.productId);
+    newWeight += product.weight * item.qty;
   });
 
-  if (Math.abs(oldWeight - newWeight) > 0.01) {
-    alert(`❌ Exchange ต้องมีน้ำหนักเท่ากัน!\nทองเก่า: ${oldWeight.toFixed(2)} บาท\nทองใหม่: ${newWeight.toFixed(2)} บาท`);
-    return;
-  }
-
-  if (oldHas1g !== newHas1g) {
-    alert('❌ 1 กรัม แลกได้แค่กับ 1 กรัม เท่านั้น!');
+  if (Math.abs(oldWeight - newWeight) > 0.001) {
+    alert('❌ น้ำหนักทองเก่าและทองใหม่ต้องเท่ากัน!\nทองเก่า: ' + oldWeight.toFixed(3) + ' บาท\nทองใหม่: ' + newWeight.toFixed(3) + ' บาท');
     return;
   }
 
   let exchangeFee = 0;
+  let premium = 0;
+
   newGold.forEach(item => {
     exchangeFee += EXCHANGE_FEES[item.productId] * item.qty;
+    
+    if (PREMIUM_PRODUCTS.includes(item.productId)) {
+      premium += PREMIUM_PER_PIECE * item.qty;
+    }
   });
 
-  currentExchangeData = {
-    customer,
-    oldGold: JSON.stringify(oldGold),
-    newGold: JSON.stringify(newGold),
-    exchangeFee,
-    premium: 0
-  };
+  const total = roundTo1000(exchangeFee + premium);
 
-  const oldItems = oldGold.map(i => `${FIXED_PRODUCTS.find(p => p.id === i.productId).name} (${i.qty})`).join(', ');
-  const newItems = newGold.map(i => `${FIXED_PRODUCTS.find(p => p.id === i.productId).name} (${i.qty})`).join(', ');
-
-  document.getElementById('exchangeResult').innerHTML = `
-    <div class="summary-box">
-      <div class="summary-row">
-        <span class="summary-label">ทองเก่า:</span>
-        <span class="summary-value">${oldItems}</span>
-      </div>
-      <div class="summary-row">
-        <span class="summary-label">ทองใหม่:</span>
-        <span class="summary-value">${newItems}</span>
-      </div>
-      <div class="summary-row">
-        <span class="summary-label">ค่าธรรมเนียมแลก:</span>
-        <span class="summary-value">${formatNumber(exchangeFee)} LAK</span>
-      </div>
-      <div class="summary-row">
-        <span class="summary-label">Premium:</span>
-        <span class="summary-value">${formatNumber(premium)} LAK</span>
-      </div>
-      <div class="summary-row">
-        <span class="summary-label">รวมที่ต้องชำระ:</span>
-        <span class="summary-value">${formatNumber(exchangeFee + premium)} LAK</span>
-      </div>
-    </div>
-  `;
-
-  closeModal('exchangeModal');
-  openModal('exchangeResultModal');
-}
-
-function backToExchange() {
-  closeModal('exchangeResultModal');
-  openModal('exchangeModal');
-  
-  if (currentExchangeData) {
-    document.getElementById('exchangeCustomer').value = currentExchangeData.customer;
+  try {
+    showLoading();
+    const result = await callAppsScript('ADD_EXCHANGE', {
+      customer,
+      oldGold: JSON.stringify(oldGold),
+      newGold: JSON.stringify(newGold),
+      exchangeFee,
+      premium,
+      total,
+      user: currentUser.nickname
+    });
     
-    const oldGold = JSON.parse(currentExchangeData.oldGold);
-    const newGold = JSON.parse(currentExchangeData.newGold);
-    
-    document.getElementById('exchangeOldGold').innerHTML = '';
-    exchangeOldCounter = 0;
-    oldGold.forEach(item => {
+    if (result.success) {
+      alert('✅ สร้างรายการแลกเปลี่ยนสำเร็จ! รอ Manager Review');
+      closeModal('exchangeModal');
+      document.getElementById('exchangeCustomer').value = '';
+      document.getElementById('exchangeOldGold').innerHTML = '';
+      document.getElementById('exchangeNewGold').innerHTML = '';
+      exchangeOldCounter = 0;
+      exchangeNewCounter = 0;
       addExchangeOldGold();
-      const rows = document.querySelectorAll('#exchangeOldGold .product-row');
-      const lastRow = rows[rows.length - 1];
-      lastRow.querySelector('select').value = item.productId;
-      lastRow.querySelector('input').value = item.qty;
-    });
-    
-    document.getElementById('exchangeNewGold').innerHTML = '';
-    exchangeNewCounter = 0;
-    newGold.forEach(item => {
       addExchangeNewGold();
-      const rows = document.querySelectorAll('#exchangeNewGold .product-row');
-      const lastRow = rows[rows.length - 1];
-      lastRow.querySelector('select').value = item.productId;
-      lastRow.querySelector('input').value = item.qty;
-    });
+      loadExchanges();
+      loadDashboard();
+    } else {
+      alert('❌ เกิดข้อผิดพลาด: ' + result.message);
+    }
+    hideLoading();
+  } catch (error) {
+    alert('❌ เกิดข้อผิดพลาด: ' + error.message);
+    hideLoading();
   }
 }
 
-async function submitExchange() {
-  if (!currentExchangeData) return;
-
-  const newGold = JSON.parse(currentExchangeData.newGold);
+async function reviewExchange(exchangeId) {
+  if (!confirm('ยืนยันการ Review รายการแลกเปลี่ยนนี้?')) return;
   
-  showLoading();
-  for (const item of newGold) {
-    const hasStock = await checkStock(item.productId, item.qty);
-    if (!hasStock) {
-      const currentStock = await getCurrentStock(item.productId);
-      const productName = FIXED_PRODUCTS.find(p => p.id === item.productId).name;
+  try {
+    showLoading();
+    const result = await callAppsScript('REVIEW_EXCHANGE', { exchangeId });
+    
+    if (result.success) {
+      alert('✅ Review สำเร็จ! รอ User ยืนยันชำระเงิน');
+      loadExchanges();
+    } else {
+      alert('❌ เกิดข้อผิดพลาด: ' + result.message);
+    }
+    hideLoading();
+  } catch (error) {
+    alert('❌ เกิดข้อผิดพลาด: ' + error.message);
+    hideLoading();
+  }
+}
+
+async function openExchangePaymentModal(exchangeId) {
+  try {
+    showLoading();
+    const data = await fetchSheetData('Exchanges!A:N');
+    const exchange = data.slice(1).find(row => row[0] === exchangeId);
+    
+    if (!exchange) {
+      alert('❌ ไม่พบรายการแลกเปลี่ยน');
       hideLoading();
-      alert(`❌ สินค้าไม่พอสำหรับ ${productName}!\nต้องการ: ${item.qty}, มีอยู่: ${currentStock}`);
       return;
     }
-  }
-  hideLoading();
-
-  try {
-    showLoading();
-    const result = await callAppsScript('ADD_EXCHANGE', currentExchangeData);
-
-    if (result.success) {
-      alert('✅ สร้างรายการแลกเปลี่ยนสำเร็จ!');
-      closeModal('exchangeResultModal');
-      currentExchangeData = null;
-      loadExchanges();
-      loadDashboard();
-    } else {
-      alert('❌ เกิดข้อผิดพลาด: ' + result.message);
-    }
+    
+    currentExchangePayment = {
+      exchangeId: exchange[0],
+      customer: exchange[1],
+      oldGold: exchange[2],
+      newGold: exchange[3],
+      total: parseFloat(exchange[6]) || 0
+    };
+    
+    document.getElementById('exchangePaymentId').textContent = exchange[0];
+    document.getElementById('exchangePaymentCustomer').textContent = exchange[1];
+    document.getElementById('exchangePaymentOldGold').textContent = formatItemsForDisplay(exchange[2]);
+    document.getElementById('exchangePaymentNewGold').textContent = formatItemsForDisplay(exchange[3]);
+    document.getElementById('exchangePaymentTotal').textContent = formatNumber(exchange[6]) + ' LAK';
+    
+    document.getElementById('exchangePaymentCurrency').value = 'LAK';
+    document.getElementById('exchangePaymentMethod').value = 'Cash';
+    document.getElementById('exchangePaymentBankGroup').style.display = 'none';
+    document.getElementById('exchangePaymentReceived').value = '';
+    document.getElementById('exchangePaymentChange').value = '';
+    
+    calculateExchangePayment();
+    
     hideLoading();
+    openModal('exchangePaymentModal');
   } catch (error) {
     alert('❌ เกิดข้อผิดพลาด: ' + error.message);
     hideLoading();
   }
 }
 
-async function confirmExchange(exchangeId) {
-  if (!confirm('ยืนยันรายการแลกเปลี่ยน?')) return;
+function calculateExchangePayment() {
+  if (!currentExchangePayment) return;
+  
+  const currency = document.getElementById('exchangePaymentCurrency').value;
+  const totalLAK = currentExchangePayment.total;
+  
+  let rate = 1;
+  let amountToPay = totalLAK;
+  
+  const rateGroup = document.getElementById('exchangePaymentRateGroup');
+  const receivedLabel = document.querySelector('label[for="exchangePaymentReceived"]');
+  
+  if (currency === 'THB') {
+    rate = parseFloat(document.getElementById('exchangePaymentRateTHB').value) || 270;
+    amountToPay = totalLAK / rate;
+    rateGroup.style.display = 'block';
+    document.getElementById('exchangePaymentExchangeRate').value = `1 THB = ${formatNumber(rate)} LAK`;
+    if (receivedLabel) receivedLabel.textContent = 'Received Amount (THB)';
+  } else if (currency === 'USD') {
+    rate = parseFloat(document.getElementById('exchangePaymentRateUSD').value) || 21500;
+    amountToPay = totalLAK / rate;
+    rateGroup.style.display = 'block';
+    document.getElementById('exchangePaymentExchangeRate').value = `1 USD = ${formatNumber(rate)} LAK`;
+    if (receivedLabel) receivedLabel.textContent = 'Received Amount (USD)';
+  } else {
+    rateGroup.style.display = 'none';
+    if (receivedLabel) receivedLabel.textContent = 'Received Amount (LAK)';
+  }
+  
+  document.getElementById('exchangePaymentAmount').value = `${formatNumber(amountToPay.toFixed(2))} ${currency}`;
+  document.getElementById('exchangePaymentAmountLAK').value = formatNumber(totalLAK) + ' LAK';
+}
+
+function calculateExchangeChange() {
+  if (!currentExchangePayment) return;
+  
+  const currency = document.getElementById('exchangePaymentCurrency').value;
+  const received = parseFloat(document.getElementById('exchangePaymentReceived').value) || 0;
+  const totalLAK = currentExchangePayment.total;
+  
+  let rate = 1;
+  if (currency === 'THB') {
+    rate = parseFloat(document.getElementById('exchangePaymentRateTHB').value) || 270;
+  } else if (currency === 'USD') {
+    rate = parseFloat(document.getElementById('exchangePaymentRateUSD').value) || 21500;
+  }
+  
+  let receivedLAK = received;
+  if (currency === 'THB') {
+    receivedLAK = received * rate;
+  } else if (currency === 'USD') {
+    receivedLAK = received * rate;
+  }
+  
+  const change = Math.max(0, receivedLAK - totalLAK);
+  
+  document.getElementById('exchangePaymentChange').value = formatNumber(change) + ' LAK';
+}
+
+function toggleExchangePaymentBank() {
+  const method = document.getElementById('exchangePaymentMethod').value;
+  const bankGroup = document.getElementById('exchangePaymentBankGroup');
+  bankGroup.style.display = method === 'Bank' ? 'block' : 'none';
+}
+
+async function confirmExchangePayment() {
+  if (!currentExchangePayment) return;
+  
+  const method = document.getElementById('exchangePaymentMethod').value;
+  const bank = method === 'Bank' ? document.getElementById('exchangePaymentBank').value : '';
+  const currency = document.getElementById('exchangePaymentCurrency').value;
+  const received = parseFloat(document.getElementById('exchangePaymentReceived').value) || 0;
+  
+  if (received <= 0) {
+    alert('กรุณากรอกจำนวนเงินที่รับ');
+    return;
+  }
+  
+  let rate = 1;
+  if (currency === 'THB') {
+    rate = parseFloat(document.getElementById('exchangePaymentRateTHB').value) || 270;
+  } else if (currency === 'USD') {
+    rate = parseFloat(document.getElementById('exchangePaymentRateUSD').value) || 21500;
+  }
+  
+  let receivedLAK = received;
+  if (currency === 'THB') {
+    receivedLAK = received * rate;
+  } else if (currency === 'USD') {
+    receivedLAK = received * rate;
+  }
+  
+  if (receivedLAK < currentExchangePayment.total) {
+    alert('❌ จำนวนเงินที่รับไม่เพียงพอ!');
+    return;
+  }
+  
+  const changeLAK = receivedLAK - currentExchangePayment.total;
   
   try {
     showLoading();
-    const result = await callAppsScript('CONFIRM_EXCHANGE', { exchangeId });
+    const result = await callAppsScript('CONFIRM_EXCHANGE_PAYMENT', {
+      exchangeId: currentExchangePayment.exchangeId,
+      oldGold: currentExchangePayment.oldGold,
+      newGold: currentExchangePayment.newGold,
+      method,
+      bank,
+      customerPaid: received,
+      customerCurrency: currency,
+      exchangeRate: rate,
+      changeLAK,
+      user: currentUser.nickname
+    });
     
     if (result.success) {
-      alert('✅ ยืนยันสำเร็จ!');
+      alert('✅ ยืนยันชำระเงินสำเร็จ!');
+      closeModal('exchangePaymentModal');
+      currentExchangePayment = null;
       loadExchanges();
       loadDashboard();
+      loadCashBank();
     } else {
       alert('❌ เกิดข้อผิดพลาด: ' + result.message);
     }
@@ -281,3 +388,5 @@ async function confirmExchange(exchangeId) {
     hideLoading();
   }
 }
+
+let currentExchangePayment = null;
