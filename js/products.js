@@ -2,63 +2,81 @@ async function loadProducts() {
   try {
     showLoading();
     
-    const [pricingData, stockData] = await Promise.all([
-      fetchSheetData('Pricing!A:C'),
-      fetchSheetData('Stock!A:F')
-    ]);
+    const pricingData = await fetchSheetData('Pricing!A:B');
     
     if (pricingData.length > 1) {
       const latestPricing = pricingData[pricingData.length - 1];
       currentPricing = {
         sell1Baht: parseFloat(latestPricing[1]) || 0,
-        buyback1Baht: parseFloat(latestPricing[2]) || 0
+        buyback1Baht: 0
       };
       
       document.getElementById('currentPriceDisplay').textContent = formatNumber(currentPricing.sell1Baht) + ' LAK';
     }
     
-    const stockMap = {};
-    stockData.slice(1).forEach(row => {
-      const productId = row[0];
-      const qty = parseInt(row[3]) || 0;
-      if (!stockMap[productId]) stockMap[productId] = 0;
-      stockMap[productId] += qty;
-    });
+    const unitLabels = {
+      'G01': '10B',
+      'G02': '5B',
+      'G03': '2B',
+      'G04': '1B',
+      'G05': '0.5B',
+      'G06': '0.25B',
+      'G07': '1g'
+    };
     
     const tbody = document.getElementById('productsTable');
     tbody.innerHTML = FIXED_PRODUCTS.map(product => {
-      const weight = GOLD_WEIGHTS[product.id];
-      const sellPrice = weight * currentPricing.sell1Baht;
-      const buybackPrice = weight * currentPricing.buyback1Baht;
+      const sellPrice = calculateSellPrice(product.id, currentPricing.sell1Baht);
+      const buybackPrice = calculateBuybackPrice(product.id, currentPricing.sell1Baht);
       const exchangeFee = EXCHANGE_FEES[product.id];
-      const stock = stockMap[product.id] || 0;
+      const unit = unitLabels[product.id] || product.unit;
       
       return `
         <tr>
           <td>${product.id}</td>
           <td>${product.name}</td>
-          <td>${product.unit}</td>
+          <td>${unit}</td>
           <td>${formatNumber(sellPrice)}</td>
           <td>${formatNumber(buybackPrice)}</td>
           <td>${formatNumber(exchangeFee)}</td>
-          <td>${stock}</td>
         </tr>
       `;
     }).join('');
     
+    await loadPriceHistory();
+    
     hideLoading();
   } catch (error) {
-    console.error('Error loading products:', error);
     hideLoading();
   }
 }
 
+async function loadPriceHistory() {
+  try {
+    const data = await fetchSheetData('Pricing!A:C');
+    const tbody = document.getElementById('priceHistoryTable');
+    
+    if (data.length <= 1) {
+      tbody.innerHTML = '<tr><td colspan="3" style="text-align: center; padding: 40px;">No records</td></tr>';
+      return;
+    }
+    
+    tbody.innerHTML = data.slice(1).reverse().map(row => `
+      <tr>
+        <td>${formatDateTime(row[0])}</td>
+        <td>${formatNumber(row[1])}</td>
+        <td>${row[2] || '-'}</td>
+      </tr>
+    `).join('');
+  } catch (error) {
+  }
+}
+
 async function updatePricing() {
-  const sell1Baht = document.getElementById('pricingSell1Baht').value;
-  const buyback1Baht = document.getElementById('pricingBuyback1Baht').value;
-  const premium = document.getElementById('pricingPremium').value;
+  const sell1Baht = document.getElementById('sell1BahtPrice').value;
+  const premium = document.getElementById('premiumPrice').value;
   
-  if (!sell1Baht || !buyback1Baht || !premium) {
+  if (!sell1Baht || !premium) {
     alert('กรุณากรอกข้อมูลให้ครบ');
     return;
   }
@@ -67,7 +85,6 @@ async function updatePricing() {
     showLoading();
     const result = await callAppsScript('UPDATE_PRICING', {
       sell1Baht,
-      buyback1Baht,
       premium
     });
     
@@ -75,9 +92,19 @@ async function updatePricing() {
       alert('✅ อัพเดตราคาสำเร็จ!');
       PREMIUM_PER_PIECE = parseFloat(premium);
       closeModal('pricingModal');
-      document.getElementById('pricingSell1Baht').value = '';
-      document.getElementById('pricingBuyback1Baht').value = '';
-      document.getElementById('pricingPremium').value = '';
+      document.getElementById('sell1BahtPrice').value = '';
+      document.getElementById('premiumPrice').value = '';
+      loadProducts();
+    } else {
+      alert('❌ Error: ' + result.message);
+    }
+    hideLoading();
+  } catch (error) {
+    alert('❌ Error: ' + error.message);
+    hideLoading();
+  }
+}
+
       loadProducts();
     } else {
       alert('❌ เกิดข้อผิดพลาด: ' + result.message);
