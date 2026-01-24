@@ -125,13 +125,6 @@ function filterTodayData(data, dateColumnIndex, createdByIndex) {
   const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 0, 0, 0);
   const todayEnd = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 23, 59, 59);
   
-    todayStart,
-    todayEnd,
-    userRole: currentUser?.role,
-    userNickname: currentUser?.nickname,
-    totalRows: data.length
-  });
-  
   const filtered = data.filter(row => {
     const dateStr = row[dateColumnIndex];
     const createdBy = row[createdByIndex];
