@@ -151,19 +151,12 @@ function calculateExchange() {
     exchangeFee += EXCHANGE_FEES[item.productId] * item.qty;
   });
 
-  let premium = 0;
-  newGold.forEach(item => {
-    if (PREMIUM_PRODUCTS.includes(item.productId)) {
-      premium += PREMIUM_PER_PIECE * item.qty;
-    }
-  });
-
   currentExchangeData = {
     customer,
     oldGold: JSON.stringify(oldGold),
     newGold: JSON.stringify(newGold),
     exchangeFee,
-    premium
+    premium: 0
   };
 
   const oldItems = oldGold.map(i => `${FIXED_PRODUCTS.find(p => p.id === i.productId).name} (${i.qty})`).join(', ');
