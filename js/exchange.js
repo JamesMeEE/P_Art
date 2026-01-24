@@ -389,4 +389,36 @@ async function confirmExchangePayment() {
   }
 }
 
+async function loadCurrentPricingForExchange() {
+  try {
+    const pricingData = await fetchSheetData('Pricing!A:B');
+    
+    if (pricingData.length > 1) {
+      const latestPricing = pricingData[pricingData.length - 1];
+      currentPricing = {
+        sell1Baht: parseFloat(latestPricing[1]) || 0,
+        buyback1Baht: 0
+      };
+      
+      console.log('Loaded currentPricing for Exchange:', currentPricing);
+      return true;
+    }
+    return false;
+  } catch (error) {
+    console.error('Error loading pricing:', error);
+    return false;
+  }
+}
+
+async function openExchangeModal() {
+  const hasPrice = await loadCurrentPricingForExchange();
+  
+  if (!hasPrice || !currentPricing.sell1Baht || currentPricing.sell1Baht === 0) {
+    alert('❌ ยังไม่มีราคาทองในระบบ! กรุณาไปที่หน้า Products → Set New Price ก่อน');
+    return;
+  }
+  
+  openModal('exchangeModal');
+}
+
 let currentExchangePayment = null;
