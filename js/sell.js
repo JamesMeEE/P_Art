@@ -142,11 +142,18 @@ async function submitSell() {
   hideLoading();
 
   let totalPrice = 0;
+  let totalPremium = 0;
 
   items.forEach(item => {
     const pricePerPiece = calculateSellPrice(item.productId, currentPricing.sell1Baht);
     totalPrice += pricePerPiece * item.qty;
+    
+    if (PREMIUM_PRODUCTS.includes(item.productId)) {
+      totalPremium += PREMIUM_PER_PIECE * item.qty;
+    }
   });
+  
+  totalPrice += totalPremium;
 
   try {
     showLoading();
@@ -218,6 +225,7 @@ async function reviewSell(sellId) {
 
 function calculateSellTotal() {
   let totalPrice = 0;
+  let totalPremium = 0;
   
   document.querySelectorAll('#sellProducts .product-row').forEach(row => {
     const productId = row.querySelector('select').value;
@@ -226,8 +234,14 @@ function calculateSellTotal() {
     if (productId && qty > 0) {
       const pricePerPiece = calculateSellPrice(productId, currentPricing.sell1Baht);
       totalPrice += pricePerPiece * qty;
+      
+      if (PREMIUM_PRODUCTS.includes(productId)) {
+        totalPremium += PREMIUM_PER_PIECE * qty;
+      }
     }
   });
+  
+  totalPrice += totalPremium;
   
   const priceElement = document.getElementById('sellPrice');
   if (priceElement) {
