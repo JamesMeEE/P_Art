@@ -140,7 +140,7 @@ async function calculateTradein() {
   oldGold.forEach(item => {
     const product = FIXED_PRODUCTS.find(p => p.id === item.productId);
     oldWeight += product.weight * item.qty;
-    const pricePerPiece = calculateBuybackPrice(item.productId, currentPricing.sell1Baht);
+    const pricePerPiece = calculateSellPrice(item.productId, currentPricing.sell1Baht);
     oldValue += pricePerPiece * item.qty;
   });
 
@@ -153,7 +153,6 @@ async function calculateTradein() {
     const product = FIXED_PRODUCTS.find(p => p.id === item.productId);
     newWeight += product.weight * item.qty;
     const pricePerPiece = calculateSellPrice(item.productId, currentPricing.sell1Baht);
-    newValue += pricePerPiece * item.qty;
     newValue += pricePerPiece * item.qty;
     exchangeFee += EXCHANGE_FEES[item.productId] * item.qty;
     
