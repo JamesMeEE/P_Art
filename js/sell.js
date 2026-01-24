@@ -1,19 +1,13 @@
 async function loadSells() {
   try {
-    console.log('🚀 loadSells() called');
     showLoading();
     const data = await fetchSheetData('Sells!A:L');
-    console.log('📊 Raw data from sheet:', data);
     
     let filteredData = data.slice(1);
-    console.log('📋 After slice(1):', filteredData.length, 'rows');
     
     if (currentUser.role === 'User' || currentUser.role === 'Manager') {
-      console.log('🔍 Filtering for:', currentUser.role, currentUser.nickname);
       filteredData = filterTodayData(filteredData, 9, 11);
     }
-    
-    console.log('✅ After filter:', filteredData.length, 'rows');
     
     if (sellSortOrder === 'asc') {
       filteredData.sort((a, b) => new Date(a[9]) - new Date(b[9]));
@@ -23,10 +17,8 @@ async function loadSells() {
     
     const tbody = document.getElementById('sellTable');
     if (filteredData.length === 0) {
-      console.log('⚠️ No data to display');
       tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 40px;">No records</td></tr>';
     } else {
-      console.log('✨ Rendering', filteredData.length, 'rows');
       tbody.innerHTML = filteredData.map(row => {
         const items = formatItemsForTable(row[2]);
         const premium = calculatePremiumFromItems(row[2]);
@@ -227,21 +219,41 @@ function calculateSellTotal() {
   let totalPrice = 0;
   let totalPremium = 0;
   
-  document.querySelectorAll('#sellProducts .product-row').forEach(row => {
+  console.log('💰 === เริ่มคำนวณราคาขายทอง ===');
+  console.log('📊 ราคา 1 บาท:', formatNumber(currentPricing.sell1Baht), 'LAK');
+  
+  document.querySelectorAll('#sellProducts .product-row').forEach((row, index) => {
     const productId = row.querySelector('select').value;
     const qty = parseInt(row.querySelector('input').value) || 0;
     
     if (productId && qty > 0) {
+      const productName = FIXED_PRODUCTS.find(p => p.id === productId)?.name || productId;
       const pricePerPiece = calculateSellPrice(productId, currentPricing.sell1Baht);
-      totalPrice += pricePerPiece * qty;
+      const lineTotal = pricePerPiece * qty;
+      
+      console.log(`\n📦 สินค้า ${index + 1}: ${productName} (${productId})`);
+      console.log(`   - จำนวน: ${qty} ชิ้น`);
+      console.log(`   - ราคา/ชิ้น: ${formatNumber(pricePerPiece)} LAK`);
+      console.log(`   - รวม: ${formatNumber(lineTotal)} LAK`);
+      
+      totalPrice += lineTotal;
       
       if (PREMIUM_PRODUCTS.includes(productId)) {
-        totalPremium += PREMIUM_PER_PIECE * qty;
+        const premium = PREMIUM_PER_PIECE * qty;
+        console.log(`   - Premium: ${formatNumber(premium)} LAK (${formatNumber(PREMIUM_PER_PIECE)} × ${qty})`);
+        totalPremium += premium;
       }
     }
   });
   
+  console.log('\n📝 สรุป:');
+  console.log(`   - ราคาสินค้า: ${formatNumber(totalPrice)} LAK`);
+  console.log(`   - Premium: ${formatNumber(totalPremium)} LAK`);
+  console.log(`   - รวมก่อนปัด: ${formatNumber(totalPrice + totalPremium)} LAK`);
+  
   const finalTotal = roundTo1000(totalPrice + totalPremium);
+  console.log(`   - ปัดหลักพัน: ${formatNumber(finalTotal)} LAK`);
+  console.log('✅ === คำนวณเสร็จสิ้น ===\n');
   
   const priceElement = document.getElementById('sellPrice');
   if (priceElement) {
