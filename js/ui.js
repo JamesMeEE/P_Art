@@ -1,5 +1,4 @@
 function showSection(sectionId) {
-  
   document.querySelectorAll('.section').forEach(section => {
     section.classList.remove('active');
   });
@@ -10,8 +9,6 @@ function showSection(sectionId) {
   const targetSection = document.getElementById(sectionId);
   if (targetSection) {
     targetSection.classList.add('active');
-  } else {
-    console.error('❌ Section not found:', sectionId);
   }
   
   document.querySelectorAll('.nav-btn').forEach(btn => {
@@ -34,6 +31,16 @@ function showSection(sectionId) {
   else if (sectionId === 'cashbank') loadCashBank();
   else if (sectionId === 'accounting') loadAccounting();
   else if (sectionId === 'reports') loadReports();
+}
+
+function showLoading() {
+  const loader = document.getElementById('loader');
+  if (loader) loader.style.display = 'flex';
+}
+
+function hideLoading() {
+  const loader = document.getElementById('loader');
+  if (loader) loader.style.display = 'none';
 }
 
 document.querySelectorAll('.modal').forEach(modal => {
