@@ -104,14 +104,3 @@ async function updatePricing() {
     hideLoading();
   }
 }
-
-      loadProducts();
-    } else {
-      alert('❌ เกิดข้อผิดพลาด: ' + result.message);
-    }
-    hideLoading();
-  } catch (error) {
-    alert('❌ เกิดข้อผิดพลาด: ' + error.message);
-    hideLoading();
-  }
-}
