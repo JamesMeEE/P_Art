@@ -22,15 +22,9 @@ async function loadBuybacks() {
         
         if (status === 'PENDING') {
           if (currentUser.role === 'Manager') {
-            actions = `<button class="btn-action" onclick="reviewBuyback('${row[0]}')">Review</button>`;
+            actions = `<button class="btn-action" onclick="openBuybackPaymentModalFromList('${row[0]}')">Payment</button>`;
           } else {
-            actions = '<span style="color: var(--text-secondary);">Waiting for review</span>';
-          }
-        } else if (status === 'READY') {
-          if (currentUser.role === 'User') {
-            actions = `<button class="btn-action" onclick="openBuybackPaymentModal('${row[0]}')">Confirm</button>`;
-          } else {
-            actions = '<span style="color: var(--text-secondary);">Waiting for confirmation</span>';
+            actions = '<span style="color: var(--text-secondary);">Waiting for payment</span>';
           }
         } else {
           actions = '-';
@@ -160,27 +154,7 @@ async function calculateBuyback() {
   }
 }
 
-async function reviewBuyback(buybackId) {
-  if (!confirm('ยืนยันการ Review รายการรับซื้อนี้?')) return;
-  
-  try {
-    showLoading();
-    const result = await callAppsScript('REVIEW_BUYBACK', { buybackId });
-    
-    if (result.success) {
-      alert('✅ Review สำเร็จ! รอ User ยืนยันชำระเงิน');
-      loadBuybacks();
-    } else {
-      alert('❌ เกิดข้อผิดพลาด: ' + result.message);
-    }
-    hideLoading();
-  } catch (error) {
-    alert('❌ เกิดข้อผิดพลาด: ' + error.message);
-    hideLoading();
-  }
-}
-
-async function openBuybackPaymentModal(buybackId) {
+async function openBuybackPaymentModalFromList(buybackId) {
   try {
     showLoading();
     const data = await fetchSheetData('Buybacks!A:H');
@@ -196,19 +170,19 @@ async function openBuybackPaymentModal(buybackId) {
       buybackId: buyback[0],
       customer: buyback[1],
       items: buyback[2],
-      total: parseFloat(buyback[3]) || 0
+      baseTotal: parseFloat(buyback[3]) || 0
     };
     
     document.getElementById('buybackPaymentId').textContent = buyback[0];
     document.getElementById('buybackPaymentCustomer').textContent = buyback[1];
     document.getElementById('buybackPaymentItems').textContent = formatItemsForDisplay(buyback[2]);
-    document.getElementById('buybackPaymentTotal').textContent = formatNumber(buyback[3]) + ' LAK';
+    document.getElementById('buybackPaymentBaseTotal').textContent = formatNumber(buyback[3]) + ' LAK';
     
-    document.getElementById('buybackPaymentCurrency').value = 'LAK';
     document.getElementById('buybackPaymentMethod').value = 'Cash';
     document.getElementById('buybackPaymentBankGroup').style.display = 'none';
+    document.getElementById('buybackPaymentFee').value = '0';
     
-    calculateBuybackPayment();
+    calculateBuybackPaymentTotal();
     
     hideLoading();
     openModal('buybackPaymentModal');
@@ -218,33 +192,14 @@ async function openBuybackPaymentModal(buybackId) {
   }
 }
 
-function calculateBuybackPayment() {
+function calculateBuybackPaymentTotal() {
   if (!currentBuybackPayment) return;
   
-  const totalLAK = currentBuybackPayment.total;
-  const currency = document.getElementById('buybackPaymentCurrency').value;
+  const baseTotal = currentBuybackPayment.baseTotal || 0;
+  const fee = parseFloat(document.getElementById('buybackPaymentFee').value) || 0;
+  const total = baseTotal + fee;
   
-  let rate = 1;
-  let amountToPay = totalLAK;
-  
-  const rateGroup = document.getElementById('buybackPaymentRateGroup');
-  
-  if (currency === 'THB') {
-    rate = parseFloat(document.getElementById('buybackPaymentRateTHB').value) || 270;
-    amountToPay = totalLAK / rate;
-    rateGroup.style.display = 'block';
-    document.getElementById('buybackPaymentExchangeRate').value = `1 THB = ${formatNumber(rate)} LAK`;
-  } else if (currency === 'USD') {
-    rate = parseFloat(document.getElementById('buybackPaymentRateUSD').value) || 21500;
-    amountToPay = totalLAK / rate;
-    rateGroup.style.display = 'block';
-    document.getElementById('buybackPaymentExchangeRate').value = `1 USD = ${formatNumber(rate)} LAK`;
-  } else {
-    rateGroup.style.display = 'none';
-  }
-  
-  document.getElementById('buybackPaymentAmount').value = `${formatNumber(amountToPay.toFixed(2))} ${currency}`;
-  document.getElementById('buybackPaymentAmountLAK').value = formatNumber(totalLAK) + ' LAK';
+  document.getElementById('buybackPaymentTotal').value = formatNumber(total) + ' LAK';
 }
 
 function toggleBuybackPaymentBank() {
@@ -258,14 +213,8 @@ async function confirmBuybackPayment() {
   
   const method = document.getElementById('buybackPaymentMethod').value;
   const bank = method === 'Bank' ? document.getElementById('buybackPaymentBank').value : '';
-  const currency = document.getElementById('buybackPaymentCurrency').value;
-  
-  let rate = 1;
-  if (currency === 'THB') {
-    rate = parseFloat(document.getElementById('buybackPaymentRateTHB').value) || 270;
-  } else if (currency === 'USD') {
-    rate = parseFloat(document.getElementById('buybackPaymentRateUSD').value) || 21500;
-  }
+  const fee = parseFloat(document.getElementById('buybackPaymentFee').value) || 0;
+  const total = currentBuybackPayment.baseTotal + fee;
   
   try {
     showLoading();
@@ -275,8 +224,8 @@ async function confirmBuybackPayment() {
       items: currentBuybackPayment.items,
       method,
       bank,
-      currency,
-      exchangeRate: rate,
+      fee,
+      total,
       user: currentUser.nickname
     });
     
