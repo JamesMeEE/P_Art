@@ -33,7 +33,6 @@ function formatDateOnly(dateInput) {
     const year = d.getFullYear();
     return `${day}/${month}/${year}`;
   } catch (error) {
-    console.error('formatDateOnly error:', error, dateInput);
     return '-';
   }
 }
@@ -78,7 +77,6 @@ function formatDateTime(dateInput) {
     const minute = String(d.getMinutes()).padStart(2, '0');
     return `${day}/${month}/${year} ${hour}:${minute}`;
   } catch (error) {
-    console.error('formatDateTime error:', error, dateInput);
     return '-';
   }
 }
@@ -127,7 +125,6 @@ function filterTodayData(data, dateColumnIndex, createdByIndex) {
   const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 0, 0, 0);
   const todayEnd = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 23, 59, 59);
   
-  console.log('🔍 Filter Debug:', {
     todayStart,
     todayEnd,
     userRole: currentUser?.role,
@@ -154,7 +151,6 @@ function filterTodayData(data, dateColumnIndex, createdByIndex) {
     
     const isToday = rowDate >= todayStart && rowDate <= todayEnd;
     
-    console.log('Row check:', {
       date: dateStr,
       parsedDate: rowDate,
       isToday,
@@ -170,7 +166,6 @@ function filterTodayData(data, dateColumnIndex, createdByIndex) {
     return isToday;
   });
   
-  console.log('✅ Filtered result:', filtered.length, 'rows');
   
   return filtered;
 }
