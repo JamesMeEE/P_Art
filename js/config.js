@@ -33,16 +33,16 @@ const GOLD_WEIGHTS = {
 };
 
 const PREMIUM_PRODUCTS = ['G05', 'G06', 'G07'];
-let PREMIUM_PER_PIECE = 100000;
+let PREMIUM_PER_PIECE = 120000;
 
 const EXCHANGE_FEES = {
-  'G01': 1000000,
-  'G02': 500000,
-  'G03': 200000,
-  'G04': 100000,
-  'G05': 25000,
-  'G06': 12500,
-  'G07': 10000
+  'G01': 1690000,
+  'G02': 845000,
+  'G03': 338000,
+  'G04': 169000,
+  'G05': 99000,
+  'G06': 99000,
+  'G07': 99000
 };
 
 let currentUser = null;
