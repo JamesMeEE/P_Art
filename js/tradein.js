@@ -1,26 +1,38 @@
 async function loadTradeins() {
   try {
     showLoading();
-    const data = await fetchSheetData('Tradeins!A:K');
+    const data = await fetchSheetData('Tradeins!A:N');
     
     let filteredData = data.slice(1);
     
     if (currentUser.role === 'User' || currentUser.role === 'Manager') {
-      filteredData = filterTodayData(filteredData, 7, 10);
+      filteredData = filterTodayData(filteredData, 11, 13);
     }
     
     const tbody = document.getElementById('tradeinTable');
     if (filteredData.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="9" style="text-align: center; padding: 40px;">No records</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="10" style="text-align: center; padding: 40px;">No records</td></tr>';
     } else {
       tbody.innerHTML = filteredData.reverse().map(row => {
         const oldGold = formatItemsForTable(row[2]);
         const newGold = formatItemsForTable(row[3]);
+        const premium = calculatePremiumFromItems(row[3]);
+        const saleName = row[13];
+        const status = row[12];
         
         let actions = '';
-        if (row[8] === 'PENDING') {
-          if (currentUser.role === 'Manager' || currentUser.role === 'Teller') {
-            actions = `<button class="btn-action" onclick="confirmTradein('${row[0]}')">Confirm</button>`;
+        
+        if (status === 'PENDING') {
+          if (currentUser.role === 'Manager') {
+            actions = `<button class="btn-action" onclick="reviewTradein('${row[0]}')">Review</button>`;
+          } else {
+            actions = '<span style="color: var(--text-secondary);">Waiting for review</span>';
+          }
+        } else if (status === 'READY') {
+          if (currentUser.role === 'User') {
+            actions = `<button class="btn-action" onclick="openTradeinPaymentModal('${row[0]}')">Confirm</button>`;
+          } else {
+            actions = '<span style="color: var(--text-secondary);">Waiting for confirmation</span>';
           }
         } else {
           actions = '-';
@@ -33,9 +45,10 @@ async function loadTradeins() {
             <td>${oldGold}</td>
             <td>${newGold}</td>
             <td>${formatNumber(row[4])}</td>
-            <td>${formatNumber(row[5])}</td>
+            <td>${formatNumber(premium)}</td>
             <td>${formatNumber(row[6])}</td>
-            <td><span class="status-badge status-${row[8].toLowerCase()}">${row[8]}</span></td>
+            <td><span class="status-badge status-${status.toLowerCase()}">${status}</span></td>
+            <td>${saleName}</td>
             <td>${actions}</td>
           </tr>
         `;
@@ -44,7 +57,6 @@ async function loadTradeins() {
     
     hideLoading();
   } catch (error) {
-    console.error('Error loading tradeins:', error);
     hideLoading();
   }
 }
@@ -131,14 +143,20 @@ function calculateTradein() {
 
   let newValue = 0;
   let exchangeFee = 0;
+  let premium = 0;
 
   newGold.forEach(item => {
     const pricePerPiece = calculateSellPrice(item.productId, currentPricing.sell1Baht);
     newValue += pricePerPiece * item.qty;
     exchangeFee += EXCHANGE_FEES[item.productId] * item.qty;
+    
+    if (PREMIUM_PRODUCTS.includes(item.productId)) {
+      premium += PREMIUM_PER_PIECE * item.qty;
+    }
   });
 
   const difference = newValue - oldValue;
+  const total = roundTo1000(difference + exchangeFee + premium);
 
   currentTradeinData = {
     customer,
@@ -146,7 +164,8 @@ function calculateTradein() {
     newGold: JSON.stringify(newGold),
     difference,
     exchangeFee,
-    premium: 0
+    premium,
+    total
   };
 
   const oldItems = oldGold.map(i => `${FIXED_PRODUCTS.find(p => p.id === i.productId).name} (${i.qty})`).join(', ');
@@ -182,9 +201,9 @@ function calculateTradein() {
         <span class="summary-label">Premium:</span>
         <span class="summary-value">${formatNumber(premium)} LAK</span>
       </div>
-      <div class="summary-row">
-        <span class="summary-label">รวมที่ต้องชำระ:</span>
-        <span class="summary-value">${formatNumber(difference + exchangeFee + premium)} LAK</span>
+      <div class="summary-row" style="border-top: 2px solid var(--gold-primary); padding-top: 10px; margin-top: 10px;">
+        <span class="summary-label" style="font-size: 18px; font-weight: 600;">รวมที่ต้องชำระ:</span>
+        <span class="summary-value" style="font-size: 20px; font-weight: 600; color: var(--gold-primary);">${formatNumber(total)} LAK</span>
       </div>
     </div>
   `;
@@ -263,17 +282,16 @@ async function submitTradein() {
   }
 }
 
-async function confirmTradein(tradeinId) {
-  if (!confirm('ยืนยันรายการแลกเปลี่ยน?')) return;
+async function reviewTradein(tradeinId) {
+  if (!confirm('ยืนยันการ Review รายการแลกเปลี่ยนนี้?')) return;
   
   try {
     showLoading();
-    const result = await callAppsScript('CONFIRM_TRADEIN', { tradeinId });
+    const result = await callAppsScript('REVIEW_TRADEIN', { tradeinId });
     
     if (result.success) {
-      alert('✅ ยืนยันสำเร็จ!');
+      alert('✅ Review สำเร็จ! รอ User ยืนยันชำระเงิน');
       loadTradeins();
-      loadDashboard();
     } else {
       alert('❌ เกิดข้อผิดพลาด: ' + result.message);
     }
@@ -283,3 +301,174 @@ async function confirmTradein(tradeinId) {
     hideLoading();
   }
 }
+
+async function openTradeinPaymentModal(tradeinId) {
+  try {
+    showLoading();
+    const data = await fetchSheetData('Tradeins!A:N');
+    const tradein = data.slice(1).find(row => row[0] === tradeinId);
+    
+    if (!tradein) {
+      alert('❌ ไม่พบรายการแลกเปลี่ยน');
+      hideLoading();
+      return;
+    }
+    
+    currentTradeinPayment = {
+      tradeinId: tradein[0],
+      customer: tradein[1],
+      oldGold: tradein[2],
+      newGold: tradein[3],
+      total: parseFloat(tradein[6]) || 0
+    };
+    
+    document.getElementById('tradeinPaymentId').textContent = tradein[0];
+    document.getElementById('tradeinPaymentCustomer').textContent = tradein[1];
+    document.getElementById('tradeinPaymentOldGold').textContent = formatItemsForDisplay(tradein[2]);
+    document.getElementById('tradeinPaymentNewGold').textContent = formatItemsForDisplay(tradein[3]);
+    document.getElementById('tradeinPaymentTotal').textContent = formatNumber(tradein[6]) + ' LAK';
+    
+    document.getElementById('tradeinPaymentCurrency').value = 'LAK';
+    document.getElementById('tradeinPaymentMethod').value = 'Cash';
+    document.getElementById('tradeinPaymentBankGroup').style.display = 'none';
+    
+    calculateTradeinPayment();
+    
+    hideLoading();
+    openModal('tradeinPaymentModal');
+  } catch (error) {
+    alert('❌ เกิดข้อผิดพลาด: ' + error.message);
+    hideLoading();
+  }
+}
+
+function calculateTradeinPayment() {
+  if (!currentTradeinPayment) return;
+  
+  const currency = document.getElementById('tradeinPaymentCurrency').value;
+  const totalLAK = currentTradeinPayment.total;
+  
+  let rate = 1;
+  let amountToPay = totalLAK;
+  
+  const rateGroup = document.getElementById('tradeinPaymentRateGroup');
+  const receivedLabel = document.querySelector('label[for="tradeinPaymentReceived"]');
+  
+  if (currency === 'THB') {
+    rate = parseFloat(document.getElementById('tradeinPaymentRateTHB').value) || 270;
+    amountToPay = totalLAK / rate;
+    rateGroup.style.display = 'block';
+    document.getElementById('tradeinPaymentExchangeRate').value = `1 THB = ${formatNumber(rate)} LAK`;
+    if (receivedLabel) receivedLabel.textContent = 'Received Amount (THB)';
+  } else if (currency === 'USD') {
+    rate = parseFloat(document.getElementById('tradeinPaymentRateUSD').value) || 21500;
+    amountToPay = totalLAK / rate;
+    rateGroup.style.display = 'block';
+    document.getElementById('tradeinPaymentExchangeRate').value = `1 USD = ${formatNumber(rate)} LAK`;
+    if (receivedLabel) receivedLabel.textContent = 'Received Amount (USD)';
+  } else {
+    rateGroup.style.display = 'none';
+    if (receivedLabel) receivedLabel.textContent = 'Received Amount (LAK)';
+  }
+  
+  document.getElementById('tradeinPaymentAmount').value = `${formatNumber(amountToPay.toFixed(2))} ${currency}`;
+  document.getElementById('tradeinPaymentAmountLAK').value = formatNumber(totalLAK) + ' LAK';
+}
+
+function calculateTradeinChange() {
+  if (!currentTradeinPayment) return;
+  
+  const currency = document.getElementById('tradeinPaymentCurrency').value;
+  const received = parseFloat(document.getElementById('tradeinPaymentReceived').value) || 0;
+  const totalLAK = currentTradeinPayment.total;
+  
+  let rate = 1;
+  if (currency === 'THB') {
+    rate = parseFloat(document.getElementById('tradeinPaymentRateTHB').value) || 270;
+  } else if (currency === 'USD') {
+    rate = parseFloat(document.getElementById('tradeinPaymentRateUSD').value) || 21500;
+  }
+  
+  let receivedLAK = received;
+  if (currency === 'THB') {
+    receivedLAK = received * rate;
+  } else if (currency === 'USD') {
+    receivedLAK = received * rate;
+  }
+  
+  const change = Math.max(0, receivedLAK - totalLAK);
+  
+  document.getElementById('tradeinPaymentChange').value = formatNumber(change) + ' LAK';
+}
+
+function toggleTradeinPaymentBank() {
+  const method = document.getElementById('tradeinPaymentMethod').value;
+  const bankGroup = document.getElementById('tradeinPaymentBankGroup');
+  bankGroup.style.display = method === 'Bank' ? 'block' : 'none';
+}
+
+async function confirmTradeinPayment() {
+  if (!currentTradeinPayment) return;
+  
+  const method = document.getElementById('tradeinPaymentMethod').value;
+  const bank = method === 'Bank' ? document.getElementById('tradeinPaymentBank').value : '';
+  const currency = document.getElementById('tradeinPaymentCurrency').value;
+  const received = parseFloat(document.getElementById('tradeinPaymentReceived').value) || 0;
+  
+  if (received <= 0) {
+    alert('กรุณากรอกจำนวนเงินที่รับ');
+    return;
+  }
+  
+  let rate = 1;
+  if (currency === 'THB') {
+    rate = parseFloat(document.getElementById('tradeinPaymentRateTHB').value) || 270;
+  } else if (currency === 'USD') {
+    rate = parseFloat(document.getElementById('tradeinPaymentRateUSD').value) || 21500;
+  }
+  
+  let receivedLAK = received;
+  if (currency === 'THB') {
+    receivedLAK = received * rate;
+  } else if (currency === 'USD') {
+    receivedLAK = received * rate;
+  }
+  
+  if (receivedLAK < currentTradeinPayment.total) {
+    alert('❌ จำนวนเงินที่รับไม่เพียงพอ!');
+    return;
+  }
+  
+  const changeLAK = receivedLAK - currentTradeinPayment.total;
+  
+  try {
+    showLoading();
+    const result = await callAppsScript('CONFIRM_TRADEIN_PAYMENT', {
+      tradeinId: currentTradeinPayment.tradeinId,
+      method,
+      bank,
+      customerPaid: received,
+      customerCurrency: currency,
+      exchangeRate: rate,
+      changeLAK,
+      user: currentUser.nickname
+    });
+    
+    if (result.success) {
+      alert('✅ ยืนยันชำระเงินสำเร็จ!');
+      closeModal('tradeinPaymentModal');
+      currentTradeinPayment = null;
+      loadTradeins();
+      loadDashboard();
+      loadCashBank();
+    } else {
+      alert('❌ เกิดข้อผิดพลาด: ' + result.message);
+    }
+    hideLoading();
+  } catch (error) {
+    alert('❌ เกิดข้อผิดพลาด: ' + error.message);
+    hideLoading();
+  }
+}
+
+let currentTradeinPayment = null;
