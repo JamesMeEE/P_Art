@@ -220,7 +220,8 @@ function calculateSellTotal() {
   let totalPremium = 0;
   
   console.log('💰 === เริ่มคำนวณราคาขายทอง ===');
-  console.log('📊 ราคา 1 บาท:', formatNumber(currentPricing.sell1Baht), 'LAK');
+  console.log('📊 ราคา 1 บาท (ค่าจริง):', currentPricing.sell1Baht, 'LAK');
+  console.log('📊 ราคา 1 บาท (แสดงผล):', formatNumber(currentPricing.sell1Baht), 'LAK');
   
   document.querySelectorAll('#sellProducts .product-row').forEach((row, index) => {
     const productId = row.querySelector('select').value;
@@ -233,7 +234,8 @@ function calculateSellTotal() {
       
       console.log(`\n📦 สินค้า ${index + 1}: ${productName} (${productId})`);
       console.log(`   - จำนวน: ${qty} ชิ้น`);
-      console.log(`   - ราคา/ชิ้น: ${formatNumber(pricePerPiece)} LAK`);
+      console.log(`   - ราคา/ชิ้น (ค่าจริง): ${pricePerPiece} LAK`);
+      console.log(`   - ราคา/ชิ้น (แสดงผล): ${formatNumber(pricePerPiece)} LAK`);
       console.log(`   - รวม: ${formatNumber(lineTotal)} LAK`);
       
       totalPrice += lineTotal;
@@ -247,9 +249,11 @@ function calculateSellTotal() {
   });
   
   console.log('\n📝 สรุป:');
-  console.log(`   - ราคาสินค้า: ${formatNumber(totalPrice)} LAK`);
+  console.log(`   - ราคาสินค้า (ค่าจริง): ${totalPrice} LAK`);
+  console.log(`   - ราคาสินค้า (แสดงผล): ${formatNumber(totalPrice)} LAK`);
   console.log(`   - Premium: ${formatNumber(totalPremium)} LAK`);
-  console.log(`   - รวมก่อนปัด: ${formatNumber(totalPrice + totalPremium)} LAK`);
+  console.log(`   - รวมก่อนปัด (ค่าจริง): ${totalPrice + totalPremium} LAK`);
+  console.log(`   - รวมก่อนปัด (แสดงผล): ${formatNumber(totalPrice + totalPremium)} LAK`);
   
   const finalTotal = roundTo1000(totalPrice + totalPremium);
   console.log(`   - ปัดหลักพัน: ${formatNumber(finalTotal)} LAK`);
