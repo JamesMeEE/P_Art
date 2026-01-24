@@ -143,14 +143,12 @@ async function calculateTradein() {
   });
 
   let newWeight = 0;
-  let exchangeFee = 0;
   let premium = 0;
 
   newGold.forEach(item => {
     const product = FIXED_PRODUCTS.find(p => p.id === item.productId);
     console.log('New Gold:', product.name, 'weight:', product.weight, 'qty:', item.qty);
     newWeight += product.weight * item.qty;
-    exchangeFee += EXCHANGE_FEES[item.productId] * item.qty;
     
     if (PREMIUM_PRODUCTS.includes(item.productId)) {
       premium += PREMIUM_PER_PIECE * item.qty;
@@ -163,7 +161,6 @@ async function calculateTradein() {
   console.log('Weight Difference:', newWeight - oldWeight, 'บาท');
   console.log('Sell 1 Baht:', currentPricing.sell1Baht, 'LAK');
   console.log('Difference Value:', (newWeight - oldWeight) * currentPricing.sell1Baht, 'LAK');
-  console.log('Exchange Fee:', exchangeFee, 'LAK');
   console.log('Premium:', premium, 'LAK');
 
   if (newWeight <= oldWeight) {
@@ -176,6 +173,7 @@ async function calculateTradein() {
   const total = roundTo1000(difference + premium);
 
   console.log('FINAL - difference:', difference, 'LAK');
+  console.log('FINAL - premium:', premium, 'LAK');
   console.log('FINAL - total:', total, 'LAK');
   console.log('===========================');
 
@@ -402,6 +400,38 @@ async function confirmTradeinPayment() {
     alert('❌ เกิดข้อผิดพลาด: ' + error.message);
     hideLoading();
   }
+}
+
+async function loadCurrentPricing() {
+  try {
+    const pricingData = await fetchSheetData('Pricing!A:B');
+    
+    if (pricingData.length > 1) {
+      const latestPricing = pricingData[pricingData.length - 1];
+      currentPricing = {
+        sell1Baht: parseFloat(latestPricing[1]) || 0,
+        buyback1Baht: 0
+      };
+      
+      console.log('Loaded currentPricing:', currentPricing);
+      return true;
+    }
+    return false;
+  } catch (error) {
+    console.error('Error loading pricing:', error);
+    return false;
+  }
+}
+
+async function openTradeinModal() {
+  const hasPrice = await loadCurrentPricing();
+  
+  if (!hasPrice || !currentPricing.sell1Baht || currentPricing.sell1Baht === 0) {
+    alert('❌ ยังไม่มีราคาทองในระบบ! กรุณาไปที่หน้า Products → Set New Price ก่อน');
+    return;
+  }
+  
+  openModal('tradeinModal');
 }
 
 let currentTradeinPayment = null;
