@@ -153,7 +153,7 @@ async function submitSell() {
     }
   });
   
-  totalPrice += totalPremium;
+  totalPrice = roundTo1000(totalPrice + totalPremium);
 
   try {
     showLoading();
@@ -241,11 +241,11 @@ function calculateSellTotal() {
     }
   });
   
-  totalPrice += totalPremium;
+  const finalTotal = roundTo1000(totalPrice + totalPremium);
   
   const priceElement = document.getElementById('sellPrice');
   if (priceElement) {
-    priceElement.value = totalPrice;
+    priceElement.value = finalTotal;
   }
 }
 
