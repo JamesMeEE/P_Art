@@ -74,26 +74,22 @@ async function loadPriceHistory() {
 
 async function updatePricing() {
   const sell1Baht = document.getElementById('sell1BahtPrice').value;
-  const premium = document.getElementById('premiumPrice').value;
   
-  if (!sell1Baht || !premium) {
-    alert('กรุณากรอกข้อมูลให้ครบ');
+  if (!sell1Baht) {
+    alert('กรุณากรอกราคา 1 บาท');
     return;
   }
   
   try {
     showLoading();
     const result = await callAppsScript('UPDATE_PRICING', {
-      sell1Baht,
-      premium
+      sell1Baht
     });
     
     if (result.success) {
       alert('✅ อัพเดตราคาสำเร็จ!');
-      PREMIUM_PER_PIECE = parseFloat(premium);
       closeModal('pricingModal');
       document.getElementById('sell1BahtPrice').value = '';
-      document.getElementById('premiumPrice').value = '';
       loadProducts();
     } else {
       alert('❌ Error: ' + result.message);
