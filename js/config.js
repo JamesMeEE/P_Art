@@ -61,11 +61,7 @@ let currentPriceRates = {
 let sellSortOrder = 'desc';
 let tradeinOldCounter = 0;
 let tradeinNewCounter = 0;
-let exchangeOldCounter = 0;
-let exchangeNewCounter = 0;
 
-let currentTradeinData = null;
-let currentExchangeData = null;
 let currentReconcileType = null;
 let currentReconcileData = {};
 let currentPaymentData = null;
