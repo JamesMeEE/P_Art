@@ -99,7 +99,7 @@ function calculateBuybackTotal() {
   return total;
 }
 
-function calculateBuyback() {
+async function calculateBuyback() {
   const customer = document.getElementById('buybackCustomer').value;
   if (!customer) {
     alert('กรุณากรอกชื่อลูกค้า');
@@ -122,30 +122,35 @@ function calculateBuyback() {
 
   const total = calculateBuybackTotal();
 
-  currentBuybackData = {
-    customer,
-    products: JSON.stringify(products),
-    total
-  };
-
-  const itemsList = products.map(p => {
-    const product = FIXED_PRODUCTS.find(pr => pr.id === p.productId);
-    return `${product.name} (${p.qty})`;
-  }).join(', ');
-
-  document.getElementById('buybackPaymentId').textContent = 'NEW';
-  document.getElementById('buybackPaymentCustomer').textContent = customer;
-  document.getElementById('buybackPaymentItems').textContent = itemsList;
-  document.getElementById('buybackPaymentTotal').textContent = formatNumber(total) + ' LAK';
-
-  document.getElementById('buybackPaymentCurrency').value = 'LAK';
-  document.getElementById('buybackPaymentMethod').value = 'Cash';
-  document.getElementById('buybackPaymentBankGroup').style.display = 'none';
-
-  calculateBuybackPayment();
-
-  closeModal('buybackModal');
-  openModal('buybackPaymentModal');
+  try {
+    showLoading();
+    const result = await callAppsScript('ADD_BUYBACK', {
+      customer,
+      products: JSON.stringify(products),
+      total,
+      user: currentUser.nickname
+    });
+    
+    if (result.success) {
+      alert('✅ สร้างรายการรับซื้อสำเร็จ! รอ Manager Review');
+      closeModal('buybackModal');
+      
+      document.getElementById('buybackCustomer').value = '';
+      document.getElementById('buybackProducts').innerHTML = '';
+      document.getElementById('buybackPrice').value = '';
+      buybackCounter = 0;
+      addBuybackProduct();
+      
+      loadBuybacks();
+      loadDashboard();
+    } else {
+      alert('❌ เกิดข้อผิดพลาด: ' + result.message);
+    }
+    hideLoading();
+  } catch (error) {
+    alert('❌ เกิดข้อผิดพลาด: ' + error.message);
+    hideLoading();
+  }
 }
 
 async function reviewBuyback(buybackId) {
@@ -207,9 +212,9 @@ async function openBuybackPaymentModal(buybackId) {
 }
 
 function calculateBuybackPayment() {
-  const isNew = document.getElementById('buybackPaymentId').textContent === 'NEW';
-  const totalLAK = isNew ? currentBuybackData.total : currentBuybackPayment.total;
+  if (!currentBuybackPayment) return;
   
+  const totalLAK = currentBuybackPayment.total;
   const currency = document.getElementById('buybackPaymentCurrency').value;
   
   let rate = 1;
@@ -242,7 +247,7 @@ function toggleBuybackPaymentBank() {
 }
 
 async function confirmBuybackPayment() {
-  const isNew = document.getElementById('buybackPaymentId').textContent === 'NEW';
+  if (!currentBuybackPayment) return;
   
   const method = document.getElementById('buybackPaymentMethod').value;
   const bank = method === 'Bank' ? document.getElementById('buybackPaymentBank').value : '';
@@ -258,39 +263,20 @@ async function confirmBuybackPayment() {
   try {
     showLoading();
     
-    let result;
-    if (isNew) {
-      result = await callAppsScript('CREATE_BUYBACK_WITH_PAYMENT', {
-        ...currentBuybackData,
-        method,
-        bank,
-        currency,
-        exchangeRate: rate,
-        user: currentUser.nickname
-      });
-    } else {
-      result = await callAppsScript('CONFIRM_BUYBACK_PAYMENT', {
-        buybackId: currentBuybackPayment.buybackId,
-        items: currentBuybackPayment.items,
-        method,
-        bank,
-        currency,
-        exchangeRate: rate,
-        user: currentUser.nickname
-      });
-    }
+    const result = await callAppsScript('CONFIRM_BUYBACK_PAYMENT', {
+      buybackId: currentBuybackPayment.buybackId,
+      items: currentBuybackPayment.items,
+      method,
+      bank,
+      currency,
+      exchangeRate: rate,
+      user: currentUser.nickname
+    });
     
     if (result.success) {
       alert('✅ ยืนยันชำระเงินสำเร็จ!');
       closeModal('buybackPaymentModal');
       currentBuybackPayment = null;
-      currentBuybackData = null;
-      
-      document.getElementById('buybackCustomer').value = '';
-      document.getElementById('buybackProducts').innerHTML = '';
-      document.getElementById('buybackPrice').value = '';
-      buybackCounter = 0;
-      addBuybackProduct();
       
       loadBuybacks();
       loadDashboard();
@@ -306,4 +292,3 @@ async function confirmBuybackPayment() {
 }
 
 let currentBuybackPayment = null;
-let currentBuybackData = null;
