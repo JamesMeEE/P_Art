@@ -138,6 +138,7 @@ async function calculateTradein() {
   let oldWeight = 0;
   oldGold.forEach(item => {
     const product = FIXED_PRODUCTS.find(p => p.id === item.productId);
+    console.log('Old Gold:', product.name, 'weight:', product.weight, 'qty:', item.qty);
     oldWeight += product.weight * item.qty;
   });
 
@@ -147,6 +148,7 @@ async function calculateTradein() {
 
   newGold.forEach(item => {
     const product = FIXED_PRODUCTS.find(p => p.id === item.productId);
+    console.log('New Gold:', product.name, 'weight:', product.weight, 'qty:', item.qty);
     newWeight += product.weight * item.qty;
     exchangeFee += EXCHANGE_FEES[item.productId] * item.qty;
     
@@ -154,6 +156,15 @@ async function calculateTradein() {
       premium += PREMIUM_PER_PIECE * item.qty;
     }
   });
+
+  console.log('=== TRADE-IN CALCULATION ===');
+  console.log('Old Weight:', oldWeight, 'บาท');
+  console.log('New Weight:', newWeight, 'บาท');
+  console.log('Weight Difference:', newWeight - oldWeight, 'บาท');
+  console.log('Sell 1 Baht:', currentPricing.sell1Baht, 'LAK');
+  console.log('Difference Value:', (newWeight - oldWeight) * currentPricing.sell1Baht, 'LAK');
+  console.log('Exchange Fee:', exchangeFee, 'LAK');
+  console.log('Premium:', premium, 'LAK');
 
   if (newWeight <= oldWeight) {
     alert('❌ น้ำหนักทองใหม่ต้องมากกว่าทองเก่า!\nทองเก่า: ' + oldWeight.toFixed(3) + ' บาท\nทองใหม่: ' + newWeight.toFixed(3) + ' บาท');
@@ -163,6 +174,10 @@ async function calculateTradein() {
   const weightDifference = newWeight - oldWeight;
   const difference = weightDifference * currentPricing.sell1Baht;
   const total = roundTo1000(difference + premium);
+
+  console.log('FINAL - difference:', difference, 'LAK');
+  console.log('FINAL - total:', total, 'LAK');
+  console.log('===========================');
 
   try {
     showLoading();
