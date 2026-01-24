@@ -393,12 +393,12 @@
         <table>
           <thead>
             <tr>
-              <th>ID</th>
+              <th>Transaction ID</th>
               <th>Customer</th>
               <th>Items</th>
               <th>Total (LAK)</th>
-              <th>Date</th>
               <th>Status</th>
+              <th>Sale</th>
               <th>Actions</th>
             </tr>
           </thead>
@@ -772,7 +772,7 @@
       </div>
       <div class="modal-footer">
         <button class="btn-secondary" onclick="closeModal('tradeinModal')">Cancel</button>
-        <button class="btn-primary" onclick="calculateTradein()">Calculate</button>
+        <button class="btn-primary" onclick="calculateTradein()">Create Trade-in</button>
       </div>
     </div>
   </div>
@@ -1027,7 +1027,81 @@
       </div>
       <div class="modal-footer">
         <button class="btn-secondary" onclick="closeModal('buybackModal')">Cancel</button>
-        <button class="btn-primary" onclick="submitBuyback()">Create Buyback</button>
+        <button class="btn-primary" onclick="calculateBuyback()">Calculate</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="buybackPaymentModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title">Buyback Payment</h2>
+      </div>
+      
+      <div class="summary-box" style="margin-bottom: 20px;">
+        <div class="summary-row">
+          <span class="summary-label">Transaction ID:</span>
+          <span class="summary-value" id="buybackPaymentId">-</span>
+        </div>
+        <div class="summary-row">
+          <span class="summary-label">Customer:</span>
+          <span class="summary-value" id="buybackPaymentCustomer">-</span>
+        </div>
+        <div class="summary-row">
+          <span class="summary-label">Items:</span>
+          <span class="summary-value" id="buybackPaymentItems">-</span>
+        </div>
+        <div class="summary-row" style="border-top: 2px solid var(--gold-primary); padding-top: 10px; margin-top: 10px;">
+          <span class="summary-label" style="font-size: 18px; font-weight: 600;">Total:</span>
+          <span class="summary-value" style="font-size: 20px; font-weight: 600; color: var(--gold-primary);" id="buybackPaymentTotal">0 LAK</span>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Payment Method</label>
+        <select class="form-select" id="buybackPaymentMethod" onchange="toggleBuybackPaymentBank()">
+          <option value="Cash">Cash</option>
+          <option value="Bank">Bank Transfer</option>
+        </select>
+      </div>
+
+      <div class="form-group" id="buybackPaymentBankGroup" style="display: none;">
+        <label class="form-label">Bank</label>
+        <select class="form-select" id="buybackPaymentBank">
+          <option value="BCEL">BCEL</option>
+          <option value="LDB">LDB</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Currency</label>
+        <select class="form-select" id="buybackPaymentCurrency" onchange="calculateBuybackPayment()">
+          <option value="LAK">LAK</option>
+          <option value="THB">THB</option>
+          <option value="USD">USD</option>
+        </select>
+      </div>
+
+      <div class="form-group" id="buybackPaymentRateGroup" style="display: none;">
+        <label class="form-label">Exchange Rate</label>
+        <input type="text" class="form-input" id="buybackPaymentExchangeRate" readonly>
+        <input type="hidden" id="buybackPaymentRateTHB">
+        <input type="hidden" id="buybackPaymentRateUSD">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Amount to Pay</label>
+        <input type="text" class="form-input" id="buybackPaymentAmount" readonly>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Amount to Pay (LAK)</label>
+        <input type="text" class="form-input" id="buybackPaymentAmountLAK" readonly>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn-secondary" onclick="closeModal('buybackPaymentModal')">Cancel</button>
+        <button class="btn-primary" onclick="confirmBuybackPayment()">Confirm Payment</button>
       </div>
     </div>
   </div>
