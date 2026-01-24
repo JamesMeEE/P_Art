@@ -112,12 +112,6 @@ function calculatePayment() {
     if (receivedLabel) receivedLabel.textContent = 'Received Amount (LAK)';
   }
   
-    currency,
-    totalLAK,
-    rate,
-    amountToPay: amountToPay.toFixed(2)
-  });
-  
   document.getElementById('paymentAmount').value = `${formatNumber(amountToPay.toFixed(2))} ${currency}`;
   document.getElementById('paymentAmountLAK').value = formatNumber(totalLAK) + ' LAK';
 }
