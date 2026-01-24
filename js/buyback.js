@@ -78,6 +78,11 @@ function addBuybackProduct() {
 }
 
 function calculateBuybackTotal() {
+  if (!currentPricing.sell1Baht || currentPricing.sell1Baht === 0) {
+    console.log('currentPricing not loaded yet');
+    return 0;
+  }
+
   const products = [];
   document.querySelectorAll('#buybackProducts .product-row').forEach(row => {
     const productId = row.querySelector('select').value;
@@ -90,10 +95,12 @@ function calculateBuybackTotal() {
   let totalPrice = 0;
   products.forEach(item => {
     const pricePerPiece = calculateBuybackPrice(item.productId, currentPricing.sell1Baht);
+    console.log('Buyback:', item.productId, 'price:', pricePerPiece, 'qty:', item.qty);
     totalPrice += pricePerPiece * item.qty;
   });
 
   const total = roundTo1000(totalPrice);
+  console.log('Buyback Total:', total, 'LAK');
   document.getElementById('buybackPrice').value = formatNumber(total);
   
   return total;
@@ -289,6 +296,38 @@ async function confirmBuybackPayment() {
     alert('❌ เกิดข้อผิดพลาด: ' + error.message);
     hideLoading();
   }
+}
+
+async function loadCurrentPricingForBuyback() {
+  try {
+    const pricingData = await fetchSheetData('Pricing!A:B');
+    
+    if (pricingData.length > 1) {
+      const latestPricing = pricingData[pricingData.length - 1];
+      currentPricing = {
+        sell1Baht: parseFloat(latestPricing[1]) || 0,
+        buyback1Baht: 0
+      };
+      
+      console.log('Loaded currentPricing for Buyback:', currentPricing);
+      return true;
+    }
+    return false;
+  } catch (error) {
+    console.error('Error loading pricing:', error);
+    return false;
+  }
+}
+
+async function openBuybackModal() {
+  const hasPrice = await loadCurrentPricingForBuyback();
+  
+  if (!hasPrice || !currentPricing.sell1Baht || currentPricing.sell1Baht === 0) {
+    alert('❌ ยังไม่มีราคาทองในระบบ! กรุณาไปที่หน้า Products → Set New Price ก่อน');
+    return;
+  }
+  
+  openModal('buybackModal');
 }
 
 let currentBuybackPayment = null;
