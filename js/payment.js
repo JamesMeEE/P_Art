@@ -16,7 +16,7 @@ async function openPaymentModal(sellId) {
       }
     }
     
-    const data = await fetchSheetData('Sells!A:I');
+    const data = await fetchSheetData('Sells!A:L');
     const sell = data.slice(1).find(row => row[0] === sellId);
     
     if (!sell) {
@@ -112,7 +112,6 @@ function calculatePayment() {
     if (receivedLabel) receivedLabel.textContent = 'Received Amount (LAK)';
   }
   
-  console.log('💰 Payment calculation:', {
     currency,
     totalLAK,
     rate,
