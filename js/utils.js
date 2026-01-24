@@ -144,13 +144,6 @@ function filterTodayData(data, dateColumnIndex, createdByIndex) {
     
     const isToday = rowDate >= todayStart && rowDate <= todayEnd;
     
-      date: dateStr,
-      parsedDate: rowDate,
-      isToday,
-      createdBy,
-      matches: currentUser.role === 'Manager' ? 'Manager sees all' : (createdBy === currentUser.nickname)
-    });
-    
     if (currentUser.role === 'Manager') {
       return isToday;
     } else if (currentUser.role === 'User') {
