@@ -363,15 +363,15 @@
         <table>
           <thead>
             <tr>
-              <th>ID</th>
+              <th>Transaction ID</th>
               <th>Customer</th>
               <th>Old Gold</th>
               <th>New Gold</th>
               <th>Difference</th>
-              <th>Exchange Fee</th>
               <th>Premium</th>
-              <th>Date</th>
+              <th>Total (LAK)</th>
               <th>Status</th>
+              <th>Sale</th>
               <th>Actions</th>
             </tr>
           </thead>
@@ -786,6 +786,94 @@
         <button class="btn-secondary" onclick="closeModal('tradeinResultModal')">Cancel</button>
         <button class="btn-secondary" onclick="backToTradein()">Back</button>
         <button class="btn-primary" onclick="submitTradein()">Confirm</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="tradeinPaymentModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title">Trade-in Payment</h2>
+      </div>
+      
+      <div class="summary-box" style="margin-bottom: 20px;">
+        <div class="summary-row">
+          <span class="summary-label">Transaction ID:</span>
+          <span class="summary-value" id="tradeinPaymentId">-</span>
+        </div>
+        <div class="summary-row">
+          <span class="summary-label">Customer:</span>
+          <span class="summary-value" id="tradeinPaymentCustomer">-</span>
+        </div>
+        <div class="summary-row">
+          <span class="summary-label">Old Gold:</span>
+          <span class="summary-value" id="tradeinPaymentOldGold">-</span>
+        </div>
+        <div class="summary-row">
+          <span class="summary-label">New Gold:</span>
+          <span class="summary-value" id="tradeinPaymentNewGold">-</span>
+        </div>
+        <div class="summary-row" style="border-top: 2px solid var(--gold-primary); padding-top: 10px; margin-top: 10px;">
+          <span class="summary-label" style="font-size: 18px; font-weight: 600;">Total:</span>
+          <span class="summary-value" style="font-size: 20px; font-weight: 600; color: var(--gold-primary);" id="tradeinPaymentTotal">0 LAK</span>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Payment Method</label>
+        <select class="form-select" id="tradeinPaymentMethod" onchange="toggleTradeinPaymentBank()">
+          <option value="Cash">Cash</option>
+          <option value="Bank">Bank Transfer</option>
+        </select>
+      </div>
+
+      <div class="form-group" id="tradeinPaymentBankGroup" style="display: none;">
+        <label class="form-label">Bank</label>
+        <select class="form-select" id="tradeinPaymentBank">
+          <option value="BCEL">BCEL</option>
+          <option value="LDB">LDB</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Currency</label>
+        <select class="form-select" id="tradeinPaymentCurrency" onchange="calculateTradeinPayment()">
+          <option value="LAK">LAK</option>
+          <option value="THB">THB</option>
+          <option value="USD">USD</option>
+        </select>
+      </div>
+
+      <div class="form-group" id="tradeinPaymentRateGroup" style="display: none;">
+        <label class="form-label">Exchange Rate</label>
+        <input type="text" class="form-input" id="tradeinPaymentExchangeRate" readonly>
+        <input type="hidden" id="tradeinPaymentRateTHB">
+        <input type="hidden" id="tradeinPaymentRateUSD">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Amount to Pay</label>
+        <input type="text" class="form-input" id="tradeinPaymentAmount" readonly>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Amount to Pay (LAK)</label>
+        <input type="text" class="form-input" id="tradeinPaymentAmountLAK" readonly>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="tradeinPaymentReceived">Received Amount (LAK)</label>
+        <input type="number" class="form-input" id="tradeinPaymentReceived" placeholder="0" step="1000" oninput="calculateTradeinChange()">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Change (LAK)</label>
+        <input type="text" class="form-input" id="tradeinPaymentChange" readonly>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn-secondary" onclick="closeModal('tradeinPaymentModal')">Cancel</button>
+        <button class="btn-primary" onclick="confirmTradeinPayment()">Confirm Payment</button>
       </div>
     </div>
   </div>
