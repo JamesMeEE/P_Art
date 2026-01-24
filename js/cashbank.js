@@ -34,10 +34,10 @@ async function loadCashBank() {
             if (bank === 'BCEL') balances.bcel[currency] += amount;
             else if (bank === 'LDB') balances.ldb[currency] += amount;
           }
-        } else if (type === 'OTHER_EXPENSE') {
-          if (method === 'CASH') {
+        } else if (type === 'OTHER_EXPENSE' || type === 'BUYBACK') {
+          if (method === 'CASH' || method === 'Cash') {
             balances.cash[currency] -= amount;
-          } else if (method === 'BANK') {
+          } else if (method === 'BANK' || method === 'Bank') {
             if (bank === 'BCEL') balances.bcel[currency] -= amount;
             else if (bank === 'LDB') balances.ldb[currency] -= amount;
           }
