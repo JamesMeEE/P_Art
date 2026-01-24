@@ -112,11 +112,9 @@ function calculatePremiumFromItems(itemsJson) {
     const items = JSON.parse(itemsJson);
     let totalPremium = 0;
     items.forEach(item => {
-      const priceWithPremium = calculateSellPrice(item.productId, currentPricing.sell1Baht);
-      const weight = GOLD_WEIGHTS[item.productId];
-      const priceWithoutPremium = roundTo1000(weight * currentPricing.sell1Baht);
-      const premium = priceWithPremium - priceWithoutPremium;
-      totalPremium += premium * item.qty;
+      if (PREMIUM_PRODUCTS.includes(item.productId)) {
+        totalPremium += PREMIUM_PER_PIECE * item.qty;
+      }
     });
     return totalPremium;
   } catch {
