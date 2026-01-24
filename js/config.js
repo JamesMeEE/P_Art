@@ -17,8 +17,8 @@ const FIXED_PRODUCTS = [
   { id: 'G02', name: '5 บาท', unit: 'แท่ง', weight: 5 },
   { id: 'G03', name: '2 บาท', unit: 'แท่ง', weight: 2 },
   { id: 'G04', name: '1 บาท', unit: 'แท่ง', weight: 1 },
-  { id: 'G05', name: '2 สลึง', unit: 'แท่ง', weight: 0.25 },
-  { id: 'G06', name: '1 สลึง', unit: 'แท่ง', weight: 0.125 },
+  { id: 'G05', name: '2 สลึง', unit: 'แท่ง', weight: 0.5 },
+  { id: 'G06', name: '1 สลึง', unit: 'แท่ง', weight: 0.25 },
   { id: 'G07', name: '1 กรัม', unit: 'แท่ง', weight: 1/15 }
 ];
 
@@ -27,8 +27,8 @@ const GOLD_WEIGHTS = {
   'G02': 5, 
   'G03': 2, 
   'G04': 1,
-  'G05': 0.25, 
-  'G06': 0.125,
+  'G05': 0.5, 
+  'G06': 0.25,
   'G07': 1/15
 };
 
