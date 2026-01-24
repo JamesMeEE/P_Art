@@ -38,9 +38,11 @@ function login() {
     }
     
     if (currentUser.role === 'Manager') {
-      if (document.getElementById('addSellBtn')) {
-        document.getElementById('addSellBtn').style.display = 'none';
-      }
+      const managerHideButtons = ['addSellBtn', 'addTradeinBtn', 'addBuybackBtn', 'addExchangeBtn', 'withdrawBtn'];
+      managerHideButtons.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.style.display = 'none';
+      });
     }
     
     fetchExchangeRates();
@@ -110,9 +112,11 @@ function logout() {
       }
       
       if (currentUser.role === 'Manager') {
-        if (document.getElementById('addSellBtn')) {
-          document.getElementById('addSellBtn').style.display = 'none';
-        }
+        const managerHideButtons = ['addSellBtn', 'addTradeinBtn', 'addBuybackBtn', 'addExchangeBtn', 'withdrawBtn'];
+        managerHideButtons.forEach(id => {
+          const el = document.getElementById(id);
+          if (el) el.style.display = 'none';
+        });
       }
       
       fetchExchangeRates();
