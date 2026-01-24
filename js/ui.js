@@ -1,5 +1,4 @@
 function showSection(sectionId) {
-  console.log('📄 showSection called:', sectionId);
   
   document.querySelectorAll('.section').forEach(section => {
     section.classList.remove('active');
@@ -11,7 +10,6 @@ function showSection(sectionId) {
   const targetSection = document.getElementById(sectionId);
   if (targetSection) {
     targetSection.classList.add('active');
-    console.log('✅ Section activated:', sectionId);
   } else {
     console.error('❌ Section not found:', sectionId);
   }
@@ -26,7 +24,6 @@ function showSection(sectionId) {
   else if (sectionId === 'products') loadProducts();
   else if (sectionId === 'pricerate') loadPriceRate();
   else if (sectionId === 'sell') {
-    console.log('🛒 Loading Sell section...');
     loadSells();
   }
   else if (sectionId === 'tradein') loadTradeins();
