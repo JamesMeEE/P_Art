@@ -192,8 +192,6 @@ function calculateSellPrice(productId, sell1Baht) {
 
 function calculateBuybackPrice(productId, sell1Baht) {
   const buyback1B = sell1Baht - 530000;
-  const sell1g = calculateSellPrice('G07', sell1Baht);
-  const buyback1g = sell1g - 155000;
   
   let price = 0;
   switch(productId) {
@@ -201,9 +199,9 @@ function calculateBuybackPrice(productId, sell1Baht) {
     case 'G02': price = buyback1B * 5; break;
     case 'G03': price = buyback1B * 2; break;
     case 'G04': price = buyback1B; break;
-    case 'G05': price = buyback1B / 4; break;
-    case 'G06': price = buyback1B / 8; break;
-    case 'G07': price = buyback1g; break;
+    case 'G05': price = buyback1B / 2; break;
+    case 'G06': price = buyback1B / 4; break;
+    case 'G07': price = buyback1B / 15; break;
   }
   return price;
 }
