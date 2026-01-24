@@ -136,24 +136,18 @@ async function calculateTradein() {
   }
 
   let oldWeight = 0;
-  let oldValue = 0;
   oldGold.forEach(item => {
     const product = FIXED_PRODUCTS.find(p => p.id === item.productId);
     oldWeight += product.weight * item.qty;
-    const pricePerPiece = calculateSellPrice(item.productId, currentPricing.sell1Baht);
-    oldValue += pricePerPiece * item.qty;
   });
 
   let newWeight = 0;
-  let newValue = 0;
   let exchangeFee = 0;
   let premium = 0;
 
   newGold.forEach(item => {
     const product = FIXED_PRODUCTS.find(p => p.id === item.productId);
     newWeight += product.weight * item.qty;
-    const pricePerPiece = calculateSellPrice(item.productId, currentPricing.sell1Baht);
-    newValue += pricePerPiece * item.qty;
     exchangeFee += EXCHANGE_FEES[item.productId] * item.qty;
     
     if (PREMIUM_PRODUCTS.includes(item.productId)) {
@@ -161,14 +155,14 @@ async function calculateTradein() {
     }
   });
 
-  const difference = newValue - oldValue;
-  
   if (newWeight <= oldWeight) {
     alert('❌ น้ำหนักทองใหม่ต้องมากกว่าทองเก่า!\nทองเก่า: ' + oldWeight.toFixed(3) + ' บาท\nทองใหม่: ' + newWeight.toFixed(3) + ' บาท');
     return;
   }
   
-  const total = roundTo1000(difference + exchangeFee + premium);
+  const weightDifference = newWeight - oldWeight;
+  const difference = weightDifference * currentPricing.sell1Baht;
+  const total = roundTo1000(difference + premium);
 
   try {
     showLoading();
