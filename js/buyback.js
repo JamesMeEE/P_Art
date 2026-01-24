@@ -92,9 +92,8 @@ async function submitBuyback() {
 
   let totalPrice = 0;
   items.forEach(item => {
-    const weight = GOLD_WEIGHTS[item.productId];
-    const price = weight * currentPricing.buyback1Baht;
-    totalPrice += price * item.qty;
+    const pricePerPiece = calculateBuybackPrice(item.productId, currentPricing.sell1Baht);
+    totalPrice += pricePerPiece * item.qty;
   });
 
   try {
