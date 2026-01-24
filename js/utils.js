@@ -110,13 +110,15 @@ function formatItemsForDisplay(itemsJson) {
 function calculatePremiumFromItems(itemsJson) {
   try {
     const items = JSON.parse(itemsJson);
-    let premium = 0;
+    let totalPremium = 0;
     items.forEach(item => {
-      if (PREMIUM_PRODUCTS.includes(item.productId)) {
-        premium += PREMIUM_PER_PIECE * item.qty;
-      }
+      const priceWithPremium = calculateSellPrice(item.productId, currentPricing.sell1Baht);
+      const weight = GOLD_WEIGHTS[item.productId];
+      const priceWithoutPremium = roundTo1000(weight * currentPricing.sell1Baht);
+      const premium = priceWithPremium - priceWithoutPremium;
+      totalPremium += premium * item.qty;
     });
-    return premium;
+    return totalPremium;
   } catch {
     return 0;
   }
@@ -189,4 +191,40 @@ function openModal(modalId) {
 
 function closeModal(modalId) {
   document.getElementById(modalId).classList.remove('active');
+}
+
+function roundTo1000(num) {
+  return Math.round(num / 1000) * 1000;
+}
+
+function calculateSellPrice(productId, sell1Baht) {
+  let price = 0;
+  switch(productId) {
+    case 'G01': price = sell1Baht * 10; break;
+    case 'G02': price = sell1Baht * 5; break;
+    case 'G03': price = sell1Baht * 2; break;
+    case 'G04': price = sell1Baht; break;
+    case 'G05': price = (sell1Baht / 4) + 120000; break;
+    case 'G06': price = (sell1Baht / 8) + 120000; break;
+    case 'G07': price = (sell1Baht / 15) + 120000; break;
+  }
+  return roundTo1000(price);
+}
+
+function calculateBuybackPrice(productId, sell1Baht) {
+  const buyback1B = sell1Baht - 530000;
+  const sell1g = calculateSellPrice('G07', sell1Baht);
+  const buyback1g = sell1g - 155000;
+  
+  let price = 0;
+  switch(productId) {
+    case 'G01': price = buyback1B * 10; break;
+    case 'G02': price = buyback1B * 5; break;
+    case 'G03': price = buyback1B * 2; break;
+    case 'G04': price = buyback1B; break;
+    case 'G05': price = buyback1B / 4; break;
+    case 'G06': price = buyback1B / 8; break;
+    case 'G07': price = buyback1g; break;
+  }
+  return price;
 }
