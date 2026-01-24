@@ -1051,9 +1051,9 @@
           <span class="summary-label">Items:</span>
           <span class="summary-value" id="buybackPaymentItems">-</span>
         </div>
-        <div class="summary-row" style="border-top: 2px solid var(--gold-primary); padding-top: 10px; margin-top: 10px;">
-          <span class="summary-label" style="font-size: 18px; font-weight: 600;">Total:</span>
-          <span class="summary-value" style="font-size: 20px; font-weight: 600; color: var(--gold-primary);" id="buybackPaymentTotal">0 LAK</span>
+        <div class="summary-row">
+          <span class="summary-label">Buyback Total:</span>
+          <span class="summary-value" id="buybackPaymentBaseTotal">0 LAK</span>
         </div>
       </div>
 
@@ -1075,28 +1075,17 @@
 
       <div class="form-group">
         <label class="form-label">Currency</label>
-        <select class="form-select" id="buybackPaymentCurrency" onchange="calculateBuybackPayment()">
-          <option value="LAK">LAK</option>
-          <option value="THB">THB</option>
-          <option value="USD">USD</option>
-        </select>
-      </div>
-
-      <div class="form-group" id="buybackPaymentRateGroup" style="display: none;">
-        <label class="form-label">Exchange Rate</label>
-        <input type="text" class="form-input" id="buybackPaymentExchangeRate" readonly>
-        <input type="hidden" id="buybackPaymentRateTHB">
-        <input type="hidden" id="buybackPaymentRateUSD">
+        <input type="text" class="form-input" value="LAK" readonly>
       </div>
 
       <div class="form-group">
-        <label class="form-label">Amount to Pay</label>
-        <input type="text" class="form-input" id="buybackPaymentAmount" readonly>
+        <label class="form-label">Transaction Fee (LAK)</label>
+        <input type="number" class="form-input" id="buybackPaymentFee" placeholder="0" value="0" oninput="calculateBuybackPaymentTotal()">
       </div>
 
       <div class="form-group">
-        <label class="form-label">Amount to Pay (LAK)</label>
-        <input type="text" class="form-input" id="buybackPaymentAmountLAK" readonly>
+        <label class="form-label" style="font-size: 18px; font-weight: 600;">Total Amount (LAK)</label>
+        <input type="text" class="form-input" id="buybackPaymentTotal" readonly style="font-size: 20px; font-weight: 600; color: var(--gold-primary);">
       </div>
 
       <div class="modal-footer">
@@ -1519,7 +1508,7 @@
   <script src="js/sell.js"></script>
   <script src="js/payment.js"></script>
   <script src="js/tradein.js?v=7"></script>
-  <script src="js/buyback.js?v=7"></script>
+  <script src="js/buyback.js?v=8"></script>
   <script src="js/exchange.js?v=7"></script>
   <script src="js/withdraw.js"></script>
   <script src="js/inventory.js"></script>
