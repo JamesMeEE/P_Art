@@ -105,7 +105,7 @@ function removeTradeinNewGold(id) {
   if (row) row.remove();
 }
 
-function calculateTradein() {
+async function calculateTradein() {
   const customer = document.getElementById('tradeinCustomer').value;
   if (!customer) {
     alert('กรุณากรอกชื่อลูกค้า');
@@ -164,38 +164,38 @@ function calculateTradein() {
   
   const total = roundTo1000(difference + exchangeFee + premium);
 
-  currentTradeinData = {
-    customer,
-    oldGold: JSON.stringify(oldGold),
-    newGold: JSON.stringify(newGold),
-    difference,
-    exchangeFee,
-    premium,
-    total,
-    oldValue,
-    newValue
-  };
-
-  document.getElementById('tradeinPaymentId').textContent = 'NEW';
-  document.getElementById('tradeinPaymentCustomer').textContent = customer;
-  
-  const oldItems = oldGold.map(i => `${FIXED_PRODUCTS.find(p => p.id === i.productId).name} (${i.qty})`).join(', ');
-  const newItems = newGold.map(i => `${FIXED_PRODUCTS.find(p => p.id === i.productId).name} (${i.qty})`).join(', ');
-  
-  document.getElementById('tradeinPaymentOldGold').textContent = oldItems;
-  document.getElementById('tradeinPaymentNewGold').textContent = newItems;
-  document.getElementById('tradeinPaymentTotal').textContent = formatNumber(total) + ' LAK';
-  
-  document.getElementById('tradeinPaymentCurrency').value = 'LAK';
-  document.getElementById('tradeinPaymentMethod').value = 'Cash';
-  document.getElementById('tradeinPaymentBankGroup').style.display = 'none';
-  document.getElementById('tradeinPaymentReceived').value = '';
-  document.getElementById('tradeinPaymentChange').value = '';
-  
-  calculateTradeinPayment();
-
-  closeModal('tradeinModal');
-  openModal('tradeinPaymentModal');
+  try {
+    showLoading();
+    const result = await callAppsScript('ADD_TRADEIN', {
+      customer,
+      oldGold: JSON.stringify(oldGold),
+      newGold: JSON.stringify(newGold),
+      difference,
+      premium,
+      total,
+      user: currentUser.nickname
+    });
+    
+    if (result.success) {
+      alert('✅ สร้างรายการแลกเปลี่ยนสำเร็จ! รอ Manager Review');
+      closeModal('tradeinModal');
+      document.getElementById('tradeinCustomer').value = '';
+      document.getElementById('tradeinOldGold').innerHTML = '';
+      document.getElementById('tradeinNewGold').innerHTML = '';
+      tradeinOldCounter = 0;
+      tradeinNewCounter = 0;
+      addTradeinOldGold();
+      addTradeinNewGold();
+      loadTradeins();
+      loadDashboard();
+    } else {
+      alert('❌ เกิดข้อผิดพลาด: ' + result.message);
+    }
+    hideLoading();
+  } catch (error) {
+    alert('❌ เกิดข้อผิดพลาด: ' + error.message);
+    hideLoading();
+  }
 }
 
 async function reviewTradein(tradeinId) {
@@ -324,10 +324,7 @@ function toggleTradeinPaymentBank() {
 }
 
 async function confirmTradeinPayment() {
-  const isNewTradein = document.getElementById('tradeinPaymentId').textContent === 'NEW';
-  
-  if (isNewTradein && !currentTradeinData) return;
-  if (!isNewTradein && !currentTradeinPayment) return;
+  if (!currentTradeinPayment) return;
   
   const method = document.getElementById('tradeinPaymentMethod').value;
   const bank = method === 'Bank' ? document.getElementById('tradeinPaymentBank').value : '';
@@ -353,50 +350,32 @@ async function confirmTradeinPayment() {
     receivedLAK = received * rate;
   }
   
-  const total = isNewTradein ? currentTradeinData.total : currentTradeinPayment.total;
-  
-  if (receivedLAK < total) {
+  if (receivedLAK < currentTradeinPayment.total) {
     alert('❌ จำนวนเงินที่รับไม่เพียงพอ!');
     return;
   }
   
-  const changeLAK = receivedLAK - total;
+  const changeLAK = receivedLAK - currentTradeinPayment.total;
   
   try {
     showLoading();
-    
-    let result;
-    if (isNewTradein) {
-      result = await callAppsScript('CREATE_TRADEIN_WITH_PAYMENT', {
-        ...currentTradeinData,
-        method,
-        bank,
-        customerPaid: received,
-        customerCurrency: currency,
-        exchangeRate: rate,
-        changeLAK,
-        user: currentUser.nickname
-      });
-    } else {
-      result = await callAppsScript('CONFIRM_TRADEIN_PAYMENT', {
-        tradeinId: currentTradeinPayment.tradeinId,
-        oldGold: currentTradeinPayment.oldGold,
-        newGold: currentTradeinPayment.newGold,
-        method,
-        bank,
-        customerPaid: received,
-        customerCurrency: currency,
-        exchangeRate: rate,
-        changeLAK,
-        user: currentUser.nickname
-      });
-    }
+    const result = await callAppsScript('CONFIRM_TRADEIN_PAYMENT', {
+      tradeinId: currentTradeinPayment.tradeinId,
+      oldGold: currentTradeinPayment.oldGold,
+      newGold: currentTradeinPayment.newGold,
+      method,
+      bank,
+      customerPaid: received,
+      customerCurrency: currency,
+      exchangeRate: rate,
+      changeLAK,
+      user: currentUser.nickname
+    });
     
     if (result.success) {
       alert('✅ ยืนยันชำระเงินสำเร็จ!');
       closeModal('tradeinPaymentModal');
       currentTradeinPayment = null;
-      currentTradeinData = null;
       loadTradeins();
       loadDashboard();
       loadCashBank();
