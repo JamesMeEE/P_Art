@@ -125,22 +125,17 @@ function calculateTradein() {
 
   let oldValue = 0;
   oldGold.forEach(item => {
-    const weight = GOLD_WEIGHTS[item.productId];
-    oldValue += weight * currentPricing.buyback1Baht * item.qty;
+    const pricePerPiece = calculateBuybackPrice(item.productId, currentPricing.sell1Baht);
+    oldValue += pricePerPiece * item.qty;
   });
 
   let newValue = 0;
   let exchangeFee = 0;
-  let premium = 0;
 
   newGold.forEach(item => {
-    const weight = GOLD_WEIGHTS[item.productId];
-    newValue += weight * currentPricing.sell1Baht * item.qty;
+    const pricePerPiece = calculateSellPrice(item.productId, currentPricing.sell1Baht);
+    newValue += pricePerPiece * item.qty;
     exchangeFee += EXCHANGE_FEES[item.productId] * item.qty;
-    
-    if (PREMIUM_PRODUCTS.includes(item.productId)) {
-      premium += PREMIUM_PER_PIECE * item.qty;
-    }
   });
 
   const difference = newValue - oldValue;
@@ -151,7 +146,7 @@ function calculateTradein() {
     newGold: JSON.stringify(newGold),
     difference,
     exchangeFee,
-    premium
+    premium: 0
   };
 
   const oldItems = oldGold.map(i => `${FIXED_PRODUCTS.find(p => p.id === i.productId).name} (${i.qty})`).join(', ');
