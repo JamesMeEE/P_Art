@@ -6,7 +6,11 @@ async function loadSells() {
     let filteredData = data.slice(1);
     
     if (currentUser.role === 'User' || currentUser.role === 'Manager') {
-      filteredData = filterTodayData(filteredData, 9, 11);
+      if (sellDateFrom || sellDateTo) {
+        filteredData = filterByDateRange(filteredData, 9, 11, sellDateFrom, sellDateTo);
+      } else {
+        filteredData = filterTodayData(filteredData, 9, 11);
+      }
     }
     
     if (sellSortOrder === 'asc') {
@@ -272,4 +276,19 @@ async function openSellModal() {
   if (document.querySelectorAll('#sellProducts .product-row').length === 0) {
     addSellProduct();
   }
+}
+
+function filterSellByDate() {
+  sellDateFrom = document.getElementById('sellDateFrom').value;
+  sellDateTo = document.getElementById('sellDateTo').value;
+  loadSells();
+}
+
+function resetSellDateFilter() {
+  const today = getTodayDateString();
+  document.getElementById('sellDateFrom').value = today;
+  document.getElementById('sellDateTo').value = today;
+  sellDateFrom = today;
+  sellDateTo = today;
+  loadSells();
 }
