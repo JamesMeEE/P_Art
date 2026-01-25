@@ -5,10 +5,6 @@ async function loadBuybacks() {
     
     let filteredData = data.slice(1);
     
-    if (currentUser.role === 'User' || currentUser.role === 'Manager') {
-      filteredData = filterTodayData(filteredData, 7, 9);
-    }
-    
     if (buybackSortOrder === 'asc') {
       filteredData.sort((a, b) => new Date(a[7]) - new Date(b[7]));
     } else {
