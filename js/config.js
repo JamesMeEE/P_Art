@@ -66,6 +66,7 @@ let withdrawSortOrder = 'desc';
 let tradeinOldCounter = 0;
 let tradeinNewCounter = 0;
 
+let currentExchangeRates = { LAK: 1, THB: 270, USD: 21500 };
 let currentReconcileType = null;
 let currentReconcileData = {};
 let currentPaymentData = null;
