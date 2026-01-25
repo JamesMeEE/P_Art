@@ -7,7 +7,6 @@ const CONFIG = {
 const USERS = {
   m: { password: 'm', role: 'Manager', nickname: 'Manager' },
   t: { password: 't', role: 'Teller', nickname: 'Teller' },
-  a: { password: 'a', role: 'Accountant', nickname: 'Accountant' },
   u1: { password: 'u1', role: 'User', nickname: 'Sale 1' },
   u2: { password: 'u2', role: 'User', nickname: 'Sale 2' }
 };
@@ -65,6 +64,17 @@ let buybackSortOrder = 'desc';
 let withdrawSortOrder = 'desc';
 let tradeinOldCounter = 0;
 let tradeinNewCounter = 0;
+
+let sellDateFrom = null;
+let sellDateTo = null;
+let tradeinDateFrom = null;
+let tradeinDateTo = null;
+let exchangeDateFrom = null;
+let exchangeDateTo = null;
+let buybackDateFrom = null;
+let buybackDateTo = null;
+let withdrawDateFrom = null;
+let withdrawDateTo = null;
 
 let currentExchangeRates = { LAK: 1, THB: 270, USD: 21500 };
 let currentReconcileType = null;
