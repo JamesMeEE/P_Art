@@ -98,7 +98,7 @@ function formatItemsForDisplay(itemsJson) {
     const items = JSON.parse(itemsJson);
     return items.map(item => {
       const product = FIXED_PRODUCTS.find(p => p.id === item.productId);
-      return `${product.name}: ${item.qty} unit`;
+      return `• ${product.name} × ${item.qty}`;
     }).join('\n');
   } catch (error) {
     return itemsJson;
