@@ -349,18 +349,6 @@ async function openWithdrawModal() {
   openModal('withdrawModal');
 }
 
-function toggleWithdrawSort() {
-  withdrawSortOrder = withdrawSortOrder === 'desc' ? 'asc' : 'desc';
-  document.getElementById('withdrawSortBtn').textContent = 
-    withdrawSortOrder === 'desc' ? 'Sort: Newest First' : 'Sort: Oldest First';
-  loadWithdraws();
-}
-
-function filterWithdrawByDate() {
-  withdrawDateFrom = document.getElementById('withdrawDateFrom').value;
-  withdrawDateTo = document.getElementById('withdrawDateTo').value;
-  loadWithdraws();
-}
 
 function resetWithdrawDateFilter() {
   const today = getTodayDateString();
@@ -370,5 +358,26 @@ function resetWithdrawDateFilter() {
   withdrawDateTo = today;
   loadWithdraws();
 }
+
+document.addEventListener('DOMContentLoaded', function() {
+  const fromInput = document.getElementById('withdrawDateFrom');
+  const toInput = document.getElementById('withdrawDateTo');
+  
+  if (fromInput && toInput) {
+    fromInput.addEventListener('change', function() {
+      withdrawDateFrom = this.value;
+      if (withdrawDateFrom && withdrawDateTo) {
+        loadWithdraws();
+      }
+    });
+    
+    toInput.addEventListener('change', function() {
+      withdrawDateTo = this.value;
+      if (withdrawDateFrom && withdrawDateTo) {
+        loadWithdraws();
+      }
+    });
+  }
+});
 
 let currentWithdrawPayment = null;
