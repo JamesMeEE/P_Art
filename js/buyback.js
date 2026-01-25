@@ -9,11 +9,17 @@ async function loadBuybacks() {
       filteredData = filterTodayData(filteredData, 7, 9);
     }
     
+    if (buybackSortOrder === 'asc') {
+      filteredData.sort((a, b) => new Date(a[7]) - new Date(b[7]));
+    } else {
+      filteredData.sort((a, b) => new Date(b[7]) - new Date(a[7]));
+    }
+    
     const tbody = document.getElementById('buybackTable');
     if (filteredData.length === 0) {
       tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 40px;">No records</td></tr>';
     } else {
-      tbody.innerHTML = filteredData.reverse().map(row => {
+      tbody.innerHTML = filteredData.map(row => {
         const items = formatItemsForTable(row[2]);
         const total = row[6] || row[3];
         const saleName = row[9];
@@ -278,6 +284,13 @@ async function openBuybackModal() {
   }
   
   openModal('buybackModal');
+}
+
+function toggleBuybackSort() {
+  buybackSortOrder = buybackSortOrder === 'desc' ? 'asc' : 'desc';
+  document.getElementById('buybackSortBtn').textContent = 
+    buybackSortOrder === 'desc' ? 'Sort: Newest First' : 'Sort: Oldest First';
+  loadBuybacks();
 }
 
 let currentBuybackPayment = null;
