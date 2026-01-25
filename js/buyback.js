@@ -290,18 +290,6 @@ async function openBuybackModal() {
   openModal('buybackModal');
 }
 
-function toggleBuybackSort() {
-  buybackSortOrder = buybackSortOrder === 'desc' ? 'asc' : 'desc';
-  document.getElementById('buybackSortBtn').textContent = 
-    buybackSortOrder === 'desc' ? 'Sort: Newest First' : 'Sort: Oldest First';
-  loadBuybacks();
-}
-
-function filterBuybackByDate() {
-  buybackDateFrom = document.getElementById('buybackDateFrom').value;
-  buybackDateTo = document.getElementById('buybackDateTo').value;
-  loadBuybacks();
-}
 
 function resetBuybackDateFilter() {
   const today = getTodayDateString();
@@ -311,5 +299,26 @@ function resetBuybackDateFilter() {
   buybackDateTo = today;
   loadBuybacks();
 }
+
+document.addEventListener('DOMContentLoaded', function() {
+  const fromInput = document.getElementById('buybackDateFrom');
+  const toInput = document.getElementById('buybackDateTo');
+  
+  if (fromInput && toInput) {
+    fromInput.addEventListener('change', function() {
+      buybackDateFrom = this.value;
+      if (buybackDateFrom && buybackDateTo) {
+        loadBuybacks();
+      }
+    });
+    
+    toInput.addEventListener('change', function() {
+      buybackDateTo = this.value;
+      if (buybackDateFrom && buybackDateTo) {
+        loadBuybacks();
+      }
+    });
+  }
+});
 
 let currentBuybackPayment = null;
