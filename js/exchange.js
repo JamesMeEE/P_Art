@@ -6,7 +6,11 @@ async function loadExchanges() {
     let filteredData = data.slice(1);
     
     if (currentUser.role === 'User' || currentUser.role === 'Manager') {
-      filteredData = filterTodayData(filteredData, 11, 13);
+      if (exchangeDateFrom || exchangeDateTo) {
+        filteredData = filterByDateRange(filteredData, 11, 13, exchangeDateFrom, exchangeDateTo);
+      } else {
+        filteredData = filterTodayData(filteredData, 11, 13);
+      }
     }
     
     if (exchangeSortOrder === 'asc') {
@@ -431,6 +435,21 @@ function toggleExchangeSort() {
   exchangeSortOrder = exchangeSortOrder === 'desc' ? 'asc' : 'desc';
   document.getElementById('exchangeSortBtn').textContent = 
     exchangeSortOrder === 'desc' ? 'Sort: Newest First' : 'Sort: Oldest First';
+  loadExchanges();
+}
+
+function filterExchangeByDate() {
+  exchangeDateFrom = document.getElementById('exchangeDateFrom').value;
+  exchangeDateTo = document.getElementById('exchangeDateTo').value;
+  loadExchanges();
+}
+
+function resetExchangeDateFilter() {
+  const today = getTodayDateString();
+  document.getElementById('exchangeDateFrom').value = today;
+  document.getElementById('exchangeDateTo').value = today;
+  exchangeDateFrom = today;
+  exchangeDateTo = today;
   loadExchanges();
 }
 
