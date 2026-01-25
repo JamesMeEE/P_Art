@@ -444,18 +444,6 @@ async function openTradeinModal() {
   openModal('tradeinModal');
 }
 
-function toggleTradeinSort() {
-  tradeinSortOrder = tradeinSortOrder === 'desc' ? 'asc' : 'desc';
-  document.getElementById('tradeinSortBtn').textContent = 
-    tradeinSortOrder === 'desc' ? 'Sort: Newest First' : 'Sort: Oldest First';
-  loadTradeins();
-}
-
-function filterTradeinByDate() {
-  tradeinDateFrom = document.getElementById('tradeinDateFrom').value;
-  tradeinDateTo = document.getElementById('tradeinDateTo').value;
-  loadTradeins();
-}
 
 function resetTradeinDateFilter() {
   const today = getTodayDateString();
@@ -465,5 +453,26 @@ function resetTradeinDateFilter() {
   tradeinDateTo = today;
   loadTradeins();
 }
+
+document.addEventListener('DOMContentLoaded', function() {
+  const fromInput = document.getElementById('tradeinDateFrom');
+  const toInput = document.getElementById('tradeinDateTo');
+  
+  if (fromInput && toInput) {
+    fromInput.addEventListener('change', function() {
+      tradeinDateFrom = this.value;
+      if (tradeinDateFrom && tradeinDateTo) {
+        loadTradeins();
+      }
+    });
+    
+    toInput.addEventListener('change', function() {
+      tradeinDateTo = this.value;
+      if (tradeinDateFrom && tradeinDateTo) {
+        loadTradeins();
+      }
+    });
+  }
+});
 
 let currentTradeinPayment = null;
