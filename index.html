@@ -76,8 +76,8 @@
       <button class="nav-btn" onclick="showSection('pricerate')">◇ Price Rate</button>
       <button class="nav-btn" onclick="showSection('sell')">◐ Sell</button>
       <button class="nav-btn" onclick="showSection('tradein')">◎ Trade-in</button>
-      <button class="nav-btn" onclick="showSection('buyback')">◑ Buyback</button>
       <button class="nav-btn" onclick="showSection('exchange')">◍ Exchange</button>
+      <button class="nav-btn" onclick="showSection('buyback')">◑ Buyback</button>
       <button class="nav-btn" onclick="showSection('withdraw')">◌ Withdraw</button>
       <button class="nav-btn" onclick="showSection('inventory')">◒ Inventory</button>
       <button class="nav-btn" onclick="showSection('cashbank')">◔ Cash/Bank</button>
@@ -299,18 +299,21 @@
     <section id="withdraw" class="section">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
         <h2 style="font-family: 'Cormorant Garamond', serif; font-size: 36px; color: var(--gold-primary);">Withdraw Management</h2>
-        <button class="btn-primary" onclick="openModal('withdrawModal')" id="addWithdrawBtn">+ New Withdraw</button>
+        <div style="display: flex; gap: 10px; align-items: center;">
+          <button class="btn-secondary" onclick="toggleWithdrawSort()" id="withdrawSortBtn">Sort: Newest First</button>
+          <button class="btn-primary" onclick="openWithdrawModal()" id="addWithdrawBtn">+ New Withdraw</button>
+        </div>
       </div>
       <div class="table-container">
         <table>
           <thead>
             <tr>
-              <th>ID</th>
-              <th>Product</th>
-              <th>Quantity</th>
-              <th>Date</th>
+              <th>Transaction ID</th>
+              <th>Customer</th>
+              <th>Items</th>
+              <th>Premium (LAK)</th>
               <th>Status</th>
-              <th>Created By</th>
+              <th>Sale</th>
               <th>Actions</th>
             </tr>
           </thead>
@@ -357,7 +360,10 @@
     <section id="tradein" class="section">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
         <h2 style="font-family: 'Cormorant Garamond', serif; font-size: 36px; color: var(--gold-primary);">Trade-in Management</h2>
-        <button class="btn-primary" onclick="openTradeinModal()" id="addTradeinBtn">+ New Trade-in</button>
+        <div style="display: flex; gap: 10px; align-items: center;">
+          <button class="btn-secondary" onclick="toggleTradeinSort()" id="tradeinSortBtn">Sort: Newest First</button>
+          <button class="btn-primary" onclick="openTradeinModal()" id="addTradeinBtn">+ New Trade-in</button>
+        </div>
       </div>
       <div class="table-container">
         <table>
@@ -384,10 +390,13 @@
       </div>
     </section>
 
-    <section id="buyback" class="section">
+    <section id="exchange" class="section">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
         <h2 style="font-family: 'Cormorant Garamond', serif; font-size: 36px; color: var(--gold-primary);">Buyback Management</h2>
-        <button class="btn-primary" onclick="openBuybackModal()" id="addBuybackBtn">+ New Buyback</button>
+        <div style="display: flex; gap: 10px; align-items: center;">
+          <button class="btn-secondary" onclick="toggleBuybackSort()" id="buybackSortBtn">Sort: Newest First</button>
+          <button class="btn-primary" onclick="openBuybackModal()" id="addBuybackBtn">+ New Buyback</button>
+        </div>
       </div>
       <div class="table-container">
         <table>
@@ -411,10 +420,13 @@
       </div>
     </section>
 
-    <section id="exchange" class="section">
+    <section id="buyback" class="section">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
         <h2 style="font-family: 'Cormorant Garamond', serif; font-size: 36px; color: var(--gold-primary);">Exchange Management</h2>
-        <button class="btn-primary" onclick="openExchangeModal()" id="addExchangeBtn">+ New Exchange</button>
+        <div style="display: flex; gap: 10px; align-items: center;">
+          <button class="btn-secondary" onclick="toggleExchangeSort()" id="exchangeSortBtn">Sort: Newest First</button>
+          <button class="btn-primary" onclick="openExchangeModal()" id="addExchangeBtn">+ New Exchange</button>
+        </div>
       </div>
       <div class="table-container">
         <table>
@@ -1114,23 +1126,110 @@
   </div>
 
   <div id="withdrawModal" class="modal">
-    <div class="modal-content">
+    <div class="modal-content modal-large">
       <div class="modal-header">
-        <h2 class="modal-title">Withdraw</h2>
+        <h2 class="modal-title">New Withdraw</h2>
       </div>
       <div class="form-group">
-        <label class="form-label">Product</label>
-        <select class="form-select" id="withdrawProduct">
-          <option value="">Select product...</option>
-        </select>
+        <label class="form-label">Customer Name</label>
+        <input type="text" class="form-input" id="withdrawCustomer" placeholder="Enter customer name">
       </div>
       <div class="form-group">
-        <label class="form-label">Quantity</label>
-        <input type="number" class="form-input" id="withdrawQuantity" placeholder="0" step="1">
+        <label class="form-label">Products</label>
+        <div id="withdrawProducts"></div>
+        <button class="btn-secondary" style="margin-top: 10px;" onclick="addWithdrawProduct()">+ Add Product</button>
       </div>
       <div class="modal-footer">
         <button class="btn-secondary" onclick="closeModal('withdrawModal')">Cancel</button>
-        <button class="btn-primary" onclick="addWithdraw()">Submit</button>
+        <button class="btn-primary" onclick="calculateWithdraw()">Create Withdraw</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="withdrawPaymentModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title">Withdraw Payment</h2>
+      </div>
+      
+      <div class="summary-box" style="margin-bottom: 20px;">
+        <div class="summary-row">
+          <span class="summary-label">Transaction ID:</span>
+          <span class="summary-value" id="withdrawPaymentId">-</span>
+        </div>
+        <div class="summary-row">
+          <span class="summary-label">Customer:</span>
+          <span class="summary-value" id="withdrawPaymentCustomer">-</span>
+        </div>
+        <div class="summary-row">
+          <span class="summary-label">Items:</span>
+          <span class="summary-value" id="withdrawPaymentItems">-</span>
+        </div>
+        <div class="summary-row">
+          <span class="summary-label">Premium:</span>
+          <span class="summary-value" id="withdrawPaymentPremium">0 LAK</span>
+        </div>
+        <div class="summary-row" style="border-top: 2px solid var(--gold-primary); padding-top: 10px; margin-top: 10px;">
+          <span class="summary-label" style="font-size: 18px; font-weight: 600;">Total:</span>
+          <span class="summary-value" style="font-size: 20px; font-weight: 600; color: var(--gold-primary);" id="withdrawPaymentTotal">0 LAK</span>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Payment Method</label>
+        <select class="form-select" id="withdrawPaymentMethod" onchange="toggleWithdrawPaymentBank()">
+          <option value="Cash">Cash</option>
+          <option value="Bank">Bank Transfer</option>
+        </select>
+      </div>
+
+      <div class="form-group" id="withdrawPaymentBankGroup" style="display: none;">
+        <label class="form-label">Bank</label>
+        <select class="form-select" id="withdrawPaymentBank">
+          <option value="BCEL">BCEL</option>
+          <option value="LDB">LDB</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Currency</label>
+        <select class="form-select" id="withdrawPaymentCurrency" onchange="calculateWithdrawPayment()">
+          <option value="LAK">LAK</option>
+          <option value="THB">THB</option>
+          <option value="USD">USD</option>
+        </select>
+      </div>
+
+      <div class="form-group" id="withdrawPaymentRateGroup" style="display: none;">
+        <label class="form-label">Exchange Rate</label>
+        <input type="text" class="form-input" id="withdrawPaymentExchangeRate" readonly>
+        <input type="hidden" id="withdrawPaymentRateTHB">
+        <input type="hidden" id="withdrawPaymentRateUSD">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Amount to Pay</label>
+        <input type="text" class="form-input" id="withdrawPaymentAmount" readonly>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Amount to Pay (LAK)</label>
+        <input type="text" class="form-input" id="withdrawPaymentAmountLAK" readonly>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Customer Paid</label>
+        <input type="number" class="form-input" id="withdrawPaymentCustomerPaid" placeholder="0" step="0.01" oninput="calculateWithdrawPayment()">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Change (LAK)</label>
+        <input type="text" class="form-input" id="withdrawPaymentChange" readonly>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn-secondary" onclick="closeModal('withdrawPaymentModal')">Cancel</button>
+        <button class="btn-primary" onclick="confirmWithdrawPayment()">Confirm Payment</button>
       </div>
     </div>
   </div>
@@ -1498,23 +1597,44 @@
     }
   </style>
   
-  <script src="js/config.js?v=4"></script>
+  <script src="js/config.js?v=10"></script>
   <script src="js/utils.js?v=4"></script>
   <script src="js/api.js"></script>
-  <script src="js/ui.js"></script>
+  <script src="js/ui.js?v=10"></script>
   <script src="js/dashboard.js"></script>
   <script src="js/products.js"></script>
   <script src="js/pricerate.js"></script>
   <script src="js/sell.js"></script>
   <script src="js/payment.js"></script>
-  <script src="js/tradein.js?v=7"></script>
-  <script src="js/buyback.js?v=9"></script>
-  <script src="js/exchange.js?v=7"></script>
-  <script src="js/withdraw.js"></script>
+  <script src="js/tradein.js?v=10"></script>
+  <script src="js/buyback.js?v=10"></script>
+  <script src="js/exchange.js?v=10"></script>
+  <script src="js/withdraw.js?v=10"></script>
   <script src="js/inventory.js"></script>
-  <script src="js/cashbank.js?v=3"></script>
+  <script src="js/cashbank.js?v=10"></script>
   <script src="js/accounting.js"></script>
   <script src="js/reports.js"></script>
   <script src="js/auth.js"></script>
+  
+  <script>
+  document.addEventListener('DOMContentLoaded', function() {
+    let mouseDownOutside = false;
+    
+    document.querySelectorAll('.modal').forEach(modal => {
+      modal.addEventListener('mousedown', function(e) {
+        if (e.target === modal) {
+          mouseDownOutside = true;
+        }
+      });
+      
+      modal.addEventListener('mouseup', function(e) {
+        if (e.target === modal && mouseDownOutside) {
+          modal.classList.remove('active');
+        }
+        mouseDownOutside = false;
+      });
+    });
+  });
+  </script>
 </body>
 </html>
