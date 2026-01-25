@@ -5,10 +5,6 @@ async function loadTradeins() {
     
     let filteredData = data.slice(1);
     
-    if (currentUser.role === 'User' || currentUser.role === 'Manager') {
-      filteredData = filterTodayData(filteredData, 11, 13);
-    }
-    
     if (tradeinSortOrder === 'asc') {
       filteredData.sort((a, b) => new Date(a[11]) - new Date(b[11]));
     } else {
