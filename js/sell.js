@@ -69,12 +69,6 @@ async function loadSells() {
   }
 }
 
-function toggleSellSort() {
-  sellSortOrder = sellSortOrder === 'desc' ? 'asc' : 'desc';
-  document.getElementById('sellSortBtn').textContent = 
-    sellSortOrder === 'desc' ? 'Sort: Newest First' : 'Sort: Oldest First';
-  loadSells();
-}
 
 let sellCounter = 0;
 
@@ -278,12 +272,6 @@ async function openSellModal() {
   }
 }
 
-function filterSellByDate() {
-  sellDateFrom = document.getElementById('sellDateFrom').value;
-  sellDateTo = document.getElementById('sellDateTo').value;
-  loadSells();
-}
-
 function resetSellDateFilter() {
   const today = getTodayDateString();
   document.getElementById('sellDateFrom').value = today;
@@ -292,3 +280,24 @@ function resetSellDateFilter() {
   sellDateTo = today;
   loadSells();
 }
+
+document.addEventListener('DOMContentLoaded', function() {
+  const fromInput = document.getElementById('sellDateFrom');
+  const toInput = document.getElementById('sellDateTo');
+  
+  if (fromInput && toInput) {
+    fromInput.addEventListener('change', function() {
+      sellDateFrom = this.value;
+      if (sellDateFrom && sellDateTo) {
+        loadSells();
+      }
+    });
+    
+    toInput.addEventListener('change', function() {
+      sellDateTo = this.value;
+      if (sellDateFrom && sellDateTo) {
+        loadSells();
+      }
+    });
+  }
+});
