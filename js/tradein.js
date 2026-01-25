@@ -9,11 +9,17 @@ async function loadTradeins() {
       filteredData = filterTodayData(filteredData, 11, 13);
     }
     
+    if (tradeinSortOrder === 'asc') {
+      filteredData.sort((a, b) => new Date(a[11]) - new Date(b[11]));
+    } else {
+      filteredData.sort((a, b) => new Date(b[11]) - new Date(a[11]));
+    }
+    
     const tbody = document.getElementById('tradeinTable');
     if (filteredData.length === 0) {
       tbody.innerHTML = '<tr><td colspan="10" style="text-align: center; padding: 40px;">No records</td></tr>';
     } else {
-      tbody.innerHTML = filteredData.reverse().map(row => {
+      tbody.innerHTML = filteredData.map(row => {
         const oldGold = formatItemsForTable(row[2]);
         const newGold = formatItemsForTable(row[3]);
         const premium = calculatePremiumFromItems(row[3]);
@@ -432,6 +438,13 @@ async function openTradeinModal() {
   }
   
   openModal('tradeinModal');
+}
+
+function toggleTradeinSort() {
+  tradeinSortOrder = tradeinSortOrder === 'desc' ? 'asc' : 'desc';
+  document.getElementById('tradeinSortBtn').textContent = 
+    tradeinSortOrder === 'desc' ? 'Sort: Newest First' : 'Sort: Oldest First';
+  loadTradeins();
 }
 
 let currentTradeinPayment = null;
