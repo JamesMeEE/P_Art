@@ -122,27 +122,33 @@ function calculatePremiumFromItems(itemsJson) {
 
 function filterTodayData(data, dateColumnIndex, createdByIndex) {
   const today = new Date();
-  const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 0, 0, 0);
+  const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate());
   const todayEnd = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 23, 59, 59);
   
-  const filtered = data.filter(row => {
-    const dateStr = row[dateColumnIndex];
+  return data.filter(row => {
+    const dateValue = row[dateColumnIndex];
     const createdBy = row[createdByIndex];
     
-    // Parse DD/MM/YYYY HH:mm format
     let rowDate;
-    if (typeof dateStr === 'string' && dateStr.includes('/')) {
-      const parts = dateStr.split(' ');
-      const dateParts = parts[0].split('/');
-      const day = parseInt(dateParts[0]);
-      const month = parseInt(dateParts[1]) - 1; // Month is 0-indexed
-      const year = parseInt(dateParts[2]);
-      rowDate = new Date(year, month, day);
+    if (dateValue instanceof Date) {
+      rowDate = dateValue;
+    } else if (typeof dateValue === 'string') {
+      if (dateValue.includes('/')) {
+        const parts = dateValue.split(' ');
+        const dateParts = parts[0].split('/');
+        const day = parseInt(dateParts[0]);
+        const month = parseInt(dateParts[1]) - 1;
+        const year = parseInt(dateParts[2]);
+        rowDate = new Date(year, month, day);
+      } else {
+        rowDate = new Date(dateValue);
+      }
     } else {
-      rowDate = new Date(dateStr);
+      rowDate = new Date(dateValue);
     }
     
-    const isToday = rowDate >= todayStart && rowDate <= todayEnd;
+    const rowDateStart = new Date(rowDate.getFullYear(), rowDate.getMonth(), rowDate.getDate());
+    const isToday = rowDateStart.getTime() === todayStart.getTime();
     
     if (currentUser.role === 'Manager') {
       return isToday;
@@ -151,9 +157,6 @@ function filterTodayData(data, dateColumnIndex, createdByIndex) {
     }
     return isToday;
   });
-  
-  
-  return filtered;
 }
 
 function showLoading() {
