@@ -24,9 +24,9 @@ function showSection(sectionId) {
     loadSells();
   }
   else if (sectionId === 'tradein') loadTradeins();
-  else if (sectionId === 'buyback') loadBuybacks();
   else if (sectionId === 'exchange') loadExchanges();
-  else if (sectionId === 'withdraw') loadWithdraw();
+  else if (sectionId === 'buyback') loadBuybacks();
+  else if (sectionId === 'withdraw') loadWithdraws();
   else if (sectionId === 'inventory') loadInventory();
   else if (sectionId === 'cashbank') loadCashBank();
   else if (sectionId === 'accounting') loadAccounting();
