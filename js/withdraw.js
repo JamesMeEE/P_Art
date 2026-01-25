@@ -6,7 +6,11 @@ async function loadWithdraws() {
     let filteredData = data.slice(1);
     
     if (currentUser.role === 'User' || currentUser.role === 'Manager') {
-      filteredData = filterTodayData(filteredData, 6, 8);
+      if (withdrawDateFrom || withdrawDateTo) {
+        filteredData = filterByDateRange(filteredData, 6, 8, withdrawDateFrom, withdrawDateTo);
+      } else {
+        filteredData = filterTodayData(filteredData, 6, 8);
+      }
     }
     
     if (withdrawSortOrder === 'asc') {
@@ -349,6 +353,21 @@ function toggleWithdrawSort() {
   withdrawSortOrder = withdrawSortOrder === 'desc' ? 'asc' : 'desc';
   document.getElementById('withdrawSortBtn').textContent = 
     withdrawSortOrder === 'desc' ? 'Sort: Newest First' : 'Sort: Oldest First';
+  loadWithdraws();
+}
+
+function filterWithdrawByDate() {
+  withdrawDateFrom = document.getElementById('withdrawDateFrom').value;
+  withdrawDateTo = document.getElementById('withdrawDateTo').value;
+  loadWithdraws();
+}
+
+function resetWithdrawDateFilter() {
+  const today = getTodayDateString();
+  document.getElementById('withdrawDateFrom').value = today;
+  document.getElementById('withdrawDateTo').value = today;
+  withdrawDateFrom = today;
+  withdrawDateTo = today;
   loadWithdraws();
 }
 
