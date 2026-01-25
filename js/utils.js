@@ -263,5 +263,3 @@ function getTodayDateString() {
   const day = String(today.getDate()).padStart(2, '0');
   return `${year}-${month}-${day}`;
 }
-  return price;
-}
