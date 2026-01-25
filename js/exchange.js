@@ -431,18 +431,6 @@ async function openExchangeModal() {
   openModal('exchangeModal');
 }
 
-function toggleExchangeSort() {
-  exchangeSortOrder = exchangeSortOrder === 'desc' ? 'asc' : 'desc';
-  document.getElementById('exchangeSortBtn').textContent = 
-    exchangeSortOrder === 'desc' ? 'Sort: Newest First' : 'Sort: Oldest First';
-  loadExchanges();
-}
-
-function filterExchangeByDate() {
-  exchangeDateFrom = document.getElementById('exchangeDateFrom').value;
-  exchangeDateTo = document.getElementById('exchangeDateTo').value;
-  loadExchanges();
-}
 
 function resetExchangeDateFilter() {
   const today = getTodayDateString();
@@ -452,5 +440,26 @@ function resetExchangeDateFilter() {
   exchangeDateTo = today;
   loadExchanges();
 }
+
+document.addEventListener('DOMContentLoaded', function() {
+  const fromInput = document.getElementById('exchangeDateFrom');
+  const toInput = document.getElementById('exchangeDateTo');
+  
+  if (fromInput && toInput) {
+    fromInput.addEventListener('change', function() {
+      exchangeDateFrom = this.value;
+      if (exchangeDateFrom && exchangeDateTo) {
+        loadExchanges();
+      }
+    });
+    
+    toInput.addEventListener('change', function() {
+      exchangeDateTo = this.value;
+      if (exchangeDateFrom && exchangeDateTo) {
+        loadExchanges();
+      }
+    });
+  }
+});
 
 let currentExchangePayment = null;
