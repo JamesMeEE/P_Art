@@ -34,14 +34,14 @@ async function loadCashBank() {
             if (bank === 'BCEL') balances.bcel[currency] += amount;
             else if (bank === 'LDB') balances.ldb[currency] += amount;
           }
-        } else if (type === 'OTHER_EXPENSE' || type === 'BUYBACK') {
+        } else if (type === 'OTHER_EXPENSE' || type === 'BUYBACK' || type === 'WITHDRAW_CHANGE') {
           if (method === 'CASH' || method === 'Cash') {
             balances.cash[currency] -= amount;
           } else if (method === 'BANK' || method === 'Bank') {
             if (bank === 'BCEL') balances.bcel[currency] -= amount;
             else if (bank === 'LDB') balances.ldb[currency] -= amount;
           }
-        } else if (type === 'SELL' || type === 'TRADEIN' || type === 'EXCHANGE') {
+        } else if (type === 'SELL' || type === 'TRADEIN' || type === 'EXCHANGE' || type === 'WITHDRAW') {
           if (method === 'Cash') {
             balances.cash[currency] += amount;
           } else if (method === 'Bank') {
