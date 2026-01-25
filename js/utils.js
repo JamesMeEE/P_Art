@@ -208,3 +208,60 @@ function calculateBuybackPrice(productId, sell1Baht) {
   }
   return price;
 }
+
+function filterByDateRange(data, dateColumnIndex, createdByIndex, dateFrom, dateTo) {
+  const from = dateFrom ? new Date(dateFrom) : null;
+  const to = dateTo ? new Date(dateTo) : null;
+  
+  if (to) {
+    to.setHours(23, 59, 59, 999);
+  }
+  
+  return data.filter(row => {
+    const dateValue = row[dateColumnIndex];
+    const createdBy = row[createdByIndex];
+    
+    let rowDate;
+    if (dateValue instanceof Date) {
+      rowDate = dateValue;
+    } else if (typeof dateValue === 'string') {
+      if (dateValue.includes('/')) {
+        const parts = dateValue.split(' ');
+        const dateParts = parts[0].split('/');
+        const day = parseInt(dateParts[0]);
+        const month = parseInt(dateParts[1]) - 1;
+        const year = parseInt(dateParts[2]);
+        rowDate = new Date(year, month, day);
+      } else {
+        rowDate = new Date(dateValue);
+      }
+    } else {
+      rowDate = new Date(dateValue);
+    }
+    
+    let inRange = true;
+    if (from) {
+      inRange = inRange && rowDate >= from;
+    }
+    if (to) {
+      inRange = inRange && rowDate <= to;
+    }
+    
+    if (currentUser.role === 'Manager') {
+      return inRange;
+    } else if (currentUser.role === 'User') {
+      return inRange && createdBy === currentUser.nickname;
+    }
+    return inRange;
+  });
+}
+
+function getTodayDateString() {
+  const today = new Date();
+  const year = today.getFullYear();
+  const month = String(today.getMonth() + 1).padStart(2, '0');
+  const day = String(today.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+  return price;
+}
