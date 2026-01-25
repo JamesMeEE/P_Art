@@ -24,5 +24,6 @@ async function callAppsScript(action, params = {}) {
 }
 
 async function fetchExchangeRates() {
-  return { LAK: 1, THB: 270, USD: 21500 };
+  currentExchangeRates = { LAK: 1, THB: 270, USD: 21500 };
+  return currentExchangeRates;
 }
