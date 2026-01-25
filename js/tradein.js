@@ -6,7 +6,11 @@ async function loadTradeins() {
     let filteredData = data.slice(1);
     
     if (currentUser.role === 'User' || currentUser.role === 'Manager') {
-      filteredData = filterTodayData(filteredData, 11, 13);
+      if (tradeinDateFrom || tradeinDateTo) {
+        filteredData = filterByDateRange(filteredData, 11, 13, tradeinDateFrom, tradeinDateTo);
+      } else {
+        filteredData = filterTodayData(filteredData, 11, 13);
+      }
     }
     
     if (tradeinSortOrder === 'asc') {
@@ -444,6 +448,21 @@ function toggleTradeinSort() {
   tradeinSortOrder = tradeinSortOrder === 'desc' ? 'asc' : 'desc';
   document.getElementById('tradeinSortBtn').textContent = 
     tradeinSortOrder === 'desc' ? 'Sort: Newest First' : 'Sort: Oldest First';
+  loadTradeins();
+}
+
+function filterTradeinByDate() {
+  tradeinDateFrom = document.getElementById('tradeinDateFrom').value;
+  tradeinDateTo = document.getElementById('tradeinDateTo').value;
+  loadTradeins();
+}
+
+function resetTradeinDateFilter() {
+  const today = getTodayDateString();
+  document.getElementById('tradeinDateFrom').value = today;
+  document.getElementById('tradeinDateTo').value = today;
+  tradeinDateFrom = today;
+  tradeinDateTo = today;
   loadTradeins();
 }
 
