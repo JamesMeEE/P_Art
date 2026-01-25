@@ -59,6 +59,10 @@ let currentPriceRates = {
 };
 
 let sellSortOrder = 'desc';
+let tradeinSortOrder = 'desc';
+let exchangeSortOrder = 'desc';
+let buybackSortOrder = 'desc';
+let withdrawSortOrder = 'desc';
 let tradeinOldCounter = 0;
 let tradeinNewCounter = 0;
 
