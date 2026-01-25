@@ -6,7 +6,11 @@ async function loadBuybacks() {
     let filteredData = data.slice(1);
     
     if (currentUser.role === 'User' || currentUser.role === 'Manager') {
-      filteredData = filterTodayData(filteredData, 7, 9);
+      if (buybackDateFrom || buybackDateTo) {
+        filteredData = filterByDateRange(filteredData, 7, 9, buybackDateFrom, buybackDateTo);
+      } else {
+        filteredData = filterTodayData(filteredData, 7, 9);
+      }
     }
     
     if (buybackSortOrder === 'asc') {
@@ -290,6 +294,21 @@ function toggleBuybackSort() {
   buybackSortOrder = buybackSortOrder === 'desc' ? 'asc' : 'desc';
   document.getElementById('buybackSortBtn').textContent = 
     buybackSortOrder === 'desc' ? 'Sort: Newest First' : 'Sort: Oldest First';
+  loadBuybacks();
+}
+
+function filterBuybackByDate() {
+  buybackDateFrom = document.getElementById('buybackDateFrom').value;
+  buybackDateTo = document.getElementById('buybackDateTo').value;
+  loadBuybacks();
+}
+
+function resetBuybackDateFilter() {
+  const today = getTodayDateString();
+  document.getElementById('buybackDateFrom').value = today;
+  document.getElementById('buybackDateTo').value = today;
+  buybackDateFrom = today;
+  buybackDateTo = today;
   loadBuybacks();
 }
 
