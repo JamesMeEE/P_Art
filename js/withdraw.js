@@ -5,6 +5,10 @@ async function loadWithdraws() {
     
     let filteredData = data.slice(1);
     
+    if (currentUser.role === 'User' || currentUser.role === 'Manager') {
+      filteredData = filterTodayData(filteredData, 6, 8);
+    }
+    
     if (withdrawSortOrder === 'asc') {
       filteredData.sort((a, b) => new Date(a[6]) - new Date(b[6]));
     } else {
