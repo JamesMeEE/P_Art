@@ -5,10 +5,6 @@ async function loadWithdraws() {
     
     let filteredData = data.slice(1);
     
-    if (currentUser.role === 'User' || currentUser.role === 'Manager') {
-      filteredData = filterTodayData(filteredData, 6, 8);
-    }
-    
     if (withdrawSortOrder === 'asc') {
       filteredData.sort((a, b) => new Date(a[6]) - new Date(b[6]));
     } else {
@@ -74,14 +70,34 @@ function addWithdrawProduct() {
   
   document.getElementById('withdrawProducts').insertAdjacentHTML('beforeend', `
     <div class="product-row" id="withdraw${withdrawCounter}">
-      <select class="form-select" style="flex: 2;">
+      <select class="form-select" style="flex: 2;" onchange="calculateWithdrawPremium()">
         <option value="">Select Product</option>
         ${productOptions}
       </select>
-      <input type="number" class="form-input" placeholder="Qty" min="1" style="flex: 1;">
-      <button type="button" class="btn-remove" onclick="document.getElementById('withdraw${withdrawCounter}').remove();">×</button>
+      <input type="number" class="form-input" placeholder="Qty" min="1" style="flex: 1;" oninput="calculateWithdrawPremium()">
+      <button type="button" class="btn-remove" onclick="document.getElementById('withdraw${withdrawCounter}').remove(); calculateWithdrawPremium();">×</button>
     </div>
   `);
+}
+
+function calculateWithdrawPremium() {
+  const products = [];
+  document.querySelectorAll('#withdrawProducts .product-row').forEach(row => {
+    const productId = row.querySelector('select').value;
+    const qty = parseInt(row.querySelector('input').value) || 0;
+    if (productId && qty > 0) {
+      products.push({ productId, qty });
+    }
+  });
+
+  let premium = 0;
+  products.forEach(item => {
+    if (PREMIUM_PRODUCTS.includes(item.productId)) {
+      premium += PREMIUM_PER_PIECE * item.qty;
+    }
+  });
+
+  document.getElementById('withdrawPremium').value = formatNumber(premium);
 }
 
 async function calculateWithdraw() {
@@ -195,6 +211,9 @@ async function openWithdrawPaymentModal(withdrawId) {
     document.getElementById('withdrawPaymentMethod').value = 'Cash';
     document.getElementById('withdrawPaymentBankGroup').style.display = 'none';
     
+    document.getElementById('withdrawPaymentRateTHB').value = currentExchangeRates.THB || 270;
+    document.getElementById('withdrawPaymentRateUSD').value = currentExchangeRates.USD || 21500;
+    
     calculateWithdrawPayment();
     
     hideLoading();
@@ -232,6 +251,11 @@ function calculateWithdrawPayment() {
   
   document.getElementById('withdrawPaymentAmount').value = `${formatNumber(amountToPay.toFixed(2))} ${currency}`;
   document.getElementById('withdrawPaymentAmountLAK').value = formatNumber(totalLAK) + ' LAK';
+  
+  const customerPaid = parseFloat(document.getElementById('withdrawPaymentCustomerPaid').value) || 0;
+  const customerPaidLAK = customerPaid * rate;
+  const changeLAK = customerPaidLAK - totalLAK;
+  document.getElementById('withdrawPaymentChange').value = formatNumber(changeLAK) + ' LAK';
 }
 
 function toggleWithdrawPaymentBank() {
