@@ -44,7 +44,6 @@
         <p style="margin-bottom: 10px; font-weight: 600; color: var(--gold-primary);">Development Mode - Temporary Credentials:</p>
         <p>Manager: <span style="color: var(--text-primary);">m / m</span></p>
         <p>Teller: <span style="color: var(--text-primary);">t / t</span></p>
-        <p>Accountant: <span style="color: var(--text-primary);">a / a</span></p>
       </div>
     </div>
   </div>
@@ -300,6 +299,11 @@
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
         <h2 style="font-family: 'Cormorant Garamond', serif; font-size: 36px; color: var(--gold-primary);">Withdraw Management</h2>
         <div style="display: flex; gap: 10px; align-items: center;">
+          <input type="date" class="form-input" id="withdrawDateFrom" style="width: 150px;">
+          <span>to</span>
+          <input type="date" class="form-input" id="withdrawDateTo" style="width: 150px;">
+          <button class="btn-secondary" onclick="filterWithdrawByDate()">Filter</button>
+          <button class="btn-secondary" onclick="resetWithdrawDateFilter()">Today</button>
           <button class="btn-secondary" onclick="toggleWithdrawSort()" id="withdrawSortBtn">Sort: Newest First</button>
           <button class="btn-primary" onclick="openWithdrawModal()" id="addWithdrawBtn">+ New Withdraw</button>
         </div>
@@ -330,6 +334,11 @@
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
         <h2 style="font-family: 'Cormorant Garamond', serif; font-size: 36px; color: var(--gold-primary);">Sell Management</h2>
         <div style="display: flex; gap: 10px; align-items: center;">
+          <input type="date" class="form-input" id="sellDateFrom" style="width: 150px;">
+          <span>to</span>
+          <input type="date" class="form-input" id="sellDateTo" style="width: 150px;">
+          <button class="btn-secondary" onclick="filterSellByDate()">Filter</button>
+          <button class="btn-secondary" onclick="resetSellDateFilter()">Today</button>
           <button class="btn-secondary" onclick="toggleSellSort()" id="sellSortBtn">Sort: Newest First</button>
           <button class="btn-primary" onclick="openSellModal()" id="addSellBtn">+ New Sell</button>
         </div>
@@ -361,6 +370,11 @@
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
         <h2 style="font-family: 'Cormorant Garamond', serif; font-size: 36px; color: var(--gold-primary);">Trade-in Management</h2>
         <div style="display: flex; gap: 10px; align-items: center;">
+          <input type="date" class="form-input" id="tradeinDateFrom" style="width: 150px;">
+          <span>to</span>
+          <input type="date" class="form-input" id="tradeinDateTo" style="width: 150px;">
+          <button class="btn-secondary" onclick="filterTradeinByDate()">Filter</button>
+          <button class="btn-secondary" onclick="resetTradeinDateFilter()">Today</button>
           <button class="btn-secondary" onclick="toggleTradeinSort()" id="tradeinSortBtn">Sort: Newest First</button>
           <button class="btn-primary" onclick="openTradeinModal()" id="addTradeinBtn">+ New Trade-in</button>
         </div>
@@ -394,6 +408,11 @@
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
         <h2 style="font-family: 'Cormorant Garamond', serif; font-size: 36px; color: var(--gold-primary);">Buyback Management</h2>
         <div style="display: flex; gap: 10px; align-items: center;">
+          <input type="date" class="form-input" id="buybackDateFrom" style="width: 150px;">
+          <span>to</span>
+          <input type="date" class="form-input" id="buybackDateTo" style="width: 150px;">
+          <button class="btn-secondary" onclick="filterBuybackByDate()">Filter</button>
+          <button class="btn-secondary" onclick="resetBuybackDateFilter()">Today</button>
           <button class="btn-secondary" onclick="toggleBuybackSort()" id="buybackSortBtn">Sort: Newest First</button>
           <button class="btn-primary" onclick="openBuybackModal()" id="addBuybackBtn">+ New Buyback</button>
         </div>
@@ -424,6 +443,11 @@
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
         <h2 style="font-family: 'Cormorant Garamond', serif; font-size: 36px; color: var(--gold-primary);">Exchange Management</h2>
         <div style="display: flex; gap: 10px; align-items: center;">
+          <input type="date" class="form-input" id="exchangeDateFrom" style="width: 150px;">
+          <span>to</span>
+          <input type="date" class="form-input" id="exchangeDateTo" style="width: 150px;">
+          <button class="btn-secondary" onclick="filterExchangeByDate()">Filter</button>
+          <button class="btn-secondary" onclick="resetExchangeDateFilter()">Today</button>
           <button class="btn-secondary" onclick="toggleExchangeSort()" id="exchangeSortBtn">Sort: Newest First</button>
           <button class="btn-primary" onclick="openExchangeModal()" id="addExchangeBtn">+ New Exchange</button>
         </div>
@@ -607,88 +631,44 @@
 
     <section id="accounting" class="section">
       <div style="margin-bottom: 30px;">
-        <h2 style="font-family: 'Cormorant Garamond', serif; font-size: 36px; color: var(--gold-primary);">Accounting (Daily Reconciliation)</h2>
-        <p style="color: var(--text-secondary); margin-top: 10px;">Current date: <span id="accountingDate"></span></p>
+        <h2 style="font-family: 'Cormorant Garamond', serif; font-size: 36px; color: var(--gold-primary);">Accounting (Today's Summary)</h2>
       </div>
-      <div class="dashboard-stats">
-        <div class="stat-card" id="accTransCard" onclick="openReconcileModal('transactions')" style="cursor: pointer;">
-          <div class="card-header">
-            <div class="card-title">Total Transactions</div>
-            <div class="card-icon">◈</div>
-          </div>
-          <div class="stat-value" id="accTransactions">0</div>
-          <div class="stat-label">Transactions</div>
-          <div style="color: var(--success); font-size: 12px; margin-top: 5px;" id="accTransActual"></div>
-        </div>
-        <div class="stat-card" id="accCashCard" onclick="openReconcileModal('cashbank')" style="cursor: pointer;">
-          <div class="card-header">
-            <div class="card-title">Cash/Bank Reconcile</div>
-            <div class="card-icon">◉</div>
-          </div>
-          <div class="stat-value" id="accCashBank">0</div>
-          <div class="stat-label">LAK</div>
-          <div style="color: var(--success); font-size: 12px; margin-top: 5px;" id="accCashActual"></div>
-        </div>
-        <div class="stat-card" id="accRevCard" onclick="openReconcileModal('revenue')" style="cursor: pointer;">
-          <div class="card-header">
-            <div class="card-title">Revenue - Expense</div>
-            <div class="card-icon">◐</div>
-          </div>
-          <div class="stat-value" id="accRevenue">0</div>
-          <div class="stat-label">LAK</div>
-          <div style="color: var(--success); font-size: 12px; margin-top: 5px;" id="accRevActual"></div>
-        </div>
-        <div class="stat-card" id="accPLCard" onclick="openReconcileModal('pl')" style="cursor: pointer;">
-          <div class="card-header">
-            <div class="card-title">P/L</div>
-            <div class="card-icon">◑</div>
-          </div>
-          <div class="stat-value" id="accPL">0</div>
-          <div class="stat-label">LAK</div>
-          <div style="color: var(--success); font-size: 12px; margin-top: 5px;" id="accPLActual"></div>
-        </div>
-        <div class="stat-card" id="accCostCard" onclick="openReconcileModal('cost')" style="cursor: pointer;">
-          <div class="card-header">
-            <div class="card-title">Cost</div>
-            <div class="card-icon">◍</div>
-          </div>
-          <div class="stat-value" id="accCost">0</div>
-          <div class="stat-label">LAK</div>
-          <div style="color: var(--success); font-size: 12px; margin-top: 5px;" id="accCostActual"></div>
-        </div>
-        <div class="stat-card" id="accAssetCard" onclick="openReconcileModal('asset')" style="cursor: pointer;">
-          <div class="card-header">
-            <div class="card-title">Asset (Gold)</div>
-            <div class="card-icon">◒</div>
-          </div>
-          <div class="stat-value" id="accAsset">0</div>
-          <div class="stat-label">Grams</div>
-          <div style="color: var(--success); font-size: 12px; margin-top: 5px;" id="accAssetActual"></div>
-        </div>
-      </div>
-      <div style="text-align: center; margin: 30px 0;">
-        <button class="btn-primary manager-only" onclick="submitDailyReconcile()" style="padding: 15px 40px; font-size: 16px;">Submit Daily Reconciliation</button>
-      </div>
-      <div style="margin-top: 30px;">
-        <h3 style="color: var(--gold-primary); margin-bottom: 10px;">Reconciliation History</h3>
-        <p style="color: var(--text-secondary); font-size: 13px; margin-bottom: 20px;">Note: Values shown as (System / Actual)</p>
+      
+      <div id="accountingStats"></div>
+      
+      <div style="margin-top: 40px;">
+        <h3 style="color: var(--gold-primary); margin-bottom: 20px;">Daily History</h3>
         <div class="table-container">
           <table>
             <thead>
               <tr>
                 <th>Date</th>
-                <th>Transactions</th>
-                <th>Cash/Bank</th>
-                <th>Revenue-Expense</th>
-                <th>P/L</th>
-                <th>Cost</th>
-                <th>Asset (g)</th>
-                <th>Created By</th>
+                <th colspan="2">SELL</th>
+                <th colspan="2">TRADE-IN</th>
+                <th colspan="2">EXCHANGE</th>
+                <th colspan="2">BUY BACK</th>
+                <th colspan="2">WITHDRAW</th>
+                <th colspan="2">INCOMPLETE</th>
+              </tr>
+              <tr>
+                <th></th>
+                <th>LAK</th>
+                <th>Gold (g)</th>
+                <th>LAK</th>
+                <th>Gold (g)</th>
+                <th>LAK</th>
+                <th>Gold (g)</th>
+                <th>LAK</th>
+                <th>Gold (g)</th>
+                <th>LAK</th>
+                <th>Gold (g)</th>
+                <th>LAK</th>
+                <th>Gold (g)</th>
               </tr>
             </thead>
-            <tbody id="reconcileHistoryTable">
+            <tbody id="accountingTable">
               <tr>
-                <td colspan="8" style="text-align: center; padding: 40px;">No records</td>
+                <td colspan="13" style="text-align: center; padding: 40px;">No records</td>
               </tr>
             </tbody>
           </table>
@@ -1601,39 +1581,40 @@
     }
   </style>
   
-  <script src="js/config.js?v=12"></script>
-  <script src="js/utils.js?v=12"></script>
-  <script src="js/api.js?v=12"></script>
-  <script src="js/ui.js?v=12"></script>
+  <script src="js/config.js?v=13"></script>
+  <script src="js/utils.js?v=13"></script>
+  <script src="js/api.js?v=13"></script>
+  <script src="js/ui.js?v=13"></script>
   <script src="js/dashboard.js"></script>
   <script src="js/products.js"></script>
   <script src="js/pricerate.js"></script>
-  <script src="js/sell.js?v=12"></script>
+  <script src="js/sell.js?v=13"></script>
   <script src="js/payment.js"></script>
-  <script src="js/tradein.js?v=12"></script>
-  <script src="js/buyback.js?v=12"></script>
-  <script src="js/exchange.js?v=12"></script>
-  <script src="js/withdraw.js?v=12"></script>
+  <script src="js/tradein.js?v=13"></script>
+  <script src="js/buyback.js?v=13"></script>
+  <script src="js/exchange.js?v=13"></script>
+  <script src="js/withdraw.js?v=13"></script>
   <script src="js/inventory.js"></script>
-  <script src="js/cashbank.js?v=12"></script>
-  <script src="js/accounting.js"></script>
+  <script src="js/cashbank.js?v=13"></script>
+  <script src="js/accounting.js?v=13"></script>
   <script src="js/reports.js"></script>
-  <script src="js/auth.js?v=12"></script>
+  <script src="js/auth.js?v=13"></script>
   
   <script>
   document.addEventListener('DOMContentLoaded', function() {
     document.querySelectorAll('.modal').forEach(modal => {
-      let mouseDownTarget = null;
+      const modalContent = modal.querySelector('.modal-content');
       
-      modal.addEventListener('mousedown', function(e) {
-        mouseDownTarget = e.target;
-      });
+      if (modalContent) {
+        modalContent.addEventListener('click', function(e) {
+          e.stopPropagation();
+        });
+      }
       
-      modal.addEventListener('mouseup', function(e) {
-        if (mouseDownTarget === modal && e.target === modal) {
+      modal.addEventListener('click', function(e) {
+        if (e.target === modal) {
           modal.classList.remove('active');
         }
-        mouseDownTarget = null;
       });
     });
   });
