@@ -38,7 +38,7 @@ function login() {
     }
     
     if (currentUser.role === 'Manager') {
-      const managerHideButtons = ['addSellBtn', 'addTradeinBtn', 'addBuybackBtn', 'addExchangeBtn', 'withdrawBtn'];
+      const managerHideButtons = ['addSellBtn', 'addTradeinBtn', 'addBuybackBtn', 'addExchangeBtn', 'addWithdrawBtn', 'withdrawBtn'];
       managerHideButtons.forEach(id => {
         const el = document.getElementById(id);
         if (el) el.style.display = 'none';
@@ -112,7 +112,7 @@ function logout() {
       }
       
       if (currentUser.role === 'Manager') {
-        const managerHideButtons = ['addSellBtn', 'addTradeinBtn', 'addBuybackBtn', 'addExchangeBtn', 'withdrawBtn'];
+        const managerHideButtons = ['addSellBtn', 'addTradeinBtn', 'addBuybackBtn', 'addExchangeBtn', 'addWithdrawBtn', 'withdrawBtn'];
         managerHideButtons.forEach(id => {
           const el = document.getElementById(id);
           if (el) el.style.display = 'none';
