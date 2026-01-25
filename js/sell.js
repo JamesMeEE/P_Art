@@ -5,10 +5,6 @@ async function loadSells() {
     
     let filteredData = data.slice(1);
     
-    if (currentUser.role === 'User' || currentUser.role === 'Manager') {
-      filteredData = filterTodayData(filteredData, 9, 11);
-    }
-    
     if (sellSortOrder === 'asc') {
       filteredData.sort((a, b) => new Date(a[9]) - new Date(b[9]));
     } else {
