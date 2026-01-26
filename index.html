@@ -472,28 +472,11 @@
         <h2 style="font-family: 'Cormorant Garamond', serif; font-size: 36px; color: var(--gold-primary);">Inventory Management</h2>
         <div style="display: flex; gap: 10px;">
           <button class="btn-primary manager-only" onclick="openTransferModal()">Transfer OLD → NEW</button>
+          <button class="btn-primary manager-only" onclick="alert('กรุณากรอกข้อมูลใน Google Sheets โดยตรง')">Stock In</button>
+          <button class="btn-primary manager-only" onclick="alert('กรุณากรอกข้อมูลใน Google Sheets โดยตรง')">Stock Out</button>
         </div>
       </div>
       
-      <h3 style="color: var(--gold-primary); margin-bottom: 15px;">Stock Summary</h3>
-      <div class="table-container" style="margin-bottom: 30px;">
-        <table>
-          <thead>
-            <tr>
-              <th>Product</th>
-              <th>OLD/NEW</th>
-              <th>Quantity</th>
-            </tr>
-          </thead>
-          <tbody id="stockSummaryTable">
-            <tr>
-              <td colspan="3" style="text-align: center; padding: 40px;">Loading...</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-      
-      <h3 style="color: var(--gold-primary); margin-bottom: 15px;">Inventory History</h3>
       <div class="table-container">
         <table>
           <thead>
@@ -1244,6 +1227,26 @@
       </div>
 
       <div class="form-group">
+        <label class="form-label">Current OLD Stock</label>
+        <div class="table-container" style="max-height: 200px; overflow-y: auto;">
+          <table style="font-size: 14px;">
+            <thead>
+              <tr>
+                <th>Product</th>
+                <th>OLD/NEW</th>
+                <th>Quantity</th>
+              </tr>
+            </thead>
+            <tbody id="stockSummaryInModal">
+              <tr>
+                <td colspan="3" style="text-align: center; padding: 20px;">Loading...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="form-group">
         <label class="form-label">Products to Transfer</label>
         <div id="transferOldProducts"></div>
         <button class="btn-secondary" onclick="addTransferProduct()" style="margin-top: 10px;">+ Add Product</button>
@@ -1619,24 +1622,24 @@
     }
   </style>
   
-  <script src="js/config.js?v=15"></script>
-  <script src="js/utils.js?v=15"></script>
-  <script src="js/api.js?v=15"></script>
-  <script src="js/ui.js?v=15"></script>
+  <script src="js/config.js?v=16"></script>
+  <script src="js/utils.js?v=16"></script>
+  <script src="js/api.js?v=16"></script>
+  <script src="js/ui.js?v=16"></script>
   <script src="js/dashboard.js"></script>
   <script src="js/products.js"></script>
   <script src="js/pricerate.js"></script>
-  <script src="js/sell.js?v=15"></script>
+  <script src="js/sell.js?v=16"></script>
   <script src="js/payment.js"></script>
-  <script src="js/tradein.js?v=15"></script>
-  <script src="js/buyback.js?v=15"></script>
-  <script src="js/exchange.js?v=15"></script>
-  <script src="js/withdraw.js?v=15"></script>
-  <script src="js/inventory.js?v=15"></script>
-  <script src="js/cashbank.js?v=15"></script>
-  <script src="js/accounting.js?v=15"></script>
+  <script src="js/tradein.js?v=16"></script>
+  <script src="js/buyback.js?v=16"></script>
+  <script src="js/exchange.js?v=16"></script>
+  <script src="js/withdraw.js?v=16"></script>
+  <script src="js/inventory.js?v=16"></script>
+  <script src="js/cashbank.js?v=16"></script>
+  <script src="js/accounting.js?v=16"></script>
   <script src="js/reports.js"></script>
-  <script src="js/auth.js?v=15"></script>
+  <script src="js/auth.js?v=16"></script>
   
   <script>
   document.addEventListener('DOMContentLoaded', function() {
