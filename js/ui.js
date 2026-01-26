@@ -27,10 +27,7 @@ function showSection(sectionId) {
   else if (sectionId === 'exchange') loadExchanges();
   else if (sectionId === 'buyback') loadBuybacks();
   else if (sectionId === 'withdraw') loadWithdraws();
-  else if (sectionId === 'inventory') {
-    loadInventory();
-    loadStock();
-  }
+  else if (sectionId === 'inventory') loadInventory();
   else if (sectionId === 'cashbank') loadCashBank();
   else if (sectionId === 'accounting') loadAccounting();
   else if (sectionId === 'reports') loadReports();
