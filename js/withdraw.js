@@ -174,7 +174,7 @@ async function reviewWithdraw(withdrawId) {
   
   try {
     showLoading();
-    const result = await callAppsScript('REVIEW_WITHDRAW', { withdrawId });
+    const result = await callAppsScript('REVIEW_WITHDRAW', { id: withdrawId });
     
     if (result.success) {
       alert('✅ Review สำเร็จ! รอ User ยืนยัน');
@@ -290,8 +290,7 @@ async function confirmWithdrawPayment() {
   try {
     showLoading();
     const result = await callAppsScript('CONFIRM_WITHDRAW_PAYMENT', {
-      withdrawId: currentWithdrawPayment.withdrawId,
-      items: currentWithdrawPayment.items,
+      id: currentWithdrawPayment.withdrawId,
       method,
       bank,
       currency,
