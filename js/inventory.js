@@ -112,31 +112,32 @@ async function loadStockInModal() {
       const oldNew = row[2];
       const qty = parseFloat(row[4]) || 0;
       
-      const key = `${productId}_${oldNew}`;
+      if (oldNew !== 'OLD') return;
+      
+      const key = productId;
       
       if (!stockData[key]) {
         stockData[key] = {
           productId: productId,
-          oldNew: oldNew,
           qty: 0
         };
       }
       
       if (type === 'IN') {
         stockData[key].qty += qty;
-      } else {
+      } else if (type === 'OUT') {
         stockData[key].qty -= qty;
       }
     });
     
     const oldStockRows = Object.values(stockData)
-      .filter(item => item.oldNew === 'OLD')
+      .filter(item => item.qty > 0)
       .map(item => {
         const product = FIXED_PRODUCTS.find(p => p.id === item.productId);
         return `
           <tr>
+            <td>${item.productId}</td>
             <td>${product.name}</td>
-            <td>${item.oldNew}</td>
             <td>${item.qty}</td>
           </tr>
         `;
@@ -195,10 +196,8 @@ async function confirmTransfer() {
     
     showLoading();
     
-    const result = await executeGoogleScript({
-      action: 'TRANSFER_OLD_TO_NEW',
-      items: JSON.stringify(items),
-      user: currentUser.nickname
+    const result = await executeGoogleScript('TRANSFER_OLD_TO_NEW', {
+      items: JSON.stringify(items)
     });
     
     if (result.success) {
@@ -273,11 +272,9 @@ async function confirmStockIn() {
     
     showLoading();
     
-    const result = await executeGoogleScript({
-      action: 'STOCK_IN',
+    const result = await executeGoogleScript('STOCK_IN', {
       items: JSON.stringify(items),
-      note: note,
-      user: currentUser.nickname
+      note: note
     });
     
     if (result.success) {
@@ -352,11 +349,9 @@ async function confirmStockOut() {
     
     showLoading();
     
-    const result = await executeGoogleScript({
-      action: 'STOCK_OUT',
+    const result = await executeGoogleScript('STOCK_OUT', {
       items: JSON.stringify(items),
-      note: note,
-      user: currentUser.nickname
+      note: note
     });
     
     if (result.success) {
