@@ -1,7 +1,11 @@
 async function loadCashBank() {
   try {
     showLoading();
-    const data = await fetchSheetData('CashBank!A:I');
+    
+    const [cashbankData, dbData] = await Promise.all([
+      fetchSheetData('CashBank!A:I'),
+      fetchSheetData('_database!A1:G20')
+    ]);
     
     let balances = {
       cash: { LAK: 0, THB: 0, USD: 0 },
@@ -9,49 +13,22 @@ async function loadCashBank() {
       ldb: { LAK: 0, THB: 0, USD: 0 }
     };
     
-    if (data.length > 1) {
-      data.slice(1).forEach(row => {
-        const type = row[1];
-        const amount = parseFloat(row[2]) || 0;
-        const currency = row[3] || 'LAK';
-        const method = row[4];
-        const bank = row[5];
-        
-        if (type === 'CASH_IN') {
-          balances.cash[currency] += amount;
-        } else if (type === 'CASH_OUT') {
-          balances.cash[currency] -= amount;
-        } else if (type === 'BANK_DEPOSIT') {
-          if (bank === 'BCEL') balances.bcel[currency] += amount;
-          else if (bank === 'LDB') balances.ldb[currency] += amount;
-        } else if (type === 'BANK_WITHDRAW') {
-          if (bank === 'BCEL') balances.bcel[currency] -= amount;
-          else if (bank === 'LDB') balances.ldb[currency] -= amount;
-        } else if (type === 'OTHER_INCOME') {
-          if (method === 'CASH') {
-            balances.cash[currency] += amount;
-          } else if (method === 'BANK') {
-            if (bank === 'BCEL') balances.bcel[currency] += amount;
-            else if (bank === 'LDB') balances.ldb[currency] += amount;
-          }
-        } else if (type === 'OTHER_EXPENSE' || type === 'BUYBACK' || type === 'WITHDRAW_CHANGE') {
-          if (method === 'CASH' || method === 'Cash') {
-            balances.cash[currency] -= amount;
-          } else if (method === 'BANK' || method === 'Bank') {
-            if (bank === 'BCEL') balances.bcel[currency] -= amount;
-            else if (bank === 'LDB') balances.ldb[currency] -= amount;
-          }
-        } else if (type === 'SELL' || type === 'TRADEIN' || type === 'EXCHANGE' || type === 'WITHDRAW') {
-          if (method === 'Cash') {
-            balances.cash[currency] += amount;
-          } else if (method === 'Bank') {
-            if (bank === 'BCEL') balances.bcel[currency] += amount;
-            else if (bank === 'LDB') balances.ldb[currency] += amount;
-          }
-        } else if (type === 'SELL_CHANGE' || type === 'TRADEIN_CHANGE' || type === 'EXCHANGE_CHANGE') {
-          balances.cash[currency] -= amount;
-        }
-      });
+    if (dbData.length >= 14) {
+      balances.cash.LAK = parseFloat(dbData[13][0]) || 0;
+      balances.cash.THB = parseFloat(dbData[13][1]) || 0;
+      balances.cash.USD = parseFloat(dbData[13][2]) || 0;
+    }
+    
+    if (dbData.length >= 17) {
+      balances.bcel.LAK = parseFloat(dbData[16][0]) || 0;
+      balances.bcel.THB = parseFloat(dbData[16][1]) || 0;
+      balances.bcel.USD = parseFloat(dbData[16][2]) || 0;
+    }
+    
+    if (dbData.length >= 20) {
+      balances.ldb.LAK = parseFloat(dbData[19][0]) || 0;
+      balances.ldb.THB = parseFloat(dbData[19][1]) || 0;
+      balances.ldb.USD = parseFloat(dbData[19][2]) || 0;
     }
     
     document.getElementById('cashLAK').textContent = formatNumber(balances.cash.LAK);
@@ -67,10 +44,10 @@ async function loadCashBank() {
     document.getElementById('ldbUSD').textContent = formatNumber(balances.ldb.USD);
     
     const tbody = document.getElementById('cashbankTable');
-    if (data.length <= 1) {
+    if (cashbankData.length <= 1) {
       tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 40px;">No records</td></tr>';
     } else {
-      tbody.innerHTML = data.slice(1).reverse().map(row => `
+      tbody.innerHTML = cashbankData.slice(1).reverse().map(row => `
         <tr>
           <td>${row[0]}</td>
           <td>${row[1]}</td>
