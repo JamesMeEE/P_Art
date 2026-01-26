@@ -472,8 +472,8 @@
         <h2 style="font-family: 'Cormorant Garamond', serif; font-size: 36px; color: var(--gold-primary);">Inventory Management</h2>
         <div style="display: flex; gap: 10px;">
           <button class="btn-primary manager-only" onclick="openTransferModal()">Transfer OLD → NEW</button>
-          <button class="btn-primary manager-only" onclick="alert('กรุณากรอกข้อมูลใน Google Sheets โดยตรง')">Stock In</button>
-          <button class="btn-primary manager-only" onclick="alert('กรุณากรอกข้อมูลใน Google Sheets โดยตรง')">Stock Out</button>
+          <button class="btn-primary manager-only" onclick="openStockInModal()">Stock In</button>
+          <button class="btn-primary manager-only" onclick="openStockOutModal()">Stock Out</button>
         </div>
       </div>
       
@@ -481,29 +481,31 @@
         <table>
           <thead>
             <tr>
-              <th>ID</th>
-              <th>Type</th>
-              <th>SKU</th>
-              <th>Product</th>
-              <th>ยอดยกมา(g)</th>
-              <th>GOLD_IN</th>
-              <th>GOLD_OUT</th>
-              <th>QTY_IN</th>
-              <th>QTY_OUT</th>
-              <th>WEIGHT(g)</th>
-              <th>COST(LAK)</th>
-              <th>PRICE_IN</th>
-              <th>PRICE_OUT</th>
-              <th>ต้นทุน(LAK)</th>
-              <th>WAC_g</th>
-              <th>WAC_บาท</th>
-              <th>Date</th>
-              <th>Created_By</th>
+              <th rowspan="2">ID</th>
+              <th rowspan="2">Product</th>
+              <th rowspan="2">ยอดยกมา(g)</th>
+              <th colspan="2">GOLD</th>
+              <th colspan="2">QTY</th>
+              <th rowspan="2">WEIGHT(g)</th>
+              <th rowspan="2">COST(LAK)</th>
+              <th colspan="2">PRICE</th>
+              <th rowspan="2">ต้นทุน(LAK)</th>
+              <th colspan="2">WAC</th>
+            </tr>
+            <tr>
+              <th>IN</th>
+              <th>OUT</th>
+              <th>IN</th>
+              <th>OUT</th>
+              <th>IN</th>
+              <th>OUT</th>
+              <th>ราคา/g</th>
+              <th>ราคา/บาท</th>
             </tr>
           </thead>
           <tbody id="inventoryTable">
             <tr>
-              <td colspan="18" style="text-align: center; padding: 40px;">Loading...</td>
+              <td colspan="14" style="text-align: center; padding: 40px;">Loading...</td>
             </tr>
           </tbody>
         </table>
@@ -1262,25 +1264,24 @@
   <div id="stockInModal" class="modal">
     <div class="modal-content">
       <div class="modal-header">
-        <h2 class="modal-title">Stock In</h2>
+        <h2>Stock In</h2>
+        <span class="close" onclick="closeModal('stockInModal')">&times;</span>
       </div>
+
       <div class="form-group">
-        <label class="form-label">Product</label>
-        <select class="form-select" id="stockInProduct">
-          <option value="">Select product...</option>
-        </select>
+        <label class="form-label">Products</label>
+        <div id="stockInProducts"></div>
+        <button class="btn-secondary" onclick="addStockInProduct()" style="margin-top: 10px;">+ Add Product</button>
       </div>
+
       <div class="form-group">
-        <label class="form-label">Quantity</label>
-        <input type="number" class="form-input" id="stockInQuantity" placeholder="0" step="1">
+        <label class="form-label">Note</label>
+        <textarea class="form-input" id="stockInNote" rows="3" placeholder="เช่น: ซื้อจากซัพพลายเออร์ A"></textarea>
       </div>
-      <div class="form-group">
-        <label class="form-label">Cost (LAK)</label>
-        <input type="number" class="form-input" id="stockInCost" placeholder="0.00" step="0.01">
-      </div>
+
       <div class="modal-footer">
         <button class="btn-secondary" onclick="closeModal('stockInModal')">Cancel</button>
-        <button class="btn-primary" onclick="addStockIn()">Submit</button>
+        <button class="btn-primary" onclick="confirmStockIn()">Confirm</button>
       </div>
     </div>
   </div>
@@ -1288,21 +1289,24 @@
   <div id="stockOutModal" class="modal">
     <div class="modal-content">
       <div class="modal-header">
-        <h2 class="modal-title">Stock Out (สูญหาย)</h2>
+        <h2>Stock Out</h2>
+        <span class="close" onclick="closeModal('stockOutModal')">&times;</span>
       </div>
+
       <div class="form-group">
-        <label class="form-label">Product</label>
-        <select class="form-select" id="stockOutProduct">
-          <option value="">Select product...</option>
-        </select>
+        <label class="form-label">Products</label>
+        <div id="stockOutProducts"></div>
+        <button class="btn-secondary" onclick="addStockOutProduct()" style="margin-top: 10px;">+ Add Product</button>
       </div>
+
       <div class="form-group">
-        <label class="form-label">Quantity</label>
-        <input type="number" class="form-input" id="stockOutQuantity" placeholder="0" step="1">
+        <label class="form-label">Note</label>
+        <textarea class="form-input" id="stockOutNote" rows="3" placeholder="เช่น: สูญหาย, เสียหาย"></textarea>
       </div>
+
       <div class="modal-footer">
         <button class="btn-secondary" onclick="closeModal('stockOutModal')">Cancel</button>
-        <button class="btn-primary" onclick="addStockOut()">Submit</button>
+        <button class="btn-primary" onclick="confirmStockOut()">Confirm</button>
       </div>
     </div>
   </div>
@@ -1622,24 +1626,24 @@
     }
   </style>
   
-  <script src="js/config.js?v=16"></script>
-  <script src="js/utils.js?v=16"></script>
-  <script src="js/api.js?v=16"></script>
-  <script src="js/ui.js?v=16"></script>
+  <script src="js/config.js?v=17"></script>
+  <script src="js/utils.js?v=17"></script>
+  <script src="js/api.js?v=17"></script>
+  <script src="js/ui.js?v=17"></script>
   <script src="js/dashboard.js"></script>
   <script src="js/products.js"></script>
   <script src="js/pricerate.js"></script>
-  <script src="js/sell.js?v=16"></script>
+  <script src="js/sell.js?v=17"></script>
   <script src="js/payment.js"></script>
-  <script src="js/tradein.js?v=16"></script>
-  <script src="js/buyback.js?v=16"></script>
-  <script src="js/exchange.js?v=16"></script>
-  <script src="js/withdraw.js?v=16"></script>
-  <script src="js/inventory.js?v=16"></script>
-  <script src="js/cashbank.js?v=16"></script>
-  <script src="js/accounting.js?v=16"></script>
+  <script src="js/tradein.js?v=17"></script>
+  <script src="js/buyback.js?v=17"></script>
+  <script src="js/exchange.js?v=17"></script>
+  <script src="js/withdraw.js?v=17"></script>
+  <script src="js/inventory.js?v=17"></script>
+  <script src="js/cashbank.js?v=17"></script>
+  <script src="js/accounting.js?v=17"></script>
   <script src="js/reports.js"></script>
-  <script src="js/auth.js?v=16"></script>
+  <script src="js/auth.js?v=17"></script>
   
   <script>
   document.addEventListener('DOMContentLoaded', function() {
