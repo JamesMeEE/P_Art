@@ -664,3 +664,78 @@ body.role-m button.manager-only {
     padding: 12px 10px;
   }
 }
+
+#inventoryTable {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+#inventoryTable th,
+#inventoryTable td {
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 12px 8px;
+  text-align: center;
+  vertical-align: middle;
+}
+
+#inventoryTable thead tr:first-child th {
+  background: #2a2a2a;
+  color: var(--gold-primary);
+  font-weight: 700;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border: 1px solid rgba(212, 175, 55, 0.5);
+  padding: 14px 8px;
+}
+
+#inventoryTable thead tr:last-child th {
+  background: #1f1f1f;
+  color: #d4af37;
+  font-weight: 600;
+  font-size: 12px;
+  border: 1px solid rgba(212, 175, 55, 0.4);
+  padding: 10px 8px;
+}
+
+#inventoryTable tbody td {
+  background: #1a1a1a;
+  color: var(--text-primary);
+  font-size: 13px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+#inventoryTable tbody tr:hover td {
+  background: rgba(212, 175, 55, 0.08);
+}
+
+#inventoryTable tbody td:first-child {
+  font-weight: 600;
+  color: var(--gold-primary);
+}
+
+#inventoryTable tbody td:nth-child(2) {
+  text-align: left;
+  padding-left: 15px;
+}
+
+#inventoryTable th[colspan] {
+  border-bottom: 2px solid var(--gold-primary);
+}
+
+#inventoryTable th[rowspan] {
+  vertical-align: middle;
+}
+
+#inventoryTable th[colspan] {
+  border-bottom: 2px solid var(--gold-primary);
+}
+
+#inventoryTable th[rowspan] {
+  vertical-align: middle;
+  font-size: 13px;
+}
+  background: #1a1a1a !important;
+  border: 1px solid var(--gold-primary) !important;
+  box-shadow: 0 8px 24px rgba(212, 175, 55, 0.3) !important;
+}

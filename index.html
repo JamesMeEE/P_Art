@@ -7,6 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600;700&family=Montserrat:wght@200;300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
   <link rel="stylesheet" href="style.css">
   <script>
     (function() {
@@ -471,28 +472,41 @@
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
         <h2 style="font-family: 'Cormorant Garamond', serif; font-size: 36px; color: var(--gold-primary);">Inventory Management</h2>
         <div style="display: flex; gap: 10px;">
-          <button class="btn-primary" onclick="openModal('withdrawModal')" id="withdrawBtn">Withdraw</button>
-          <button class="btn-primary manager-only" onclick="openModal('stockInModal')" id="stockInBtn">Stock In</button>
-          <button class="btn-primary manager-only" onclick="openModal('stockOutModal')" id="stockOutBtn">Stock Out</button>
+          <button class="btn-primary manager-only" onclick="openTransferModal()">Transfer OLD → NEW</button>
+          <button class="btn-primary manager-only" onclick="openStockInModal()">Stock In</button>
+          <button class="btn-primary manager-only" onclick="openStockOutModal()">Stock Out</button>
         </div>
       </div>
+      
       <div class="table-container">
-        <table>
+        <table id="inventoryTableWrapper">
           <thead>
-            <tr>
-              <th>ID</th>
-              <th>Product</th>
-              <th>Type</th>
-              <th>Quantity</th>
-              <th>Cost (LAK)</th>
-              <th>Date</th>
-              <th>Status</th>
-              <th>Actions</th>
+            <tr style="background: #2d2d2d !important; border-bottom: 2px solid #d4af37 !important;">
+              <th rowspan="2" style="background: #2d2d2d !important; color: #d4af37 !important; border: 1px solid rgba(212, 175, 55, 0.5) !important; text-transform: uppercase !important; font-weight: 700 !important; padding: 14px 8px !important; font-size: 13px !important;">ID</th>
+              <th rowspan="2" style="background: #2d2d2d !important; color: #d4af37 !important; border: 1px solid rgba(212, 175, 55, 0.5) !important; text-transform: uppercase !important; font-weight: 700 !important; padding: 14px 8px !important; font-size: 13px !important;">PRODUCT</th>
+              <th rowspan="2" style="background: #2d2d2d !important; color: #d4af37 !important; border: 1px solid rgba(212, 175, 55, 0.5) !important; text-transform: uppercase !important; font-weight: 700 !important; padding: 14px 8px !important; font-size: 13px !important;">ยอดยกมา(G)</th>
+              <th colspan="2" style="background: #2d2d2d !important; color: #d4af37 !important; border: 1px solid rgba(212, 175, 55, 0.5) !important; text-transform: uppercase !important; font-weight: 700 !important; padding: 14px 8px !important; font-size: 13px !important;">GOLD</th>
+              <th colspan="2" style="background: #2d2d2d !important; color: #d4af37 !important; border: 1px solid rgba(212, 175, 55, 0.5) !important; text-transform: uppercase !important; font-weight: 700 !important; padding: 14px 8px !important; font-size: 13px !important;">QTY</th>
+              <th rowspan="2" style="background: #2d2d2d !important; color: #d4af37 !important; border: 1px solid rgba(212, 175, 55, 0.5) !important; text-transform: uppercase !important; font-weight: 700 !important; padding: 14px 8px !important; font-size: 13px !important;">WEIGHT(G)</th>
+              <th rowspan="2" style="background: #2d2d2d !important; color: #d4af37 !important; border: 1px solid rgba(212, 175, 55, 0.5) !important; text-transform: uppercase !important; font-weight: 700 !important; padding: 14px 8px !important; font-size: 13px !important;">COST(LAK)</th>
+              <th colspan="2" style="background: #2d2d2d !important; color: #d4af37 !important; border: 1px solid rgba(212, 175, 55, 0.5) !important; text-transform: uppercase !important; font-weight: 700 !important; padding: 14px 8px !important; font-size: 13px !important;">PRICE</th>
+              <th rowspan="2" style="background: #2d2d2d !important; color: #d4af37 !important; border: 1px solid rgba(212, 175, 55, 0.5) !important; text-transform: uppercase !important; font-weight: 700 !important; padding: 14px 8px !important; font-size: 13px !important;">ต้นทุน(LAK)</th>
+              <th colspan="2" style="background: #2d2d2d !important; color: #d4af37 !important; border: 1px solid rgba(212, 175, 55, 0.5) !important; text-transform: uppercase !important; font-weight: 700 !important; padding: 14px 8px !important; font-size: 13px !important;">WAC</th>
+            </tr>
+            <tr style="background: #252525 !important;">
+              <th style="background: #252525 !important; color: #d4af37 !important; border: 1px solid rgba(212, 175, 55, 0.4) !important; font-weight: 600 !important; padding: 10px 8px !important; font-size: 12px !important;">IN</th>
+              <th style="background: #252525 !important; color: #d4af37 !important; border: 1px solid rgba(212, 175, 55, 0.4) !important; font-weight: 600 !important; padding: 10px 8px !important; font-size: 12px !important;">OUT</th>
+              <th style="background: #252525 !important; color: #d4af37 !important; border: 1px solid rgba(212, 175, 55, 0.4) !important; font-weight: 600 !important; padding: 10px 8px !important; font-size: 12px !important;">IN</th>
+              <th style="background: #252525 !important; color: #d4af37 !important; border: 1px solid rgba(212, 175, 55, 0.4) !important; font-weight: 600 !important; padding: 10px 8px !important; font-size: 12px !important;">OUT</th>
+              <th style="background: #252525 !important; color: #d4af37 !important; border: 1px solid rgba(212, 175, 55, 0.4) !important; font-weight: 600 !important; padding: 10px 8px !important; font-size: 12px !important;">IN</th>
+              <th style="background: #252525 !important; color: #d4af37 !important; border: 1px solid rgba(212, 175, 55, 0.4) !important; font-weight: 600 !important; padding: 10px 8px !important; font-size: 12px !important;">OUT</th>
+              <th style="background: #252525 !important; color: #d4af37 !important; border: 1px solid rgba(212, 175, 55, 0.4) !important; font-weight: 600 !important; padding: 10px 8px !important; font-size: 12px !important;">ราคา/G</th>
+              <th style="background: #252525 !important; color: #d4af37 !important; border: 1px solid rgba(212, 175, 55, 0.4) !important; font-weight: 600 !important; padding: 10px 8px !important; font-size: 12px !important;">ราคา/บาท</th>
             </tr>
           </thead>
           <tbody id="inventoryTable">
             <tr>
-              <td colspan="8" style="text-align: center; padding: 40px;">Loading...</td>
+              <td colspan="14" style="text-align: center; padding: 40px;">Loading...</td>
             </tr>
           </tbody>
         </table>
@@ -1208,28 +1222,67 @@
     </div>
   </div>
 
+  <div id="transferModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Transfer OLD → NEW Gold</h2>
+        <span class="close" onclick="closeModal('transferModal')">&times;</span>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Current OLD Stock</label>
+        <div class="table-container">
+          <table style="font-size: 14px;">
+            <thead>
+              <tr>
+                <th>SKU</th>
+                <th>PRODUCT</th>
+                <th>QUANTITY</th>
+              </tr>
+            </thead>
+            <tbody id="stockSummaryInModal">
+              <tr>
+                <td colspan="3" style="text-align: center; padding: 20px;">Loading...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Products to Transfer</label>
+        <div id="transferOldProducts"></div>
+        <button class="btn-secondary" onclick="addTransferProduct()" style="margin-top: 10px;">+ Add Product</button>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn-secondary" onclick="closeModal('transferModal')">Cancel</button>
+        <button class="btn-primary" onclick="confirmTransfer()">Confirm Transfer</button>
+      </div>
+    </div>
+  </div>
+
   <div id="stockInModal" class="modal">
     <div class="modal-content">
       <div class="modal-header">
-        <h2 class="modal-title">Stock In</h2>
+        <h2>Stock In</h2>
+        <span class="close" onclick="closeModal('stockInModal')">&times;</span>
       </div>
+
       <div class="form-group">
-        <label class="form-label">Product</label>
-        <select class="form-select" id="stockInProduct">
-          <option value="">Select product...</option>
-        </select>
+        <label class="form-label">Products</label>
+        <div id="stockInProducts"></div>
+        <button class="btn-secondary" onclick="addStockInProduct()" style="margin-top: 10px;">+ Add Product</button>
       </div>
+
       <div class="form-group">
-        <label class="form-label">Quantity</label>
-        <input type="number" class="form-input" id="stockInQuantity" placeholder="0" step="1">
+        <label class="form-label">Note</label>
+        <textarea class="form-input" id="stockInNote" rows="3" placeholder="เช่น: ซื้อจากซัพพลายเออร์ A"></textarea>
       </div>
-      <div class="form-group">
-        <label class="form-label">Cost (LAK)</label>
-        <input type="number" class="form-input" id="stockInCost" placeholder="0.00" step="0.01">
-      </div>
+
       <div class="modal-footer">
         <button class="btn-secondary" onclick="closeModal('stockInModal')">Cancel</button>
-        <button class="btn-primary" onclick="addStockIn()">Submit</button>
+        <button class="btn-primary" onclick="confirmStockIn()">Confirm</button>
       </div>
     </div>
   </div>
@@ -1237,21 +1290,24 @@
   <div id="stockOutModal" class="modal">
     <div class="modal-content">
       <div class="modal-header">
-        <h2 class="modal-title">Stock Out (สูญหาย)</h2>
+        <h2>Stock Out</h2>
+        <span class="close" onclick="closeModal('stockOutModal')">&times;</span>
       </div>
+
       <div class="form-group">
-        <label class="form-label">Product</label>
-        <select class="form-select" id="stockOutProduct">
-          <option value="">Select product...</option>
-        </select>
+        <label class="form-label">Products</label>
+        <div id="stockOutProducts"></div>
+        <button class="btn-secondary" onclick="addStockOutProduct()" style="margin-top: 10px;">+ Add Product</button>
       </div>
+
       <div class="form-group">
-        <label class="form-label">Quantity</label>
-        <input type="number" class="form-input" id="stockOutQuantity" placeholder="0" step="1">
+        <label class="form-label">Note</label>
+        <textarea class="form-input" id="stockOutNote" rows="3" placeholder="เช่น: สูญหาย, เสียหาย"></textarea>
       </div>
+
       <div class="modal-footer">
         <button class="btn-secondary" onclick="closeModal('stockOutModal')">Cancel</button>
-        <button class="btn-primary" onclick="addStockOut()">Submit</button>
+        <button class="btn-primary" onclick="confirmStockOut()">Confirm</button>
       </div>
     </div>
   </div>
@@ -1571,24 +1627,27 @@
     }
   </style>
   
-  <script src="js/config.js?v=14"></script>
-  <script src="js/utils.js?v=14"></script>
-  <script src="js/api.js?v=14"></script>
-  <script src="js/ui.js?v=14"></script>
+  <script src="js/config.js?v=21"></script>
+  <script src="js/utils.js?v=21"></script>
+  <script src="js/api.js?v=21"></script>
+  <script src="js/ui.js?v=21"></script>
   <script src="js/dashboard.js"></script>
   <script src="js/products.js"></script>
   <script src="js/pricerate.js"></script>
-  <script src="js/sell.js?v=14"></script>
+  <script src="js/sell.js?v=21"></script>
   <script src="js/payment.js"></script>
-  <script src="js/tradein.js?v=14"></script>
-  <script src="js/buyback.js?v=14"></script>
-  <script src="js/exchange.js?v=14"></script>
-  <script src="js/withdraw.js?v=14"></script>
-  <script src="js/inventory.js"></script>
-  <script src="js/cashbank.js?v=14"></script>
-  <script src="js/accounting.js?v=14"></script>
+  <script src="js/tradein.js?v=21"></script>
+  <script src="js/buyback.js?v=21"></script>
+  <script src="js/exchange.js?v=21"></script>
+  <script src="js/withdraw.js?v=21"></script>
+  <script src="js/inventory.js?v=21"></script>
+  <script src="js/cashbank.js?v=21"></script>
+  <script src="js/accounting.js?v=21"></script>
   <script src="js/reports.js"></script>
-  <script src="js/auth.js?v=14"></script>
+  <script src="js/auth.js?v=21"></script>
+  
+  <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+  <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/th.js"></script>
   
   <script>
   document.addEventListener('DOMContentLoaded', function() {
@@ -1604,6 +1663,19 @@
       modal.addEventListener('click', function(e) {
         if (e.target === modal) {
           modal.classList.remove('active');
+        }
+      });
+    });
+    
+    const dateInputs = document.querySelectorAll('input[type="date"]');
+    dateInputs.forEach(input => {
+      flatpickr(input, {
+        locale: 'th',
+        dateFormat: 'Y-m-d',
+        defaultDate: new Date(),
+        onChange: function(selectedDates, dateStr, instance) {
+          const event = new Event('change', { bubbles: true });
+          input.dispatchEvent(event);
         }
       });
     });
