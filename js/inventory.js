@@ -10,9 +10,53 @@ async function loadInventory() {
       return;
     }
     
-    const rows = data.slice(1).reverse();
+    const today = new Date();
+    const todayStr = today.toISOString().split('T')[0];
     
-    tbody.innerHTML = rows.map(row => `
+    const rows = data.slice(1);
+    
+    let todayRows = [];
+    let lastYesterdayRow = null;
+    
+    for (let i = rows.length - 1; i >= 0; i--) {
+      const row = rows[i];
+      const dateValue = row[16];
+      
+      let rowDate;
+      if (dateValue instanceof Date) {
+        rowDate = dateValue;
+      } else if (typeof dateValue === 'string') {
+        if (dateValue.includes('/')) {
+          const parts = dateValue.split(' ')[0].split('/');
+          const day = parseInt(parts[0]);
+          const month = parseInt(parts[1]) - 1;
+          const year = parseInt(parts[2]);
+          rowDate = new Date(year, month, day);
+        } else {
+          rowDate = new Date(dateValue);
+        }
+      } else {
+        rowDate = new Date(dateValue);
+      }
+      
+      const rowDateStr = rowDate.toISOString().split('T')[0];
+      
+      if (rowDateStr === todayStr) {
+        todayRows.unshift(row);
+      } else if (rowDateStr < todayStr && !lastYesterdayRow) {
+        lastYesterdayRow = row;
+      }
+    }
+    
+    const displayRows = lastYesterdayRow ? [lastYesterdayRow, ...todayRows] : todayRows;
+    
+    if (displayRows.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="14" style="text-align: center; padding: 40px;">No records for today</td></tr>';
+      hideLoading();
+      return;
+    }
+    
+    tbody.innerHTML = displayRows.map(row => `
       <tr>
         <td>${row[0]}</td>
         <td>${row[3]}</td>
