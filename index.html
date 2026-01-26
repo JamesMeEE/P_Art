@@ -471,28 +471,56 @@
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
         <h2 style="font-family: 'Cormorant Garamond', serif; font-size: 36px; color: var(--gold-primary);">Inventory Management</h2>
         <div style="display: flex; gap: 10px;">
-          <button class="btn-primary" onclick="openModal('withdrawModal')" id="withdrawBtn">Withdraw</button>
-          <button class="btn-primary manager-only" onclick="openModal('stockInModal')" id="stockInBtn">Stock In</button>
-          <button class="btn-primary manager-only" onclick="openModal('stockOutModal')" id="stockOutBtn">Stock Out</button>
+          <button class="btn-primary manager-only" onclick="openTransferModal()">Transfer OLD → NEW</button>
         </div>
       </div>
+      
+      <h3 style="color: var(--gold-primary); margin-bottom: 15px;">Stock Summary</h3>
+      <div class="table-container" style="margin-bottom: 30px;">
+        <table>
+          <thead>
+            <tr>
+              <th>Product</th>
+              <th>OLD/NEW</th>
+              <th>Quantity</th>
+            </tr>
+          </thead>
+          <tbody id="stockSummaryTable">
+            <tr>
+              <td colspan="3" style="text-align: center; padding: 40px;">Loading...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      
+      <h3 style="color: var(--gold-primary); margin-bottom: 15px;">Inventory History</h3>
       <div class="table-container">
         <table>
           <thead>
             <tr>
               <th>ID</th>
-              <th>Product</th>
               <th>Type</th>
-              <th>Quantity</th>
-              <th>Cost (LAK)</th>
+              <th>SKU</th>
+              <th>Product</th>
+              <th>ยอดยกมา(g)</th>
+              <th>GOLD_IN</th>
+              <th>GOLD_OUT</th>
+              <th>QTY_IN</th>
+              <th>QTY_OUT</th>
+              <th>WEIGHT(g)</th>
+              <th>COST(LAK)</th>
+              <th>PRICE_IN</th>
+              <th>PRICE_OUT</th>
+              <th>ต้นทุน(LAK)</th>
+              <th>WAC_g</th>
+              <th>WAC_บาท</th>
               <th>Date</th>
-              <th>Status</th>
-              <th>Actions</th>
+              <th>Created_By</th>
             </tr>
           </thead>
           <tbody id="inventoryTable">
             <tr>
-              <td colspan="8" style="text-align: center; padding: 40px;">Loading...</td>
+              <td colspan="18" style="text-align: center; padding: 40px;">Loading...</td>
             </tr>
           </tbody>
         </table>
@@ -1208,6 +1236,26 @@
     </div>
   </div>
 
+  <div id="transferModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Transfer OLD → NEW Gold</h2>
+        <span class="close" onclick="closeModal('transferModal')">&times;</span>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Products to Transfer</label>
+        <div id="transferOldProducts"></div>
+        <button class="btn-secondary" onclick="addTransferProduct()" style="margin-top: 10px;">+ Add Product</button>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn-secondary" onclick="closeModal('transferModal')">Cancel</button>
+        <button class="btn-primary" onclick="confirmTransfer()">Confirm Transfer</button>
+      </div>
+    </div>
+  </div>
+
   <div id="stockInModal" class="modal">
     <div class="modal-content">
       <div class="modal-header">
@@ -1571,24 +1619,24 @@
     }
   </style>
   
-  <script src="js/config.js?v=14"></script>
-  <script src="js/utils.js?v=14"></script>
-  <script src="js/api.js?v=14"></script>
-  <script src="js/ui.js?v=14"></script>
+  <script src="js/config.js?v=15"></script>
+  <script src="js/utils.js?v=15"></script>
+  <script src="js/api.js?v=15"></script>
+  <script src="js/ui.js?v=15"></script>
   <script src="js/dashboard.js"></script>
   <script src="js/products.js"></script>
   <script src="js/pricerate.js"></script>
-  <script src="js/sell.js?v=14"></script>
+  <script src="js/sell.js?v=15"></script>
   <script src="js/payment.js"></script>
-  <script src="js/tradein.js?v=14"></script>
-  <script src="js/buyback.js?v=14"></script>
-  <script src="js/exchange.js?v=14"></script>
-  <script src="js/withdraw.js?v=14"></script>
-  <script src="js/inventory.js"></script>
-  <script src="js/cashbank.js?v=14"></script>
-  <script src="js/accounting.js?v=14"></script>
+  <script src="js/tradein.js?v=15"></script>
+  <script src="js/buyback.js?v=15"></script>
+  <script src="js/exchange.js?v=15"></script>
+  <script src="js/withdraw.js?v=15"></script>
+  <script src="js/inventory.js?v=15"></script>
+  <script src="js/cashbank.js?v=15"></script>
+  <script src="js/accounting.js?v=15"></script>
   <script src="js/reports.js"></script>
-  <script src="js/auth.js?v=14"></script>
+  <script src="js/auth.js?v=15"></script>
   
   <script>
   document.addEventListener('DOMContentLoaded', function() {
