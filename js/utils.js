@@ -81,6 +81,8 @@ function formatDateTime(dateInput) {
   }
 }
 
+const formatDate = formatDateTime;
+
 function formatItemsForTable(itemsJson) {
   try {
     const items = JSON.parse(itemsJson);
