@@ -4,7 +4,6 @@ async function loadAccounting() {
     
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    const todayStr = today.toISOString().split('T')[0];
     
     const accountingData = await fetchSheetData('Accounting!A:M');
     
@@ -13,37 +12,36 @@ async function loadAccounting() {
     } else {
       const existingDates = new Set();
       accountingData.slice(1).forEach(row => {
-        if (row[0]) existingDates.add(row[0]);
+        if (row[0]) {
+          const d = parseSheetDate(row[0]);
+          if (d) {
+            const dateKey = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+            existingDates.add(dateKey);
+          }
+        }
       });
       
-      if (!existingDates.has(todayStr)) {
+      const todayKey = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
+      
+      if (!existingDates.has(todayKey)) {
         const lastRecord = accountingData[accountingData.length - 1];
-        const lastDate = lastRecord[0];
-        let lastDateObj;
+        const lastDateObj = parseSheetDate(lastRecord[0]);
         
-        if (lastDate instanceof Date) {
-          lastDateObj = new Date(lastDate);
-        } else if (typeof lastDate === 'string') {
-          if (lastDate.includes('/')) {
-            const parts = lastDate.split('/');
-            lastDateObj = new Date(parseInt(parts[2]), parseInt(parts[1]) - 1, parseInt(parts[0]));
-          } else {
-            lastDateObj = new Date(lastDate);
-          }
-        } else {
-          lastDateObj = new Date(lastDate);
-        }
-        
-        lastDateObj.setHours(0, 0, 0, 0);
-        
-        const diffTime = today.getTime() - lastDateObj.getTime();
-        const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-        
-        if (diffDays > 0) {
-          for (let i = 1; i <= diffDays; i++) {
-            const targetDate = new Date(lastDateObj);
-            targetDate.setDate(targetDate.getDate() + i);
-            await saveAccountingForDate(targetDate);
+        if (lastDateObj) {
+          lastDateObj.setHours(0, 0, 0, 0);
+          
+          const diffTime = today.getTime() - lastDateObj.getTime();
+          const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+          
+          if (diffDays > 0) {
+            for (let i = 1; i <= diffDays; i++) {
+              const targetDate = new Date(lastDateObj);
+              targetDate.setDate(targetDate.getDate() + i);
+              const targetKey = `${targetDate.getFullYear()}-${String(targetDate.getMonth()+1).padStart(2,'0')}-${String(targetDate.getDate()).padStart(2,'0')}`;
+              if (!existingDates.has(targetKey)) {
+                await saveAccountingForDate(targetDate);
+              }
+            }
           }
         }
       }
@@ -483,13 +481,13 @@ function calculateTotalGold(items) {
   items.forEach(item => {
     const qty = item.qty || 0;
     switch(item.productId) {
-      case 'G01': totalG += 10 * qty; break;
-      case 'G02': totalG += 5 * qty; break;
-      case 'G03': totalG += 2 * qty; break;
-      case 'G04': totalG += 1 * qty; break;
-      case 'G05': totalG += 0.5 * qty; break;
-      case 'G06': totalG += 0.25 * qty; break;
-      case 'G07': totalG += 0.0666 * qty; break;
+      case 'G01': totalG += 10 * 15 * qty; break;
+      case 'G02': totalG += 5 * 15 * qty; break;
+      case 'G03': totalG += 2 * 15 * qty; break;
+      case 'G04': totalG += 1 * 15 * qty; break;
+      case 'G05': totalG += 0.5 * 15 * qty; break;
+      case 'G06': totalG += 0.25 * 15 * qty; break;
+      case 'G07': totalG += 1 * qty; break;
     }
   });
   return totalG;

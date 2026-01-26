@@ -11,11 +11,29 @@ function showSection(sectionId) {
     targetSection.classList.add('active');
   }
   
-  document.querySelectorAll('.nav-btn').forEach(btn => {
-    if (btn.textContent.toLowerCase().includes(sectionId.replace('tradein', 'trade-in'))) {
-      btn.classList.add('active');
-    }
-  });
+  const sectionToTabMap = {
+    'dashboard': 'dashboard',
+    'products': 'products',
+    'pricerate': 'price rate',
+    'sell': 'sell',
+    'tradein': 'trade-in',
+    'exchange': 'exchange',
+    'buyback': 'buyback',
+    'withdraw': 'withdraw',
+    'inventory': 'inventory',
+    'cashbank': 'cash/bank',
+    'accounting': 'accounting',
+    'reports': 'reports'
+  };
+  
+  const tabName = sectionToTabMap[sectionId];
+  if (tabName) {
+    document.querySelectorAll('.nav-btn').forEach(btn => {
+      if (btn.textContent.toLowerCase() === tabName) {
+        btn.classList.add('active');
+      }
+    });
+  }
   
   if (sectionId === 'dashboard') loadDashboard();
   else if (sectionId === 'products') loadProducts();

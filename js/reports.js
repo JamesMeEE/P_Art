@@ -2,22 +2,50 @@ async function loadReports() {
   try {
     showLoading();
     
-    await checkAndCalculateMissingReports();
-    
     const data = await fetchSheetData('Reports!A:C');
+    
+    if (data.length > 1) {
+      const today = new Date();
+      const yesterday = new Date(today);
+      yesterday.setDate(yesterday.getDate() - 1);
+      yesterday.setHours(0, 0, 0, 0);
+      
+      const yesterdayKey = `${yesterday.getFullYear()}-${String(yesterday.getMonth()+1).padStart(2,'0')}-${String(yesterday.getDate()).padStart(2,'0')}`;
+      
+      let hasYesterday = false;
+      data.slice(1).forEach(row => {
+        if (row[0]) {
+          const d = parseSheetDate(row[0]);
+          if (d) {
+            const dateKey = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+            if (dateKey === yesterdayKey) {
+              hasYesterday = true;
+            }
+          }
+        }
+      });
+      
+      if (!hasYesterday) {
+        await checkAndCalculateMissingReports();
+      }
+    } else {
+      await checkAndCalculateMissingReports();
+    }
+    
+    const updatedData = await fetchSheetData('Reports!A:C');
     const tbody = document.getElementById('reportsTable');
     
-    if (data.length <= 1) {
+    if (updatedData.length <= 1) {
       tbody.innerHTML = '<tr><td colspan="3" style="text-align: center; padding: 40px;">No reports yet</td></tr>';
       hideLoading();
       return;
     }
     
-    const reports = data.slice(1).reverse();
+    const reports = updatedData.slice(1).reverse();
     
     tbody.innerHTML = reports.map(row => `
       <tr>
-        <td style="text-align: center;">${row[0]}</td>
+        <td style="text-align: center;">${formatDateOnly(row[0])}</td>
         <td style="text-align: center;">${parseFloat(row[1] || 0).toFixed(2)}</td>
         <td style="text-align: center;">${parseFloat(row[2] || 0).toFixed(2)}</td>
       </tr>
