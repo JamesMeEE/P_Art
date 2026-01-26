@@ -9,6 +9,10 @@ async function openCloseWorkModal() {
     const todayEnd = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 23, 59, 59);
     const userName = currentUser.nickname;
     
+    console.log('=== CLOSE WORK DEBUG ===');
+    console.log('Today:', today);
+    console.log('User:', userName);
+    
     const [sellData, tradeinData, exchangeData, buybackData, withdrawData] = await Promise.all([
       fetchSheetData('Sells!A:L'),
       fetchSheetData('Tradeins!A:N'),
@@ -20,35 +24,59 @@ async function openCloseWorkModal() {
     let cashReceived = { LAK: 0, THB: 0, USD: 0 };
     let oldGoldReceived = {};
     
-    sellData.slice(1).forEach(row => {
+    console.log('--- SELLS ---');
+    sellData.slice(1).forEach((row, idx) => {
       const date = parseSheetDate(row[9]);
       const status = row[10];
       const createdBy = row[11];
-      if (date && date >= todayStart && date <= todayEnd && status === 'COMPLETED' && createdBy === userName) {
+      const isToday = date && date >= todayStart && date <= todayEnd;
+      const isCompleted = status === 'COMPLETED';
+      const isUser = createdBy === userName;
+      
+      console.log(`Sell[${idx}]: ID=${row[0]}, Date=${row[9]}, Status=${status}, CreatedBy=${createdBy}`);
+      console.log(`  -> isToday=${isToday}, isCompleted=${isCompleted}, isUser=${isUser}`);
+      console.log(`  -> CustomerPaid[5]=${row[5]}, Currency[6]=${row[6]}, Change[8]=${row[8]}`);
+      
+      if (isToday && isCompleted && isUser) {
         const currency = row[6] || 'LAK';
         const customerPaid = parseFloat(row[5]) || 0;
         const changeLAK = parseFloat(row[8]) || 0;
         
+        console.log(`  ✓ MATCHED: currency=${currency}, paid=${customerPaid}, change=${changeLAK}`);
+        
         if (currency === 'LAK') {
           cashReceived.LAK += customerPaid - changeLAK;
+          console.log(`  -> LAK += ${customerPaid} - ${changeLAK} = ${customerPaid - changeLAK}`);
         } else if (currency === 'THB') {
           cashReceived.THB += customerPaid;
           cashReceived.LAK -= changeLAK;
+          console.log(`  -> THB += ${customerPaid}, LAK -= ${changeLAK}`);
         } else if (currency === 'USD') {
           cashReceived.USD += customerPaid;
           cashReceived.LAK -= changeLAK;
+          console.log(`  -> USD += ${customerPaid}, LAK -= ${changeLAK}`);
         }
       }
     });
     
-    tradeinData.slice(1).forEach(row => {
+    console.log('--- TRADEINS ---');
+    tradeinData.slice(1).forEach((row, idx) => {
       const date = parseSheetDate(row[11]);
       const status = row[12];
       const createdBy = row[13];
-      if (date && date >= todayStart && date <= todayEnd && status === 'COMPLETED' && createdBy === userName) {
+      const isToday = date && date >= todayStart && date <= todayEnd;
+      const isCompleted = status === 'COMPLETED';
+      const isUser = createdBy === userName;
+      
+      console.log(`Tradein[${idx}]: ID=${row[0]}, Date=${row[11]}, Status=${status}, CreatedBy=${createdBy}`);
+      console.log(`  -> isToday=${isToday}, isCompleted=${isCompleted}, isUser=${isUser}`);
+      
+      if (isToday && isCompleted && isUser) {
         const currency = row[8] || 'LAK';
         const customerPaid = parseFloat(row[7]) || 0;
         const changeLAK = parseFloat(row[10]) || 0;
+        
+        console.log(`  ✓ MATCHED: currency=${currency}, paid=${customerPaid}, change=${changeLAK}`);
         
         if (currency === 'LAK') {
           cashReceived.LAK += customerPaid - changeLAK;
@@ -62,6 +90,7 @@ async function openCloseWorkModal() {
         
         try {
           const oldItems = JSON.parse(row[2]);
+          console.log(`  -> Old Gold:`, oldItems);
           oldItems.forEach(item => {
             if (!oldGoldReceived[item.productId]) {
               oldGoldReceived[item.productId] = 0;
@@ -72,14 +101,24 @@ async function openCloseWorkModal() {
       }
     });
     
-    exchangeData.slice(1).forEach(row => {
+    console.log('--- EXCHANGES ---');
+    exchangeData.slice(1).forEach((row, idx) => {
       const date = parseSheetDate(row[11]);
       const status = row[12];
       const createdBy = row[13];
-      if (date && date >= todayStart && date <= todayEnd && status === 'COMPLETED' && createdBy === userName) {
+      const isToday = date && date >= todayStart && date <= todayEnd;
+      const isCompleted = status === 'COMPLETED';
+      const isUser = createdBy === userName;
+      
+      console.log(`Exchange[${idx}]: ID=${row[0]}, Date=${row[11]}, Status=${status}, CreatedBy=${createdBy}`);
+      console.log(`  -> isToday=${isToday}, isCompleted=${isCompleted}, isUser=${isUser}`);
+      
+      if (isToday && isCompleted && isUser) {
         const currency = row[8] || 'LAK';
         const customerPaid = parseFloat(row[7]) || 0;
         const changeLAK = parseFloat(row[10]) || 0;
+        
+        console.log(`  ✓ MATCHED: currency=${currency}, paid=${customerPaid}, change=${changeLAK}`);
         
         if (currency === 'LAK') {
           cashReceived.LAK += customerPaid - changeLAK;
@@ -93,6 +132,7 @@ async function openCloseWorkModal() {
         
         try {
           const oldItems = JSON.parse(row[2]);
+          console.log(`  -> Old Gold:`, oldItems);
           oldItems.forEach(item => {
             if (!oldGoldReceived[item.productId]) {
               oldGoldReceived[item.productId] = 0;
@@ -103,13 +143,23 @@ async function openCloseWorkModal() {
       }
     });
     
-    buybackData.slice(1).forEach(row => {
+    console.log('--- BUYBACKS ---');
+    buybackData.slice(1).forEach((row, idx) => {
       const date = parseSheetDate(row[7]);
       const status = row[8];
       const createdBy = row[9];
-      if (date && date >= todayStart && date <= todayEnd && status === 'COMPLETED' && createdBy === userName) {
+      const isToday = date && date >= todayStart && date <= todayEnd;
+      const isCompleted = status === 'COMPLETED';
+      const isUser = createdBy === userName;
+      
+      console.log(`Buyback[${idx}]: ID=${row[0]}, Date=${row[7]}, Status=${status}, CreatedBy=${createdBy}`);
+      console.log(`  -> isToday=${isToday}, isCompleted=${isCompleted}, isUser=${isUser}`);
+      
+      if (isToday && isCompleted && isUser) {
+        console.log(`  ✓ MATCHED`);
         try {
           const items = JSON.parse(row[2]);
+          console.log(`  -> Items:`, items);
           items.forEach(item => {
             if (!oldGoldReceived[item.productId]) {
               oldGoldReceived[item.productId] = 0;
@@ -119,6 +169,11 @@ async function openCloseWorkModal() {
         } catch (e) {}
       }
     });
+    
+    console.log('=== FINAL TOTALS ===');
+    console.log('Cash Received:', cashReceived);
+    console.log('Old Gold Received:', oldGoldReceived);
+    console.log('====================');
     
     const productNames = {
       'G01': '10 บาท',
