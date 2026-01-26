@@ -7,6 +7,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600;700&family=Montserrat:wght@200;300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/dark.css">
   <link rel="stylesheet" href="style.css">
   <script>
     (function() {
@@ -1626,24 +1628,27 @@
     }
   </style>
   
-  <script src="js/config.js?v=17"></script>
-  <script src="js/utils.js?v=17"></script>
-  <script src="js/api.js?v=17"></script>
-  <script src="js/ui.js?v=17"></script>
+  <script src="js/config.js?v=18"></script>
+  <script src="js/utils.js?v=18"></script>
+  <script src="js/api.js?v=18"></script>
+  <script src="js/ui.js?v=18"></script>
   <script src="js/dashboard.js"></script>
   <script src="js/products.js"></script>
   <script src="js/pricerate.js"></script>
-  <script src="js/sell.js?v=17"></script>
+  <script src="js/sell.js?v=18"></script>
   <script src="js/payment.js"></script>
-  <script src="js/tradein.js?v=17"></script>
-  <script src="js/buyback.js?v=17"></script>
-  <script src="js/exchange.js?v=17"></script>
-  <script src="js/withdraw.js?v=17"></script>
-  <script src="js/inventory.js?v=17"></script>
-  <script src="js/cashbank.js?v=17"></script>
-  <script src="js/accounting.js?v=17"></script>
+  <script src="js/tradein.js?v=18"></script>
+  <script src="js/buyback.js?v=18"></script>
+  <script src="js/exchange.js?v=18"></script>
+  <script src="js/withdraw.js?v=18"></script>
+  <script src="js/inventory.js?v=18"></script>
+  <script src="js/cashbank.js?v=18"></script>
+  <script src="js/accounting.js?v=18"></script>
   <script src="js/reports.js"></script>
-  <script src="js/auth.js?v=17"></script>
+  <script src="js/auth.js?v=18"></script>
+  
+  <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+  <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/th.js"></script>
   
   <script>
   document.addEventListener('DOMContentLoaded', function() {
@@ -1659,6 +1664,20 @@
       modal.addEventListener('click', function(e) {
         if (e.target === modal) {
           modal.classList.remove('active');
+        }
+      });
+    });
+    
+    const dateInputs = document.querySelectorAll('input[type="date"]');
+    dateInputs.forEach(input => {
+      flatpickr(input, {
+        locale: 'th',
+        dateFormat: 'Y-m-d',
+        defaultDate: new Date(),
+        theme: 'dark',
+        onChange: function(selectedDates, dateStr, instance) {
+          const event = new Event('change', { bubbles: true });
+          input.dispatchEvent(event);
         }
       });
     });
