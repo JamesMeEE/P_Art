@@ -80,8 +80,8 @@ async function saveAccountingForDate(targetDate) {
     };
     
     sells.slice(1).forEach(row => {
-      const date = new Date(row[9]);
-      if (date >= dayStart && date <= dayEnd) {
+      const date = parseSheetDate(row[9]);
+      if (date && date >= dayStart && date <= dayEnd) {
         const status = row[10];
         const totalLAK = parseFloat(row[3]) || 0;
         const items = JSON.parse(row[2] || '[]');
@@ -98,8 +98,8 @@ async function saveAccountingForDate(targetDate) {
     });
     
     tradeins.slice(1).forEach(row => {
-      const date = new Date(row[11]);
-      if (date >= dayStart && date <= dayEnd) {
+      const date = parseSheetDate(row[11]);
+      if (date && date >= dayStart && date <= dayEnd) {
         const status = row[12];
         const difference = parseFloat(row[4]) || 0;
         const fee = parseFloat(row[5]) || 0;
@@ -119,8 +119,8 @@ async function saveAccountingForDate(targetDate) {
     });
     
     exchanges.slice(1).forEach(row => {
-      const date = new Date(row[11]);
-      if (date >= dayStart && date <= dayEnd) {
+      const date = parseSheetDate(row[11]);
+      if (date && date >= dayStart && date <= dayEnd) {
         const status = row[12];
         const totalLAK = parseFloat(row[6]) || 0;
         const items = JSON.parse(row[3] || '[]');
@@ -137,8 +137,8 @@ async function saveAccountingForDate(targetDate) {
     });
     
     buybacks.slice(1).forEach(row => {
-      const date = new Date(row[7]);
-      if (date >= dayStart && date <= dayEnd) {
+      const date = parseSheetDate(row[7]);
+      if (date && date >= dayStart && date <= dayEnd) {
         const status = row[8];
         const totalLAK = parseFloat(row[6]) || 0;
         const items = JSON.parse(row[2] || '[]');
@@ -155,8 +155,8 @@ async function saveAccountingForDate(targetDate) {
     });
     
     withdraws.slice(1).forEach(row => {
-      const date = new Date(row[6]);
-      if (date >= dayStart && date <= dayEnd) {
+      const date = parseSheetDate(row[6]);
+      if (date && date >= dayStart && date <= dayEnd) {
         const status = row[7];
         const totalLAK = parseFloat(row[4]) || 0;
         const items = JSON.parse(row[2] || '[]');
@@ -216,8 +216,8 @@ async function loadTodayStats() {
     };
     
     sells.slice(1).forEach(row => {
-      const date = new Date(row[9]);
-      if (date >= todayStart && date <= todayEnd) {
+      const date = parseSheetDate(row[9]);
+      if (date && date >= todayStart && date <= todayEnd) {
         const status = row[10];
         const totalLAK = parseFloat(row[3]) || 0;
         const items = JSON.parse(row[2] || '[]');
@@ -234,8 +234,8 @@ async function loadTodayStats() {
     });
     
     tradeins.slice(1).forEach(row => {
-      const date = new Date(row[11]);
-      if (date >= todayStart && date <= todayEnd) {
+      const date = parseSheetDate(row[11]);
+      if (date && date >= todayStart && date <= todayEnd) {
         const status = row[12];
         const difference = parseFloat(row[4]) || 0;
         const fee = parseFloat(row[5]) || 0;
@@ -255,8 +255,8 @@ async function loadTodayStats() {
     });
     
     exchanges.slice(1).forEach(row => {
-      const date = new Date(row[11]);
-      if (date >= todayStart && date <= todayEnd) {
+      const date = parseSheetDate(row[11]);
+      if (date && date >= todayStart && date <= todayEnd) {
         const status = row[12];
         const totalLAK = parseFloat(row[6]) || 0;
         const items = JSON.parse(row[3] || '[]');
@@ -273,8 +273,8 @@ async function loadTodayStats() {
     });
     
     buybacks.slice(1).forEach(row => {
-      const date = new Date(row[7]);
-      if (date >= todayStart && date <= todayEnd) {
+      const date = parseSheetDate(row[7]);
+      if (date && date >= todayStart && date <= todayEnd) {
         const status = row[8];
         const totalLAK = parseFloat(row[6]) || 0;
         const items = JSON.parse(row[2] || '[]');
@@ -291,8 +291,8 @@ async function loadTodayStats() {
     });
     
     withdraws.slice(1).forEach(row => {
-      const date = new Date(row[6]);
-      if (date >= todayStart && date <= todayEnd) {
+      const date = parseSheetDate(row[6]);
+      if (date && date >= todayStart && date <= todayEnd) {
         const status = row[7];
         const totalLAK = parseFloat(row[4]) || 0;
         const items = JSON.parse(row[2] || '[]');

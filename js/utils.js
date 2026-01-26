@@ -2,6 +2,47 @@ function formatNumber(num) {
   return new Intl.NumberFormat('en-US').format(Math.round(num));
 }
 
+function parseSheetDate(dateValue) {
+  if (!dateValue) return null;
+  
+  try {
+    if (dateValue instanceof Date) {
+      return dateValue;
+    }
+    
+    if (typeof dateValue === 'number') {
+      return new Date((dateValue - 25569) * 86400 * 1000);
+    }
+    
+    if (typeof dateValue === 'string') {
+      if (dateValue.includes('/')) {
+        const parts = dateValue.split(' ');
+        const dateParts = parts[0].split('/');
+        const day = parseInt(dateParts[0]);
+        const month = parseInt(dateParts[1]) - 1;
+        const year = parseInt(dateParts[2]);
+        
+        if (parts.length > 1 && parts[1].includes(':')) {
+          const timeParts = parts[1].split(':');
+          const hour = parseInt(timeParts[0]) || 0;
+          const minute = parseInt(timeParts[1]) || 0;
+          const second = parseInt(timeParts[2]) || 0;
+          return new Date(year, month, day, hour, minute, second);
+        }
+        
+        return new Date(year, month, day);
+      }
+      
+      return new Date(dateValue);
+    }
+    
+    return new Date(dateValue);
+  } catch (error) {
+    console.error('Error parsing date:', dateValue, error);
+    return null;
+  }
+}
+
 function formatDateOnly(dateInput) {
   if (!dateInput) return '-';
   
