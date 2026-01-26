@@ -333,10 +333,10 @@ async function loadTodayStats() {
           <p style="font-size: 20px; color: var(--gold-primary); margin: 10px 0;">${formatNumber(stats.withdrawMoney)} LAK</p>
           <p style="font-size: 16px;">${stats.withdrawGold.toFixed(2)} g</p>
         </div>
-        <div class="stat-card">
-          <h3>INCOMPLETE</h3>
-          <p style="font-size: 20px; color: var(--gold-primary); margin: 10px 0;">${formatNumber(stats.incompleteMoney)} LAK</p>
-          <p style="font-size: 16px;">${stats.incompleteGold.toFixed(2)} g</p>
+        <div class="stat-card" style="border: 2px solid #c62828; background: linear-gradient(135deg, #1a1a1a 0%, #2d1a1a 100%);">
+          <h3 style="color: #ef5350;">INCOMPLETE</h3>
+          <p style="font-size: 20px; color: #ef5350; margin: 10px 0;">${formatNumber(stats.incompleteMoney)} LAK</p>
+          <p style="font-size: 16px; color: #ef5350;">${stats.incompleteGold.toFixed(2)} g</p>
         </div>
       </div>
     `;

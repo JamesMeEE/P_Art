@@ -29,7 +29,7 @@ function showSection(sectionId) {
   const tabName = sectionToTabMap[sectionId];
   if (tabName) {
     document.querySelectorAll('.nav-btn').forEach(btn => {
-      if (btn.textContent.toLowerCase() === tabName) {
+      if (btn.textContent.toLowerCase().includes(tabName)) {
         btn.classList.add('active');
       }
     });
