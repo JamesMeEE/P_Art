@@ -211,7 +211,7 @@ async function reviewExchange(exchangeId) {
   
   try {
     showLoading();
-    const result = await callAppsScript('REVIEW_EXCHANGE', { exchangeId });
+    const result = await callAppsScript('REVIEW_EXCHANGE', { id: exchangeId });
     
     if (result.success) {
       alert('✅ Review สำเร็จ! รอ User ยืนยันชำระเงิน');

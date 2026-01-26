@@ -226,7 +226,7 @@ async function reviewTradein(tradeinId) {
   
   try {
     showLoading();
-    const result = await callAppsScript('REVIEW_TRADEIN', { tradeinId });
+    const result = await callAppsScript('REVIEW_TRADEIN', { id: tradeinId });
     
     if (result.success) {
       alert('✅ Review สำเร็จ! รอ User ยืนยันชำระเงิน');
