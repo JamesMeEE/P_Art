@@ -42,13 +42,21 @@ async function loadInventory() {
   }
 }
 
-async function loadStock() {
+async function openTransferModal() {
+  document.getElementById('transferOldProducts').innerHTML = '';
+  addTransferProduct();
+  
+  await loadStockInModal();
+  
+  openModal('transferModal');
+}
+
+async function loadStockInModal() {
   try {
-    showLoading();
     const data = await fetchSheetData('Stock!A:G');
     
     if (data.length <= 1) {
-      hideLoading();
+      document.getElementById('stockSummaryInModal').innerHTML = '<tr><td colspan="3" style="text-align: center; padding: 20px;">No stock data</td></tr>';
       return;
     }
     
@@ -77,32 +85,23 @@ async function loadStock() {
       }
     });
     
-    const stockTbody = document.getElementById('stockSummaryTable');
+    const oldStockRows = Object.values(stockData)
+      .filter(item => item.oldNew === 'OLD')
+      .map(item => {
+        const product = FIXED_PRODUCTS.find(p => p.id === item.productId);
+        return `
+          <tr>
+            <td>${product.name}</td>
+            <td>${item.oldNew}</td>
+            <td>${item.qty}</td>
+          </tr>
+        `;
+      }).join('');
     
-    const stockRows = Object.values(stockData).map(item => {
-      const product = FIXED_PRODUCTS.find(p => p.id === item.productId);
-      return `
-        <tr>
-          <td>${product.name}</td>
-          <td>${item.oldNew}</td>
-          <td>${item.qty}</td>
-        </tr>
-      `;
-    }).join('');
-    
-    stockTbody.innerHTML = stockRows || '<tr><td colspan="3" style="text-align: center; padding: 40px;">No stock data</td></tr>';
-    
-    hideLoading();
+    document.getElementById('stockSummaryInModal').innerHTML = oldStockRows || '<tr><td colspan="3" style="text-align: center; padding: 20px;">No OLD stock</td></tr>';
   } catch (error) {
-    console.error('Error loading stock:', error);
-    hideLoading();
+    console.error('Error loading stock in modal:', error);
   }
-}
-
-function openTransferModal() {
-  document.getElementById('transferOldProducts').innerHTML = '';
-  addTransferProduct();
-  openModal('transferModal');
 }
 
 function addTransferProduct() {
@@ -162,7 +161,6 @@ async function confirmTransfer() {
       alert('✅ ' + result.message);
       closeModal('transferModal');
       await loadInventory();
-      await loadStock();
     } else {
       alert('❌ ' + result.message);
     }
