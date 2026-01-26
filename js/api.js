@@ -23,6 +23,8 @@ async function callAppsScript(action, params = {}) {
   return result;
 }
 
+const executeGoogleScript = callAppsScript;
+
 async function fetchExchangeRates() {
   currentExchangeRates = { LAK: 1, THB: 270, USD: 21500 };
   return currentExchangeRates;
