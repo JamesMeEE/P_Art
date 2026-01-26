@@ -59,6 +59,8 @@
         </div>
       </div>
       <div class="user-info">
+        <button id="reviewCloseBtn" class="btn-secondary manager-only" style="background: #ff9800; color: #000; margin-right: 10px; display: none;" onclick="openReviewCloseModal()">📋 Review Close</button>
+        <button id="closeWorkBtn" class="btn-secondary" style="background: #c62828; color: #fff; margin-right: 15px;" onclick="openCloseWorkModal()">🔴 CLOSE</button>
         <div class="user-avatar" id="userAvatar">U</div>
         <div class="user-details">
           <div class="user-name" id="userName">User</div>
@@ -1549,6 +1551,53 @@
     </div>
   </div>
 
+  <!-- Close Work Modal -->
+  <div id="closeWorkModal" class="modal">
+    <div class="modal-content modal-large">
+      <div class="modal-header">
+        <h2 class="modal-title" style="color: #c62828;">🔴 Close Work - End of Day Summary</h2>
+      </div>
+      <div id="closeWorkSummary" style="padding: 20px;">
+        <p style="color: var(--text-secondary); text-align: center;">Loading summary...</p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" onclick="closeModal('closeWorkModal')">Cancel</button>
+        <button class="btn-primary" style="background: #c62828;" onclick="submitCloseWork()">Submit Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Review Close Modal (Manager) -->
+  <div id="reviewCloseModal" class="modal">
+    <div class="modal-content modal-large">
+      <div class="modal-header">
+        <h2 class="modal-title" style="color: #ff9800;">📋 Review Close Requests</h2>
+      </div>
+      <div id="reviewCloseList" style="padding: 20px;">
+        <p style="color: var(--text-secondary); text-align: center;">Loading...</p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" onclick="closeModal('reviewCloseModal')">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Close Detail Modal (Manager) -->
+  <div id="closeDetailModal" class="modal">
+    <div class="modal-content modal-large">
+      <div class="modal-header">
+        <h2 class="modal-title">Close Detail</h2>
+      </div>
+      <div id="closeDetailContent" style="padding: 20px;">
+        <p style="color: var(--text-secondary); text-align: center;">Loading...</p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" onclick="closeModal('closeDetailModal'); openModal('reviewCloseModal');">Back</button>
+        <button class="btn-primary" style="background: #4caf50;" id="approveCloseBtn" onclick="approveClose()">✓ Approve</button>
+      </div>
+    </div>
+  </div>
+
   <script>
     (function() {
       const cb = localStorage.getItem('cacheBuster') || Date.now();
@@ -1574,24 +1623,25 @@
     }
   </style>
   
-  <script src="js/config.js?v=32"></script>
-  <script src="js/utils.js?v=32"></script>
-  <script src="js/api.js?v=32"></script>
-  <script src="js/ui.js?v=32"></script>
-  <script src="js/dashboard.js?v=32"></script>
+  <script src="js/config.js?v=33"></script>
+  <script src="js/utils.js?v=33"></script>
+  <script src="js/api.js?v=33"></script>
+  <script src="js/ui.js?v=33"></script>
+  <script src="js/dashboard.js?v=33"></script>
   <script src="js/products.js"></script>
   <script src="js/pricerate.js"></script>
-  <script src="js/sell.js?v=32"></script>
-  <script src="js/payment.js?v=32"></script>
-  <script src="js/tradein.js?v=32"></script>
-  <script src="js/buyback.js?v=32"></script>
-  <script src="js/exchange.js?v=32"></script>
-  <script src="js/withdraw.js?v=32"></script>
-  <script src="js/inventory.js?v=32"></script>
-  <script src="js/cashbank.js?v=32"></script>
-  <script src="js/accounting.js?v=32"></script>
-  <script src="js/reports.js?v=32"></script>
-  <script src="js/auth.js?v=32"></script>
+  <script src="js/sell.js?v=33"></script>
+  <script src="js/payment.js?v=33"></script>
+  <script src="js/tradein.js?v=33"></script>
+  <script src="js/buyback.js?v=33"></script>
+  <script src="js/exchange.js?v=33"></script>
+  <script src="js/withdraw.js?v=33"></script>
+  <script src="js/inventory.js?v=33"></script>
+  <script src="js/cashbank.js?v=33"></script>
+  <script src="js/accounting.js?v=33"></script>
+  <script src="js/reports.js?v=33"></script>
+  <script src="js/close.js?v=33"></script>
+  <script src="js/auth.js?v=33"></script>
   
   <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
   <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/th.js"></script>

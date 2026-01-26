@@ -46,6 +46,7 @@ function login() {
     }
     
     fetchExchangeRates();
+    checkPendingClose();
     
     if (currentUser.role === 'User') {
       showSection('sell');
@@ -120,6 +121,7 @@ function logout() {
       }
       
       fetchExchangeRates();
+      checkPendingClose();
       
       setTimeout(() => {
         if (currentUser.role === 'User') {
