@@ -320,9 +320,9 @@ async function loadTodayStats() {
           <p style="font-size: 20px; color: var(--gold-primary); margin: 10px 0;">${formatNumber(stats.withdrawMoney)} LAK</p>
           <p style="font-size: 16px;">${stats.withdrawGold.toFixed(2)} g</p>
         </div>
-        <div class="stat-card" style="background: #ffe6e6;">
+        <div class="stat-card">
           <h3>INCOMPLETE</h3>
-          <p style="font-size: 20px; color: #d32f2f; margin: 10px 0;">${formatNumber(stats.incompleteMoney)} LAK</p>
+          <p style="font-size: 20px; color: var(--gold-primary); margin: 10px 0;">${formatNumber(stats.incompleteMoney)} LAK</p>
           <p style="font-size: 16px;">${stats.incompleteGold.toFixed(2)} g</p>
         </div>
       </div>

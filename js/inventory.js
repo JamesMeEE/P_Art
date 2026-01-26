@@ -99,6 +99,8 @@ async function loadStockInModal() {
   try {
     const data = await fetchSheetData('Stock!A:H');
     
+    console.log('Stock data:', data);
+    
     if (data.length <= 1) {
       document.getElementById('stockSummaryInModal').innerHTML = '<tr><td colspan="3" style="text-align: center; padding: 20px;">No stock data</td></tr>';
       return;
@@ -111,6 +113,8 @@ async function loadStockInModal() {
       const type = row[1];
       const oldNew = row[2];
       const qty = parseFloat(row[4]) || 0;
+      
+      console.log('Row:', { productId, type, oldNew, qty });
       
       if (oldNew !== 'OLD') return;
       
@@ -130,6 +134,8 @@ async function loadStockInModal() {
       }
     });
     
+    console.log('Final stockData:', stockData);
+    
     const oldStockRows = Object.values(stockData)
       .filter(item => item.qty > 0)
       .map(item => {
@@ -137,7 +143,7 @@ async function loadStockInModal() {
         return `
           <tr>
             <td>${item.productId}</td>
-            <td>${product.name}</td>
+            <td>${product ? product.name : 'Unknown'}</td>
             <td>${item.qty}</td>
           </tr>
         `;
