@@ -83,7 +83,7 @@ async function saveAccountingForDate(targetDate) {
       const date = new Date(row[9]);
       if (date >= dayStart && date <= dayEnd) {
         const status = row[10];
-        const totalLAK = parseFloat(row[6]) || 0;
+        const totalLAK = parseFloat(row[3]) || 0;
         const items = JSON.parse(row[2] || '[]');
         const goldG = calculateTotalGold(items);
         
@@ -101,7 +101,10 @@ async function saveAccountingForDate(targetDate) {
       const date = new Date(row[11]);
       if (date >= dayStart && date <= dayEnd) {
         const status = row[12];
-        const totalLAK = parseFloat(row[8]) || 0;
+        const difference = parseFloat(row[4]) || 0;
+        const fee = parseFloat(row[5]) || 0;
+        const premium = parseFloat(row[6]) || 0;
+        const totalLAK = difference + fee + premium;
         const items = JSON.parse(row[3] || '[]');
         const goldG = calculateTotalGold(items);
         
@@ -119,7 +122,7 @@ async function saveAccountingForDate(targetDate) {
       const date = new Date(row[11]);
       if (date >= dayStart && date <= dayEnd) {
         const status = row[12];
-        const totalLAK = parseFloat(row[8]) || 0;
+        const totalLAK = parseFloat(row[6]) || 0;
         const items = JSON.parse(row[3] || '[]');
         const goldG = calculateTotalGold(items);
         
@@ -216,7 +219,7 @@ async function loadTodayStats() {
       const date = new Date(row[9]);
       if (date >= todayStart && date <= todayEnd) {
         const status = row[10];
-        const totalLAK = parseFloat(row[6]) || 0;
+        const totalLAK = parseFloat(row[3]) || 0;
         const items = JSON.parse(row[2] || '[]');
         const goldG = calculateTotalGold(items);
         
@@ -234,7 +237,10 @@ async function loadTodayStats() {
       const date = new Date(row[11]);
       if (date >= todayStart && date <= todayEnd) {
         const status = row[12];
-        const totalLAK = parseFloat(row[8]) || 0;
+        const difference = parseFloat(row[4]) || 0;
+        const fee = parseFloat(row[5]) || 0;
+        const premium = parseFloat(row[6]) || 0;
+        const totalLAK = difference + fee + premium;
         const items = JSON.parse(row[3] || '[]');
         const goldG = calculateTotalGold(items);
         
@@ -252,7 +258,7 @@ async function loadTodayStats() {
       const date = new Date(row[11]);
       if (date >= todayStart && date <= todayEnd) {
         const status = row[12];
-        const totalLAK = parseFloat(row[8]) || 0;
+        const totalLAK = parseFloat(row[6]) || 0;
         const items = JSON.parse(row[3] || '[]');
         const goldG = calculateTotalGold(items);
         

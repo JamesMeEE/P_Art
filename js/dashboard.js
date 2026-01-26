@@ -36,20 +36,20 @@ async function loadDashboard() {
     });
     
     buybackData.slice(1).forEach(row => {
-      const date = new Date(row[4]);
-      if (date >= todayStart && date <= todayEnd && row[5] === 'COMPLETED') {
+      const date = new Date(row[7]);
+      if (date >= todayStart && date <= todayEnd && row[8] === 'COMPLETED') {
         buybackCount++;
         const items = JSON.parse(row[2]);
         items.forEach(item => {
           goldFlowBaht += GOLD_WEIGHTS[item.productId] * item.qty;
         });
-        cashFlow -= parseFloat(row[3]) || 0;
+        cashFlow -= parseFloat(row[6]) || 0;
       }
     });
     
     tradeinData.slice(1).forEach(row => {
-      const date = new Date(row[7]);
-      if (date >= todayStart && date <= todayEnd && row[8] === 'COMPLETED') {
+      const date = new Date(row[11]);
+      if (date >= todayStart && date <= todayEnd && row[12] === 'COMPLETED') {
         tradeinCount++;
         const diff = parseFloat(row[4]) || 0;
         const fee = parseFloat(row[5]) || 0;
@@ -59,8 +59,8 @@ async function loadDashboard() {
     });
     
     exchangeData.slice(1).forEach(row => {
-      const date = new Date(row[6]);
-      if (date >= todayStart && date <= todayEnd && row[7] === 'COMPLETED') {
+      const date = new Date(row[11]);
+      if (date >= todayStart && date <= todayEnd && row[12] === 'COMPLETED') {
         exchangeCount++;
         const fee = parseFloat(row[4]) || 0;
         const premium = parseFloat(row[5]) || 0;
