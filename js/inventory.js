@@ -11,6 +11,7 @@ async function loadInventory() {
     }
     
     const today = new Date();
+    today.setHours(0, 0, 0, 0);
     const todayStr = today.toISOString().split('T')[0];
     
     const rows = data.slice(1);
@@ -18,9 +19,11 @@ async function loadInventory() {
     let todayRows = [];
     let lastYesterdayRow = null;
     
-    for (let i = rows.length - 1; i >= 0; i--) {
+    for (let i = 0; i < rows.length; i++) {
       const row = rows[i];
       const dateValue = row[16];
+      
+      if (!dateValue) continue;
       
       let rowDate;
       if (dateValue instanceof Date) {
@@ -39,11 +42,12 @@ async function loadInventory() {
         rowDate = new Date(dateValue);
       }
       
+      rowDate.setHours(0, 0, 0, 0);
       const rowDateStr = rowDate.toISOString().split('T')[0];
       
       if (rowDateStr === todayStr) {
-        todayRows.unshift(row);
-      } else if (rowDateStr < todayStr && !lastYesterdayRow) {
+        todayRows.push(row);
+      } else if (rowDateStr < todayStr) {
         lastYesterdayRow = row;
       }
     }
