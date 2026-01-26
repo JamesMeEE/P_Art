@@ -5,12 +5,13 @@ async function loadAccounting() {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+    
     const accountingData = await fetchSheetData('Accounting!A:M');
     
-    if (accountingData.length <= 1) {
-      await saveAccountingForDate(today);
-    } else {
-      const existingDates = new Set();
+    const existingDates = new Set();
+    if (accountingData.length > 1) {
       accountingData.slice(1).forEach(row => {
         if (row[0]) {
           const d = parseSheetDate(row[0]);
@@ -20,17 +21,19 @@ async function loadAccounting() {
           }
         }
       });
-      
-      const todayKey = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
-      
-      if (!existingDates.has(todayKey)) {
+    }
+    
+    const yesterdayKey = `${yesterday.getFullYear()}-${String(yesterday.getMonth()+1).padStart(2,'0')}-${String(yesterday.getDate()).padStart(2,'0')}`;
+    
+    if (!existingDates.has(yesterdayKey)) {
+      if (accountingData.length > 1) {
         const lastRecord = accountingData[accountingData.length - 1];
         const lastDateObj = parseSheetDate(lastRecord[0]);
         
         if (lastDateObj) {
           lastDateObj.setHours(0, 0, 0, 0);
           
-          const diffTime = today.getTime() - lastDateObj.getTime();
+          const diffTime = yesterday.getTime() - lastDateObj.getTime();
           const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
           
           if (diffDays > 0) {
@@ -45,6 +48,8 @@ async function loadAccounting() {
             }
           }
         }
+      } else {
+        await saveAccountingForDate(yesterday);
       }
     }
     
