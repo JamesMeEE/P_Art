@@ -9,13 +9,12 @@ async function loadDashboard() {
     const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 0, 1);
     const todayEnd = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 23, 59);
     
-    const [sellData, tradeinData, buybackData, exchangeData, cashbankData, stockData] = await Promise.all([
+    const [sellData, tradeinData, buybackData, exchangeData, dbData] = await Promise.all([
       fetchSheetData('Sells!A:L'),
       fetchSheetData('Tradeins!A:K'),
       fetchSheetData('Buybacks!A:G'),
       fetchSheetData('Exchanges!A:J'),
-      fetchSheetData('CashBank!A:G'),
-      fetchSheetData('Stock!A:F')
+      fetchSheetData('_database!A1:G20')
     ]);
     
     let sellCount = 0, buybackCount = 0, tradeinCount = 0, exchangeCount = 0;
@@ -69,33 +68,27 @@ async function loadDashboard() {
       }
     });
     
-    cashbankData.slice(1).forEach(row => {
-      const amount = parseFloat(row[2]) || 0;
-      const method = row[3];
-      const type = row[1];
-      if (type === 'OWNER_DEPOSIT' || type === 'OTHER_INCOME') {
-        if (method === 'CASH') cashFlow += amount;
-        else bankFlow += amount;
-      } else if (type === 'OTHER_EXPENSE') {
-        if (method === 'CASH') cashFlow -= amount;
-        else bankFlow -= amount;
-      }
-    });
-    
     const goldFlowGrams = goldFlowBaht * 15;
     
     let totalGoldBaht = 0;
-    const stockMap = {};
-    stockData.slice(1).forEach(row => {
-      const productId = row[0];
-      const qty = parseInt(row[3]) || 0;
-      if (!stockMap[productId]) stockMap[productId] = 0;
-      stockMap[productId] += qty;
-    });
+    if (dbData.length >= 7) {
+      const newGoldRow = dbData[6];
+      totalGoldBaht += (parseFloat(newGoldRow[0]) || 0) * GOLD_WEIGHTS['G01'];
+      totalGoldBaht += (parseFloat(newGoldRow[1]) || 0) * GOLD_WEIGHTS['G02'];
+      totalGoldBaht += (parseFloat(newGoldRow[2]) || 0) * GOLD_WEIGHTS['G03'];
+      totalGoldBaht += (parseFloat(newGoldRow[3]) || 0) * GOLD_WEIGHTS['G04'];
+      totalGoldBaht += (parseFloat(newGoldRow[4]) || 0) * GOLD_WEIGHTS['G05'];
+      totalGoldBaht += (parseFloat(newGoldRow[5]) || 0) * GOLD_WEIGHTS['G06'];
+      totalGoldBaht += (parseFloat(newGoldRow[6]) || 0) * GOLD_WEIGHTS['G07'];
+    }
     
-    Object.keys(stockMap).forEach(productId => {
-      totalGoldBaht += stockMap[productId] * GOLD_WEIGHTS[productId];
-    });
+    let totalCashLAK = 0, totalBankLAK = 0;
+    if (dbData.length >= 20) {
+      totalCashLAK = parseFloat(dbData[13][0]) || 0;
+      const bcelLAK = parseFloat(dbData[16][0]) || 0;
+      const ldbLAK = parseFloat(dbData[19][0]) || 0;
+      totalBankLAK = bcelLAK + ldbLAK;
+    }
     
     const assetGrams = totalGoldBaht * 15;
     
@@ -105,8 +98,8 @@ async function loadDashboard() {
     document.getElementById('dashExchange').textContent = exchangeCount;
     document.getElementById('dashGoldFlow').textContent = goldFlowBaht.toFixed(2);
     document.getElementById('dashGoldFlowG').textContent = goldFlowGrams.toFixed(2);
-    document.getElementById('dashCash').textContent = formatNumber(cashFlow);
-    document.getElementById('dashBank').textContent = formatNumber(bankFlow);
+    document.getElementById('dashCash').textContent = formatNumber(totalCashLAK);
+    document.getElementById('dashBank').textContent = formatNumber(totalBankLAK);
     document.getElementById('dashAsset').textContent = assetGrams.toFixed(2);
 
     document.getElementById('summaryContent').innerHTML = `

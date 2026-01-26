@@ -97,41 +97,29 @@ async function openTransferModal() {
 
 async function loadStockInModal() {
   try {
-    const data = await fetchSheetData('Stock!A:E');
+    const data = await fetchSheetData('_database!A10:G10');
     
-    if (data.length <= 1) {
+    if (data.length === 0) {
       document.getElementById('stockSummaryInModal').innerHTML = '<tr><td colspan="3" style="text-align: center; padding: 20px;">No stock data</td></tr>';
       return;
     }
     
-    const stockData = {};
+    const oldGoldRow = data[0];
+    const products = ['G01', 'G02', 'G03', 'G04', 'G05', 'G06', 'G07'];
     
-    data.slice(1).forEach(row => {
-      const productId = row[0];
-      const oldNew = row[2];
-      const qty = parseFloat(row[4]) || 0;
+    const oldStockRows = products.map((productId, index) => {
+      const qty = parseFloat(oldGoldRow[index]) || 0;
+      if (qty <= 0) return null;
       
-      if (oldNew !== 'OLD') return;
-      
-      if (!stockData[productId]) {
-        stockData[productId] = 0;
-      }
-      
-      stockData[productId] += qty;
-    });
-    
-    const oldStockRows = Object.entries(stockData)
-      .filter(([productId, qty]) => qty > 0)
-      .map(([productId, qty]) => {
-        const product = FIXED_PRODUCTS.find(p => p.id === productId);
-        return `
-          <tr>
-            <td>${productId}</td>
-            <td>${product ? product.name : 'Unknown'}</td>
-            <td>${qty}</td>
-          </tr>
-        `;
-      }).join('');
+      const product = FIXED_PRODUCTS.find(p => p.id === productId);
+      return `
+        <tr>
+          <td>${productId}</td>
+          <td>${product ? product.name : 'Unknown'}</td>
+          <td>${qty}</td>
+        </tr>
+      `;
+    }).filter(row => row !== null).join('');
     
     document.getElementById('stockSummaryInModal').innerHTML = oldStockRows || '<tr><td colspan="3" style="text-align: center; padding: 20px;">No OLD stock</td></tr>';
   } catch (error) {

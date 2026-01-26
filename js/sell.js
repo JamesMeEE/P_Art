@@ -178,14 +178,18 @@ async function checkStock(productId, requiredQty) {
 }
 
 async function getCurrentStock(productId) {
-  const data = await fetchSheetData('Stock!A:F');
-  let total = 0;
-  data.slice(1).forEach(row => {
-    if (row[0] === productId) {
-      total += parseInt(row[3]) || 0;
-    }
-  });
-  return total;
+  const data = await fetchSheetData('_database!A7:G7');
+  if (data.length === 0) return 0;
+  
+  const productIndexMap = {
+    'G01': 0, 'G02': 1, 'G03': 2, 'G04': 3,
+    'G05': 4, 'G06': 5, 'G07': 6
+  };
+  
+  const index = productIndexMap[productId];
+  if (index === undefined) return 0;
+  
+  return parseFloat(data[0][index]) || 0;
 }
 
 function viewSellDetails(sellId) {
