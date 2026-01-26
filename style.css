@@ -664,3 +664,88 @@ body.role-m button.manager-only {
     padding: 12px 10px;
   }
 }
+
+#inventoryTable th[colspan] {
+  background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+  color: var(--gold-primary);
+  font-weight: 600;
+  border-bottom: 2px solid var(--gold-primary);
+}
+
+#inventoryTable th[rowspan] {
+  vertical-align: middle;
+}
+
+#inventoryTable thead tr:first-child th {
+  border-bottom: 1px solid var(--gold-primary);
+}
+
+#inventoryTable thead tr:last-child th {
+  font-size: 13px;
+  padding: 8px;
+  background: #252525;
+}
+
+#inventoryTable tbody td {
+  border-right: 1px solid rgba(212, 175, 55, 0.1);
+}
+
+#inventoryTable tbody td:nth-child(4),
+#inventoryTable tbody td:nth-child(6),
+#inventoryTable tbody td:nth-child(10),
+#inventoryTable tbody td:nth-child(12) {
+  border-right: 2px solid rgba(212, 175, 55, 0.3);
+}
+
+#inventoryTable tbody tr:hover {
+  background: rgba(212, 175, 55, 0.05);
+}
+
+.flatpickr-calendar {
+  background: #1a1a1a !important;
+  border: 1px solid var(--gold-primary) !important;
+  box-shadow: 0 8px 24px rgba(212, 175, 55, 0.3) !important;
+}
+
+.flatpickr-day.selected {
+  background: var(--gold-primary) !important;
+  color: #000 !important;
+}
+
+.flatpickr-day:hover {
+  background: rgba(212, 175, 55, 0.2) !important;
+  color: var(--gold-primary) !important;
+}
+
+.flatpickr-months .flatpickr-month {
+  background: #252525 !important;
+  color: var(--gold-primary) !important;
+}
+
+.flatpickr-current-month .flatpickr-monthDropdown-months {
+  background: #1a1a1a !important;
+  color: var(--gold-primary) !important;
+}
+
+.flatpickr-weekdays {
+  background: #252525 !important;
+}
+
+.flatpickr-weekday {
+  color: var(--gold-primary) !important;
+}
+
+.flatpickr-day {
+  color: var(--text-primary) !important;
+}
+
+.flatpickr-day.today {
+  border-color: var(--gold-primary) !important;
+  color: var(--gold-primary) !important;
+}
+
+.flatpickr-time input {
+  background: #1a1a1a !important;
+  color: var(--text-primary) !important;
+  border: 1px solid var(--border-color) !important;
+}
