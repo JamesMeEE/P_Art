@@ -4,37 +4,47 @@ async function loadAccounting() {
     
     const today = new Date();
     today.setHours(0, 0, 0, 0);
+    const todayStr = today.toISOString().split('T')[0];
     
     const accountingData = await fetchSheetData('Accounting!A:M');
     
-    if (accountingData.length > 1) {
-      const lastRecord = accountingData[accountingData.length - 1];
-      const lastDate = lastRecord[0];
-      let lastDateObj;
+    if (accountingData.length <= 1) {
+      await saveAccountingForDate(today);
+    } else {
+      const existingDates = new Set();
+      accountingData.slice(1).forEach(row => {
+        if (row[0]) existingDates.add(row[0]);
+      });
       
-      if (lastDate instanceof Date) {
-        lastDateObj = new Date(lastDate);
-      } else if (typeof lastDate === 'string') {
-        if (lastDate.includes('/')) {
-          const parts = lastDate.split('/');
-          lastDateObj = new Date(parseInt(parts[2]), parseInt(parts[1]) - 1, parseInt(parts[0]));
+      if (!existingDates.has(todayStr)) {
+        const lastRecord = accountingData[accountingData.length - 1];
+        const lastDate = lastRecord[0];
+        let lastDateObj;
+        
+        if (lastDate instanceof Date) {
+          lastDateObj = new Date(lastDate);
+        } else if (typeof lastDate === 'string') {
+          if (lastDate.includes('/')) {
+            const parts = lastDate.split('/');
+            lastDateObj = new Date(parseInt(parts[2]), parseInt(parts[1]) - 1, parseInt(parts[0]));
+          } else {
+            lastDateObj = new Date(lastDate);
+          }
         } else {
           lastDateObj = new Date(lastDate);
         }
-      } else {
-        lastDateObj = new Date(lastDate);
-      }
-      
-      lastDateObj.setHours(0, 0, 0, 0);
-      
-      const diffTime = today.getTime() - lastDateObj.getTime();
-      const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-      
-      if (diffDays > 0) {
-        for (let i = 1; i <= diffDays; i++) {
-          const targetDate = new Date(lastDateObj);
-          targetDate.setDate(targetDate.getDate() + i);
-          await saveAccountingForDate(targetDate);
+        
+        lastDateObj.setHours(0, 0, 0, 0);
+        
+        const diffTime = today.getTime() - lastDateObj.getTime();
+        const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+        
+        if (diffDays > 0) {
+          for (let i = 1; i <= diffDays; i++) {
+            const targetDate = new Date(lastDateObj);
+            targetDate.setDate(targetDate.getDate() + i);
+            await saveAccountingForDate(targetDate);
+          }
         }
       }
     }
@@ -159,10 +169,9 @@ async function saveAccountingForDate(targetDate) {
       }
     });
     
-    const dateStr = `${targetDate.getDate()}/${targetDate.getMonth() + 1}/${targetDate.getFullYear()}`;
+    const dateStr = targetDate.toISOString().split('T')[0];
     
-    await executeGoogleScript({
-      action: 'SAVE_ACCOUNTING',
+    await callAppsScript('SAVE_ACCOUNTING', {
       date: dateStr,
       sellMoney: stats.sellMoney,
       sellGold: stats.sellGold,
