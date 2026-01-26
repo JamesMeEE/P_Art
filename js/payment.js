@@ -97,13 +97,13 @@ function calculatePayment() {
   
   if (currency === 'THB') {
     rate = currentPriceRates.thbSell || 270;
-    amountToPay = totalLAK / rate;
+    amountToPay = Math.ceil((totalLAK / rate) * 100) / 100;
     rateGroup.style.display = 'block';
     document.getElementById('paymentExchangeRate').value = `1 THB = ${formatNumber(rate)} LAK`;
     if (receivedLabel) receivedLabel.textContent = 'Received Amount (THB)';
   } else if (currency === 'USD') {
     rate = currentPriceRates.usdSell || 21500;
-    amountToPay = totalLAK / rate;
+    amountToPay = Math.ceil((totalLAK / rate) * 100) / 100;
     rateGroup.style.display = 'block';
     document.getElementById('paymentExchangeRate').value = `1 USD = ${formatNumber(rate)} LAK`;
     if (receivedLabel) receivedLabel.textContent = 'Received Amount (USD)';
@@ -112,7 +112,11 @@ function calculatePayment() {
     if (receivedLabel) receivedLabel.textContent = 'Received Amount (LAK)';
   }
   
-  document.getElementById('paymentAmount').value = `${formatNumber(amountToPay.toFixed(2))} ${currency}`;
+  if (currency === 'LAK') {
+    document.getElementById('paymentAmount').value = `${formatNumber(amountToPay)} ${currency}`;
+  } else {
+    document.getElementById('paymentAmount').value = `${amountToPay.toFixed(2)} ${currency}`;
+  }
   document.getElementById('paymentAmountLAK').value = formatNumber(totalLAK) + ' LAK';
 }
 

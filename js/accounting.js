@@ -40,6 +40,7 @@ async function loadAccounting() {
               const targetKey = `${targetDate.getFullYear()}-${String(targetDate.getMonth()+1).padStart(2,'0')}-${String(targetDate.getDate()).padStart(2,'0')}`;
               if (!existingDates.has(targetKey)) {
                 await saveAccountingForDate(targetDate);
+                existingDates.add(targetKey);
               }
             }
           }

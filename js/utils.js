@@ -219,7 +219,7 @@ function closeModal(modalId) {
 }
 
 function roundTo1000(num) {
-  return Math.round(num / 1000) * 1000;
+  return Math.ceil(num / 1000) * 1000;
 }
 
 function calculateSellPrice(productId, sell1Baht) {
