@@ -112,9 +112,10 @@ async function loadStockInModal() {
       const productId = row[0];
       const type = row[1];
       const oldNew = row[2];
+      const referenceId = row[3];
       const qty = parseFloat(row[4]) || 0;
       
-      console.log('Row:', { productId, type, oldNew, qty });
+      console.log('Row:', { productId, type, oldNew, referenceId, qty });
       
       if (oldNew !== 'OLD') return;
       
@@ -127,9 +128,9 @@ async function loadStockInModal() {
         };
       }
       
-      if (type === 'IN') {
+      if (type === 'IN' || type === 'STOCK_IN' || type.includes('IN')) {
         stockData[key].qty += qty;
-      } else if (type === 'OUT') {
+      } else if (type === 'OUT' || type === 'STOCK_OUT' || type.includes('OUT')) {
         stockData[key].qty -= qty;
       }
     });
