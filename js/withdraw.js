@@ -142,7 +142,7 @@ async function calculateWithdraw() {
     showLoading();
     const result = await callAppsScript('ADD_WITHDRAW', {
       customer,
-      products: JSON.stringify(products),
+      items: JSON.stringify(products),
       premium,
       total,
       user: currentUser.nickname

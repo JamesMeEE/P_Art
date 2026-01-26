@@ -344,39 +344,6 @@
 
     <section id="exchange" class="section">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
-        <h2 style="font-family: 'Cormorant Garamond', serif; font-size: 36px; color: var(--gold-primary);">Buyback Management</h2>
-        <div style="display: flex; gap: 10px; align-items: center;">
-          <input type="date" class="form-input" id="buybackDateFrom" style="width: 150px;">
-          <span>to</span>
-          <input type="date" class="form-input" id="buybackDateTo" style="width: 150px;">
-          <button class="btn-secondary" onclick="resetBuybackDateFilter()">Today</button>
-          <button class="btn-primary" onclick="openBuybackModal()" id="addBuybackBtn">+ New Buyback</button>
-        </div>
-      </div>
-      <div class="table-container">
-        <table>
-          <thead>
-            <tr>
-              <th>Transaction ID</th>
-              <th>Customer</th>
-              <th>Items</th>
-              <th>Total (LAK)</th>
-              <th>Status</th>
-              <th>Sale</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody id="buybackTable">
-            <tr>
-              <td colspan="7" style="text-align: center; padding: 40px;">Loading...</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </section>
-
-    <section id="buyback" class="section">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
         <h2 style="font-family: 'Cormorant Garamond', serif; font-size: 36px; color: var(--gold-primary);">Exchange Management</h2>
         <div style="display: flex; gap: 10px; align-items: center;">
           <input type="date" class="form-input" id="exchangeDateFrom" style="width: 150px;">
@@ -405,6 +372,39 @@
           <tbody id="exchangeTable">
             <tr>
               <td colspan="10" style="text-align: center; padding: 40px;">Loading...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="buyback" class="section">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+        <h2 style="font-family: 'Cormorant Garamond', serif; font-size: 36px; color: var(--gold-primary);">Buyback Management</h2>
+        <div style="display: flex; gap: 10px; align-items: center;">
+          <input type="date" class="form-input" id="buybackDateFrom" style="width: 150px;">
+          <span>to</span>
+          <input type="date" class="form-input" id="buybackDateTo" style="width: 150px;">
+          <button class="btn-secondary" onclick="resetBuybackDateFilter()">Today</button>
+          <button class="btn-primary" onclick="openBuybackModal()" id="addBuybackBtn">+ New Buyback</button>
+        </div>
+      </div>
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Transaction ID</th>
+              <th>Customer</th>
+              <th>Items</th>
+              <th>Total (LAK)</th>
+              <th>Status</th>
+              <th>Sale</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="buybackTable">
+            <tr>
+              <td colspan="7" style="text-align: center; padding: 40px;">Loading...</td>
             </tr>
           </tbody>
         </table>
@@ -1623,25 +1623,25 @@
     }
   </style>
   
-  <script src="js/config.js?v=33"></script>
-  <script src="js/utils.js?v=33"></script>
-  <script src="js/api.js?v=33"></script>
-  <script src="js/ui.js?v=33"></script>
-  <script src="js/dashboard.js?v=33"></script>
+  <script src="js/config.js?v=34"></script>
+  <script src="js/utils.js?v=34"></script>
+  <script src="js/api.js?v=34"></script>
+  <script src="js/ui.js?v=34"></script>
+  <script src="js/dashboard.js?v=34"></script>
   <script src="js/products.js"></script>
   <script src="js/pricerate.js"></script>
-  <script src="js/sell.js?v=33"></script>
-  <script src="js/payment.js?v=33"></script>
-  <script src="js/tradein.js?v=33"></script>
-  <script src="js/buyback.js?v=33"></script>
-  <script src="js/exchange.js?v=33"></script>
-  <script src="js/withdraw.js?v=33"></script>
-  <script src="js/inventory.js?v=33"></script>
-  <script src="js/cashbank.js?v=33"></script>
-  <script src="js/accounting.js?v=33"></script>
-  <script src="js/reports.js?v=33"></script>
-  <script src="js/close.js?v=33"></script>
-  <script src="js/auth.js?v=33"></script>
+  <script src="js/sell.js?v=34"></script>
+  <script src="js/payment.js?v=34"></script>
+  <script src="js/tradein.js?v=34"></script>
+  <script src="js/buyback.js?v=34"></script>
+  <script src="js/exchange.js?v=34"></script>
+  <script src="js/withdraw.js?v=34"></script>
+  <script src="js/inventory.js?v=34"></script>
+  <script src="js/cashbank.js?v=34"></script>
+  <script src="js/accounting.js?v=34"></script>
+  <script src="js/reports.js?v=34"></script>
+  <script src="js/close.js?v=34"></script>
+  <script src="js/auth.js?v=34"></script>
   
   <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
   <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/th.js"></script>
