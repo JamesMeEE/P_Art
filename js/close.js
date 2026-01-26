@@ -22,11 +22,12 @@ async function openCloseWorkModal() {
     
     sellData.slice(1).forEach(row => {
       const date = parseSheetDate(row[9]);
+      const status = row[10];
       const createdBy = row[11];
-      if (date && date >= todayStart && date <= todayEnd && row[10] === 'COMPLETED' && createdBy === userName) {
-        const currency = row[5] || 'LAK';
-        const customerPaid = parseFloat(row[6]) || 0;
-        const changeLAK = parseFloat(row[7]) || 0;
+      if (date && date >= todayStart && date <= todayEnd && status === 'COMPLETED' && createdBy === userName) {
+        const currency = row[6] || 'LAK';
+        const customerPaid = parseFloat(row[5]) || 0;
+        const changeLAK = parseFloat(row[8]) || 0;
         
         if (currency === 'LAK') {
           cashReceived.LAK += customerPaid - changeLAK;
@@ -42,11 +43,12 @@ async function openCloseWorkModal() {
     
     tradeinData.slice(1).forEach(row => {
       const date = parseSheetDate(row[11]);
+      const status = row[12];
       const createdBy = row[13];
-      if (date && date >= todayStart && date <= todayEnd && row[12] === 'COMPLETED' && createdBy === userName) {
-        const currency = row[7] || 'LAK';
-        const customerPaid = parseFloat(row[8]) || 0;
-        const changeLAK = parseFloat(row[9]) || 0;
+      if (date && date >= todayStart && date <= todayEnd && status === 'COMPLETED' && createdBy === userName) {
+        const currency = row[8] || 'LAK';
+        const customerPaid = parseFloat(row[7]) || 0;
+        const changeLAK = parseFloat(row[10]) || 0;
         
         if (currency === 'LAK') {
           cashReceived.LAK += customerPaid - changeLAK;
@@ -72,11 +74,12 @@ async function openCloseWorkModal() {
     
     exchangeData.slice(1).forEach(row => {
       const date = parseSheetDate(row[11]);
+      const status = row[12];
       const createdBy = row[13];
-      if (date && date >= todayStart && date <= todayEnd && row[12] === 'COMPLETED' && createdBy === userName) {
-        const currency = row[7] || 'LAK';
-        const customerPaid = parseFloat(row[8]) || 0;
-        const changeLAK = parseFloat(row[9]) || 0;
+      if (date && date >= todayStart && date <= todayEnd && status === 'COMPLETED' && createdBy === userName) {
+        const currency = row[8] || 'LAK';
+        const customerPaid = parseFloat(row[7]) || 0;
+        const changeLAK = parseFloat(row[10]) || 0;
         
         if (currency === 'LAK') {
           cashReceived.LAK += customerPaid - changeLAK;
@@ -102,8 +105,9 @@ async function openCloseWorkModal() {
     
     buybackData.slice(1).forEach(row => {
       const date = parseSheetDate(row[7]);
+      const status = row[8];
       const createdBy = row[9];
-      if (date && date >= todayStart && date <= todayEnd && row[8] === 'COMPLETED' && createdBy === userName) {
+      if (date && date >= todayStart && date <= todayEnd && status === 'COMPLETED' && createdBy === userName) {
         try {
           const items = JSON.parse(row[2]);
           items.forEach(item => {
@@ -221,24 +225,35 @@ async function submitCloseWork() {
 }
 
 async function checkPendingClose() {
-  if (!currentUser || currentUser.role !== 'Manager') {
-    document.getElementById('reviewCloseBtn').style.display = 'none';
+  const closeBtn = document.getElementById('closeWorkBtn');
+  const reviewBtn = document.getElementById('reviewCloseBtn');
+  
+  if (!currentUser) {
+    if (closeBtn) closeBtn.style.display = 'none';
+    if (reviewBtn) reviewBtn.style.display = 'none';
     return;
   }
   
-  try {
-    const closeData = await fetchSheetData('Close!A:J');
-    const pendingCount = closeData.slice(1).filter(row => row[8] === 'PENDING').length;
+  if (currentUser.role === 'Manager') {
+    if (closeBtn) closeBtn.style.display = 'none';
     
-    const btn = document.getElementById('reviewCloseBtn');
-    if (pendingCount > 0) {
-      btn.style.display = 'inline-block';
-      btn.textContent = `📋 Review Close (${pendingCount})`;
-    } else {
-      btn.style.display = 'none';
+    try {
+      const closeData = await fetchSheetData('Close!A:J');
+      const pendingCount = closeData.slice(1).filter(row => row[8] === 'PENDING').length;
+      
+      if (pendingCount > 0) {
+        reviewBtn.style.display = 'inline-block';
+        reviewBtn.textContent = `📋 Review Close (${pendingCount})`;
+      } else {
+        reviewBtn.style.display = 'none';
+      }
+    } catch (error) {
+      console.error('Error checking pending close:', error);
+      reviewBtn.style.display = 'none';
     }
-  } catch (error) {
-    console.error('Error checking pending close:', error);
+  } else {
+    if (closeBtn) closeBtn.style.display = 'inline-block';
+    if (reviewBtn) reviewBtn.style.display = 'none';
   }
 }
 
