@@ -372,7 +372,6 @@ async function filterAccountingHistory() {
     const endDate = document.getElementById('accountingEndDate').value;
     
     if (!startDate || !endDate) {
-      alert('กรุณาเลือกวันที่เริ่มต้นและสิ้นสุด');
       return;
     }
     
@@ -416,10 +415,52 @@ async function filterAccountingHistory() {
   }
 }
 
-function resetAccountingFilter() {
-  document.getElementById('accountingStartDate').value = '';
-  document.getElementById('accountingEndDate').value = '';
-  loadAccountingHistory();
+function checkAccountingFilter() {
+  const startDate = document.getElementById('accountingStartDate').value;
+  const endDate = document.getElementById('accountingEndDate').value;
+  
+  if (startDate && endDate) {
+    filterAccountingHistory();
+  }
+}
+
+async function showTodayAccounting() {
+  const today = new Date().toISOString().split('T')[0];
+  document.getElementById('accountingStartDate').value = today;
+  document.getElementById('accountingEndDate').value = today;
+  
+  const data = await fetchSheetData('Accounting!A:M');
+  const tbody = document.getElementById('accountingTable');
+  
+  if (data.length <= 1) {
+    tbody.innerHTML = '<tr><td colspan="13" style="text-align: center; padding: 40px;">No records</td></tr>';
+    return;
+  }
+  
+  const filtered = data.slice(1).filter(row => row[0] === today).reverse();
+  
+  if (filtered.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="13" style="text-align: center; padding: 40px;">No records for today</td></tr>';
+    return;
+  }
+  
+  tbody.innerHTML = filtered.map(row => `
+    <tr>
+      <td>${row[0]}</td>
+      <td>${formatNumber(row[1])} LAK</td>
+      <td>${parseFloat(row[2] || 0).toFixed(2)} g</td>
+      <td>${formatNumber(row[3])} LAK</td>
+      <td>${parseFloat(row[4] || 0).toFixed(2)} g</td>
+      <td>${formatNumber(row[5])} LAK</td>
+      <td>${parseFloat(row[6] || 0).toFixed(2)} g</td>
+      <td>${formatNumber(row[7])} LAK</td>
+      <td>${parseFloat(row[8] || 0).toFixed(2)} g</td>
+      <td>${formatNumber(row[9])} LAK</td>
+      <td>${parseFloat(row[10] || 0).toFixed(2)} g</td>
+      <td>${formatNumber(row[11])} LAK</td>
+      <td>${parseFloat(row[12] || 0).toFixed(2)} g</td>
+    </tr>
+  `).join('');
 }
 
 function calculateTotalGold(items) {

@@ -97,9 +97,7 @@ async function openTransferModal() {
 
 async function loadStockInModal() {
   try {
-    const data = await fetchSheetData('Stock!A:H');
-    
-    console.log('Stock data:', data);
+    const data = await fetchSheetData('Stock!A:E');
     
     if (data.length <= 1) {
       document.getElementById('stockSummaryInModal').innerHTML = '<tr><td colspan="3" style="text-align: center; padding: 20px;">No stock data</td></tr>';
@@ -110,42 +108,27 @@ async function loadStockInModal() {
     
     data.slice(1).forEach(row => {
       const productId = row[0];
-      const type = row[1];
       const oldNew = row[2];
-      const referenceId = row[3];
       const qty = parseFloat(row[4]) || 0;
-      
-      console.log('Row:', { productId, type, oldNew, referenceId, qty });
       
       if (oldNew !== 'OLD') return;
       
-      const key = productId;
-      
-      if (!stockData[key]) {
-        stockData[key] = {
-          productId: productId,
-          qty: 0
-        };
+      if (!stockData[productId]) {
+        stockData[productId] = 0;
       }
       
-      if (type === 'IN' || type === 'STOCK_IN' || type.includes('IN')) {
-        stockData[key].qty += qty;
-      } else if (type === 'OUT' || type === 'STOCK_OUT' || type.includes('OUT')) {
-        stockData[key].qty -= qty;
-      }
+      stockData[productId] += qty;
     });
     
-    console.log('Final stockData:', stockData);
-    
-    const oldStockRows = Object.values(stockData)
-      .filter(item => item.qty > 0)
-      .map(item => {
-        const product = FIXED_PRODUCTS.find(p => p.id === item.productId);
+    const oldStockRows = Object.entries(stockData)
+      .filter(([productId, qty]) => qty > 0)
+      .map(([productId, qty]) => {
+        const product = FIXED_PRODUCTS.find(p => p.id === productId);
         return `
           <tr>
-            <td>${item.productId}</td>
+            <td>${productId}</td>
             <td>${product ? product.name : 'Unknown'}</td>
-            <td>${item.qty}</td>
+            <td>${qty}</td>
           </tr>
         `;
       }).join('');

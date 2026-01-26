@@ -644,11 +644,10 @@
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
           <h3 style="color: var(--gold-primary);">Daily History</h3>
           <div style="display: flex; gap: 10px; align-items: center;">
-            <input type="date" id="accountingStartDate" class="form-input" style="width: 150px;">
+            <input type="date" id="accountingStartDate" class="form-input" style="width: 150px;" onchange="checkAccountingFilter()">
             <span style="color: var(--text-secondary);">to</span>
-            <input type="date" id="accountingEndDate" class="form-input" style="width: 150px;">
-            <button class="btn-secondary" onclick="filterAccountingHistory()">Filter</button>
-            <button class="btn-secondary" onclick="resetAccountingFilter()">Reset</button>
+            <input type="date" id="accountingEndDate" class="form-input" style="width: 150px;" onchange="checkAccountingFilter()">
+            <button class="btn-secondary" onclick="showTodayAccounting()">TODAY</button>
           </div>
         </div>
         <div class="table-container">
@@ -689,9 +688,8 @@
     </section>
 
     <section id="reports" class="section">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+      <div style="margin-bottom: 30px;">
         <h2 style="font-family: 'Cormorant Garamond', serif; font-size: 36px; color: var(--gold-primary);">Daily Gold Summary</h2>
-        <button class="btn-primary manager-only" onclick="calculateReport()">Calculate Today's Report</button>
       </div>
       
       <div class="table-container">
@@ -1643,24 +1641,24 @@
     }
   </style>
   
-  <script src="js/config.js?v=23"></script>
-  <script src="js/utils.js?v=23"></script>
-  <script src="js/api.js?v=23"></script>
-  <script src="js/ui.js?v=23"></script>
+  <script src="js/config.js?v=24"></script>
+  <script src="js/utils.js?v=24"></script>
+  <script src="js/api.js?v=24"></script>
+  <script src="js/ui.js?v=24"></script>
   <script src="js/dashboard.js"></script>
   <script src="js/products.js"></script>
   <script src="js/pricerate.js"></script>
-  <script src="js/sell.js?v=23"></script>
+  <script src="js/sell.js?v=24"></script>
   <script src="js/payment.js"></script>
-  <script src="js/tradein.js?v=23"></script>
-  <script src="js/buyback.js?v=23"></script>
-  <script src="js/exchange.js?v=23"></script>
-  <script src="js/withdraw.js?v=23"></script>
-  <script src="js/inventory.js?v=23"></script>
-  <script src="js/cashbank.js?v=23"></script>
-  <script src="js/accounting.js?v=23"></script>
-  <script src="js/reports.js?v=23"></script>
-  <script src="js/auth.js?v=23"></script>
+  <script src="js/tradein.js?v=24"></script>
+  <script src="js/buyback.js?v=24"></script>
+  <script src="js/exchange.js?v=24"></script>
+  <script src="js/withdraw.js?v=24"></script>
+  <script src="js/inventory.js?v=24"></script>
+  <script src="js/cashbank.js?v=24"></script>
+  <script src="js/accounting.js?v=24"></script>
+  <script src="js/reports.js?v=24"></script>
+  <script src="js/auth.js?v=24"></script>
   
   <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
   <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/th.js"></script>
