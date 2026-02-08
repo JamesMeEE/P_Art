@@ -116,9 +116,9 @@ function removeTradeinNewGold(id) {
 }
 
 async function calculateTradein() {
-  const customer = document.getElementById('tradeinPhone').value;
-  if (!customer) {
-    alert('กรุณากรอกชื่อลูกค้า');
+  const phone = document.getElementById('tradeinPhone').value;
+  if (!phone) {
+    alert('กรุณากรอกเบอร์โทร');
     return;
   }
 

@@ -109,9 +109,9 @@ function calculateWithdrawPremium() {
 }
 
 async function calculateWithdraw() {
-  const customer = document.getElementById('withdrawPhone').value;
-  if (!customer) {
-    alert('กรุณากรอกชื่อลูกค้า');
+  const phone = document.getElementById('withdrawPhone').value;
+  if (!phone) {
+    alert('กรุณากรอกเบอร์โทร');
     return;
   }
 
@@ -240,7 +240,7 @@ function calculateWithdrawPayment() {
   document.getElementById('withdrawPaymentAmount').value = `${formatNumber(amountToPay.toFixed(2))} ${currency}`;
   document.getElementById('withdrawPaymentAmountLAK').value = formatNumber(totalLAK) + ' LAK';
   
-  const customerPaid = parseFloat(document.getElementById('withdrawPaymentPhonePaid').value) || 0;
+  const customerPaid = parseFloat(document.getElementById('withdrawPaymentCustomerPaid').value) || 0;
   const customerPaidLAK = customerPaid * rate;
   const changeLAK = customerPaidLAK - totalLAK;
   document.getElementById('withdrawPaymentChange').value = formatNumber(changeLAK) + ' LAK';
@@ -258,7 +258,7 @@ async function confirmWithdrawPayment() {
   const method = document.getElementById('withdrawPaymentMethod').value;
   const bank = method === 'Bank' ? document.getElementById('withdrawPaymentBank').value : '';
   const currency = document.getElementById('withdrawPaymentCurrency').value;
-  const customerPaid = parseFloat(document.getElementById('withdrawPaymentPhonePaid').value) || 0;
+  const customerPaid = parseFloat(document.getElementById('withdrawPaymentCustomerPaid').value) || 0;
   
   let rate = 1;
   if (currency === 'THB') {

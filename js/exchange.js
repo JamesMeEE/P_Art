@@ -113,9 +113,9 @@ function addExchangeNewGold() {
 }
 
 async function calculateExchange() {
-  const customer = document.getElementById('exchangePhone').value;
-  if (!customer) {
-    alert('กรุณากรอกชื่อลูกค้า');
+  const phone = document.getElementById('exchangePhone').value;
+  if (!phone) {
+    alert('กรุณากรอกเบอร์โทร');
     return;
   }
 

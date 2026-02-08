@@ -98,9 +98,9 @@ function removeSellProduct(id) {
 }
 
 async function submitSell() {
-  const customer = document.getElementById('sellPhone').value;
-  if (!customer) {
-    alert('กรุณากรอกชื่อลูกค้า');
+  const phone = document.getElementById('sellPhone').value;
+  if (!phone) {
+    alert('กรุณากรอกเบอร์โทร');
     return;
   }
 
