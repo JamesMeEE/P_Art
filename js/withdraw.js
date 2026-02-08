@@ -109,7 +109,7 @@ function calculateWithdrawPremium() {
 }
 
 async function calculateWithdraw() {
-  const customer = document.getElementById('withdrawCustomer').value;
+  const customer = document.getElementById('withdrawPhone').value;
   if (!customer) {
     alert('กรุณากรอกชื่อลูกค้า');
     return;
@@ -141,7 +141,7 @@ async function calculateWithdraw() {
   try {
     showLoading();
     const result = await callAppsScript('ADD_WITHDRAW', {
-      customer,
+      phone,
       items: JSON.stringify(products),
       premium,
       total,
@@ -152,33 +152,13 @@ async function calculateWithdraw() {
       alert('✅ สร้างรายการถอนทองสำเร็จ! รอ Manager Review');
       closeModal('withdrawModal');
       
-      document.getElementById('withdrawCustomer').value = '';
+      document.getElementById('withdrawPhone').value = '';
       document.getElementById('withdrawProducts').innerHTML = '';
       withdrawCounter = 0;
       addWithdrawProduct();
       
       loadWithdraws();
       loadDashboard();
-    } else {
-      alert('❌ เกิดข้อผิดพลาด: ' + result.message);
-    }
-    hideLoading();
-  } catch (error) {
-    alert('❌ เกิดข้อผิดพลาด: ' + error.message);
-    hideLoading();
-  }
-}
-
-async function reviewWithdraw(withdrawId) {
-  if (!confirm('ยืนยันการ Review รายการถอนทองนี้?')) return;
-  
-  try {
-    showLoading();
-    const result = await callAppsScript('REVIEW_WITHDRAW', { id: withdrawId });
-    
-    if (result.success) {
-      alert('✅ Review สำเร็จ! รอ User ยืนยัน');
-      loadWithdraws();
     } else {
       alert('❌ เกิดข้อผิดพลาด: ' + result.message);
     }
@@ -203,14 +183,14 @@ async function openWithdrawPaymentModal(withdrawId) {
     
     currentWithdrawPayment = {
       withdrawId: withdraw[0],
-      customer: withdraw[1],
+      phone: withdraw[1],
       items: withdraw[2],
       premium: parseFloat(withdraw[3]) || 0,
       total: parseFloat(withdraw[4]) || 0
     };
     
     document.getElementById('withdrawPaymentId').textContent = withdraw[0];
-    document.getElementById('withdrawPaymentCustomer').textContent = withdraw[1];
+    document.getElementById('withdrawPaymentPhone').textContent = withdraw[1];
     document.getElementById('withdrawPaymentItems').textContent = formatItemsForDisplay(withdraw[2]);
     document.getElementById('withdrawPaymentPremium').textContent = formatNumber(withdraw[3]) + ' LAK';
     document.getElementById('withdrawPaymentTotal').textContent = formatNumber(withdraw[4]) + ' LAK';
@@ -260,7 +240,7 @@ function calculateWithdrawPayment() {
   document.getElementById('withdrawPaymentAmount').value = `${formatNumber(amountToPay.toFixed(2))} ${currency}`;
   document.getElementById('withdrawPaymentAmountLAK').value = formatNumber(totalLAK) + ' LAK';
   
-  const customerPaid = parseFloat(document.getElementById('withdrawPaymentCustomerPaid').value) || 0;
+  const customerPaid = parseFloat(document.getElementById('withdrawPaymentPhonePaid').value) || 0;
   const customerPaidLAK = customerPaid * rate;
   const changeLAK = customerPaidLAK - totalLAK;
   document.getElementById('withdrawPaymentChange').value = formatNumber(changeLAK) + ' LAK';
@@ -278,7 +258,7 @@ async function confirmWithdrawPayment() {
   const method = document.getElementById('withdrawPaymentMethod').value;
   const bank = method === 'Bank' ? document.getElementById('withdrawPaymentBank').value : '';
   const currency = document.getElementById('withdrawPaymentCurrency').value;
-  const customerPaid = parseFloat(document.getElementById('withdrawPaymentCustomerPaid').value) || 0;
+  const customerPaid = parseFloat(document.getElementById('withdrawPaymentPhonePaid').value) || 0;
   
   let rate = 1;
   if (currency === 'THB') {

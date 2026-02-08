@@ -116,7 +116,7 @@ function removeTradeinNewGold(id) {
 }
 
 async function calculateTradein() {
-  const customer = document.getElementById('tradeinCustomer').value;
+  const customer = document.getElementById('tradeinPhone').value;
   if (!customer) {
     alert('กรุณากรอกชื่อลูกค้า');
     return;
@@ -190,7 +190,7 @@ async function calculateTradein() {
   try {
     showLoading();
     const result = await callAppsScript('ADD_TRADEIN', {
-      customer,
+      phone,
       oldGold: JSON.stringify(oldGold),
       newGold: JSON.stringify(newGold),
       difference,
@@ -202,7 +202,7 @@ async function calculateTradein() {
     if (result.success) {
       alert('✅ สร้างรายการแลกเปลี่ยนสำเร็จ! รอ Manager Review');
       closeModal('tradeinModal');
-      document.getElementById('tradeinCustomer').value = '';
+      document.getElementById('tradeinPhone').value = '';
       document.getElementById('tradeinOldGold').innerHTML = '';
       document.getElementById('tradeinNewGold').innerHTML = '';
       tradeinOldCounter = 0;
@@ -211,26 +211,6 @@ async function calculateTradein() {
       addTradeinNewGold();
       loadTradeins();
       loadDashboard();
-    } else {
-      alert('❌ เกิดข้อผิดพลาด: ' + result.message);
-    }
-    hideLoading();
-  } catch (error) {
-    alert('❌ เกิดข้อผิดพลาด: ' + error.message);
-    hideLoading();
-  }
-}
-
-async function reviewTradein(tradeinId) {
-  if (!confirm('ยืนยันการ Review รายการแลกเปลี่ยนนี้?')) return;
-  
-  try {
-    showLoading();
-    const result = await callAppsScript('REVIEW_TRADEIN', { id: tradeinId });
-    
-    if (result.success) {
-      alert('✅ Review สำเร็จ! รอ User ยืนยันชำระเงิน');
-      loadTradeins();
     } else {
       alert('❌ เกิดข้อผิดพลาด: ' + result.message);
     }
@@ -255,14 +235,14 @@ async function openTradeinPaymentModal(tradeinId) {
     
     currentTradeinPayment = {
       tradeinId: tradein[0],
-      customer: tradein[1],
+      phone: tradein[1],
       oldGold: tradein[2],
       newGold: tradein[3],
       total: parseFloat(tradein[6]) || 0
     };
     
     document.getElementById('tradeinPaymentId').textContent = tradein[0];
-    document.getElementById('tradeinPaymentCustomer').textContent = tradein[1];
+    document.getElementById('tradeinPaymentPhone').textContent = tradein[1];
     document.getElementById('tradeinPaymentOldGold').textContent = formatItemsForDisplay(tradein[2]);
     document.getElementById('tradeinPaymentNewGold').textContent = formatItemsForDisplay(tradein[3]);
     document.getElementById('tradeinPaymentTotal').textContent = formatNumber(tradein[6]) + ' LAK';

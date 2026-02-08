@@ -98,7 +98,7 @@ function removeSellProduct(id) {
 }
 
 async function submitSell() {
-  const customer = document.getElementById('sellCustomer').value;
+  const customer = document.getElementById('sellPhone').value;
   if (!customer) {
     alert('กรุณากรอกชื่อลูกค้า');
     return;
@@ -148,7 +148,7 @@ async function submitSell() {
   try {
     showLoading();
     const result = await callAppsScript('ADD_SELL', {
-      customer,
+      phone,
       items: JSON.stringify(items),
       total: totalPrice
     });
@@ -156,7 +156,7 @@ async function submitSell() {
     if (result.success) {
       alert('✅ สร้างรายการขายสำเร็จ!');
       closeModal('sellModal');
-      document.getElementById('sellCustomer').value = '';
+      document.getElementById('sellPhone').value = '';
       document.getElementById('sellProducts').innerHTML = '';
       sellCounter = 0;
       addSellProduct();

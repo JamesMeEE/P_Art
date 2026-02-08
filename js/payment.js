@@ -40,7 +40,7 @@ async function openPaymentModal(sellId) {
           <strong>Transaction ID:</strong> ${sell[0]}
         </div>
         <div style="margin-bottom: 10px;">
-          <strong>Customer:</strong> ${sell[1]}
+          <strong>Phone:</strong> ${sell[1]}
         </div>
         <div style="margin-bottom: 10px;">
           <strong>Items:</strong><br>${items.replace(/\n/g, '<br>')}

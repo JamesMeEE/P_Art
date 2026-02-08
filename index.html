@@ -255,7 +255,7 @@
           <thead>
             <tr>
               <th>Transaction ID</th>
-              <th>Customer</th>
+              <th>Phone</th>
               <th>Items</th>
               <th>Premium (LAK)</th>
               <th>Status</th>
@@ -288,7 +288,7 @@
           <thead>
             <tr>
               <th>Transaction ID</th>
-              <th>Customer</th>
+              <th>Phone</th>
               <th>Items</th>
               <th>Premium (LAK)</th>
               <th>Total (LAK)</th>
@@ -322,7 +322,7 @@
           <thead>
             <tr>
               <th>Transaction ID</th>
-              <th>Customer</th>
+              <th>Phone</th>
               <th>Old Gold</th>
               <th>New Gold</th>
               <th>Difference</th>
@@ -358,7 +358,7 @@
           <thead>
             <tr>
               <th>Transaction ID</th>
-              <th>Customer</th>
+              <th>Phone</th>
               <th>Old Gold</th>
               <th>New Gold</th>
               <th>Exchange</th>
@@ -394,7 +394,7 @@
           <thead>
             <tr>
               <th>Transaction ID</th>
-              <th>Customer</th>
+              <th>Phone</th>
               <th>Items</th>
               <th>Total (LAK)</th>
               <th>Status</th>
@@ -677,8 +677,8 @@
         <h2 class="modal-title">New Sell</h2>
       </div>
       <div class="form-group">
-        <label class="form-label">Customer Name</label>
-        <input type="text" class="form-input" id="sellCustomer" placeholder="Enter customer name">
+        <label class="form-label">Phone Number</label>
+        <input type="text" class="form-input" id="sellPhone" placeholder="Enter phone number">
       </div>
       <div class="form-group">
         <label class="form-label">Products</label>
@@ -702,8 +702,8 @@
         <h2 class="modal-title">New Trade-in</h2>
       </div>
       <div class="form-group">
-        <label class="form-label">Customer Name</label>
-        <input type="text" class="form-input" id="tradeinCustomer" placeholder="Enter customer name">
+        <label class="form-label">Phone Number</label>
+        <input type="text" class="form-input" id="tradeinPhone" placeholder="Enter phone number">
       </div>
       <div class="form-group">
         <label class="form-label">Old Gold</label>
@@ -749,7 +749,7 @@
         </div>
         <div class="summary-row">
           <span class="summary-label">Customer:</span>
-          <span class="summary-value" id="tradeinPaymentCustomer">-</span>
+          <span class="summary-value" id="tradeinPaymentPhone">-</span>
         </div>
         <div class="summary-row">
           <span class="summary-label">Old Gold:</span>
@@ -830,8 +830,8 @@
         <h2 class="modal-title">New Exchange</h2>
       </div>
       <div class="form-group">
-        <label class="form-label">Customer Name</label>
-        <input type="text" class="form-input" id="exchangeCustomer" placeholder="Enter customer name">
+        <label class="form-label">Phone Number</label>
+        <input type="text" class="form-input" id="exchangePhone" placeholder="Enter phone number">
       </div>
       <div class="form-group">
         <label class="form-label">Old Gold</label>
@@ -877,7 +877,7 @@
         </div>
         <div class="summary-row">
           <span class="summary-label">Customer:</span>
-          <span class="summary-value" id="exchangePaymentCustomer">-</span>
+          <span class="summary-value" id="exchangePaymentPhone">-</span>
         </div>
         <div class="summary-row">
           <span class="summary-label">Old Gold:</span>
@@ -958,8 +958,8 @@
         <h2 class="modal-title">New Buyback</h2>
       </div>
       <div class="form-group">
-        <label class="form-label">Customer Name</label>
-        <input type="text" class="form-input" id="buybackCustomer" placeholder="Enter customer name">
+        <label class="form-label">Phone Number</label>
+        <input type="text" class="form-input" id="buybackPhone" placeholder="Enter phone number">
       </div>
       <div class="form-group">
         <label class="form-label">Products</label>
@@ -990,7 +990,7 @@
         </div>
         <div class="summary-row">
           <span class="summary-label">Customer:</span>
-          <span class="summary-value" id="buybackPaymentCustomer">-</span>
+          <span class="summary-value" id="buybackPaymentPhone">-</span>
         </div>
         <div class="summary-row">
           <span class="summary-label">Items:</span>
@@ -1064,8 +1064,8 @@
         <h2 class="modal-title">New Withdraw</h2>
       </div>
       <div class="form-group">
-        <label class="form-label">Customer Name</label>
-        <input type="text" class="form-input" id="withdrawCustomer" placeholder="Enter customer name">
+        <label class="form-label">Phone Number</label>
+        <input type="text" class="form-input" id="withdrawPhone" placeholder="Enter phone number">
       </div>
       <div class="form-group">
         <label class="form-label">Products</label>
@@ -1096,7 +1096,7 @@
         </div>
         <div class="summary-row">
           <span class="summary-label">Customer:</span>
-          <span class="summary-value" id="withdrawPaymentCustomer">-</span>
+          <span class="summary-value" id="withdrawPaymentPhone">-</span>
         </div>
         <div class="summary-row">
           <span class="summary-label">Items:</span>
@@ -1156,7 +1156,7 @@
 
       <div class="form-group">
         <label class="form-label">Customer Paid</label>
-        <input type="number" class="form-input" id="withdrawPaymentCustomerPaid" placeholder="0" step="0.01" oninput="calculateWithdrawPayment()">
+        <input type="number" class="form-input" id="withdrawPaymentPhonePaid" placeholder="0" step="0.01" oninput="calculateWithdrawPayment()">
       </div>
 
       <div class="form-group">
@@ -1598,6 +1598,35 @@
     </div>
   </div>
 
+  <!-- Review Decision Modal -->
+  <div id="reviewDecisionModal" class="modal">
+    <div class="modal-content" style="max-width: 500px;">
+      <div class="modal-header">
+        <h2>Review Transaction</h2>
+        <span class="close" onclick="closeModal('reviewDecisionModal')">&times;</span>
+      </div>
+      <div style="padding: 20px;">
+        <div style="text-align: center; margin-bottom: 20px;">
+          <p style="font-size: 18px; color: var(--gold-primary);" id="reviewDecisionTitle">-</p>
+          <p style="color: var(--text-secondary);" id="reviewDecisionId">-</p>
+        </div>
+        
+        <div id="reviewDecisionItems" style="background: var(--bg-light); padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label">Note (Optional)</label>
+          <textarea class="form-input" id="reviewDecisionNote" rows="3" placeholder="Enter note..."></textarea>
+        </div>
+      </div>
+      <div class="modal-footer" style="display: flex; gap: 10px;">
+        <button class="btn-secondary" onclick="closeModal('reviewDecisionModal')">Cancel</button>
+        <button class="btn-primary" style="background: #f44336; flex: 1;" onclick="submitReviewDecision('REJECT')">✗ Reject</button>
+        <button class="btn-primary" style="background: #4caf50; flex: 1;" onclick="submitReviewDecision('APPROVE')">✓ Approve</button>
+      </div>
+    </div>
+  </div>
+
   <script>
     (function() {
       const cb = localStorage.getItem('cacheBuster') || Date.now();
@@ -1623,25 +1652,26 @@
     }
   </style>
   
-  <script src="js/config.js?v=37"></script>
-  <script src="js/utils.js?v=37"></script>
-  <script src="js/api.js?v=37"></script>
-  <script src="js/ui.js?v=37"></script>
-  <script src="js/dashboard.js?v=37"></script>
+  <script src="js/config.js?v=38"></script>
+  <script src="js/utils.js?v=38"></script>
+  <script src="js/api.js?v=38"></script>
+  <script src="js/ui.js?v=38"></script>
+  <script src="js/dashboard.js?v=38"></script>
   <script src="js/products.js"></script>
   <script src="js/pricerate.js"></script>
-  <script src="js/sell.js?v=37"></script>
-  <script src="js/payment.js?v=37"></script>
-  <script src="js/tradein.js?v=37"></script>
-  <script src="js/buyback.js?v=37"></script>
-  <script src="js/exchange.js?v=37"></script>
-  <script src="js/withdraw.js?v=37"></script>
-  <script src="js/inventory.js?v=37"></script>
-  <script src="js/cashbank.js?v=37"></script>
-  <script src="js/accounting.js?v=37"></script>
-  <script src="js/reports.js?v=37"></script>
-  <script src="js/close.js?v=37"></script>
-  <script src="js/auth.js?v=37"></script>
+  <script src="js/sell.js?v=38"></script>
+  <script src="js/payment.js?v=38"></script>
+  <script src="js/tradein.js?v=38"></script>
+  <script src="js/buyback.js?v=38"></script>
+  <script src="js/exchange.js?v=38"></script>
+  <script src="js/withdraw.js?v=38"></script>
+  <script src="js/inventory.js?v=38"></script>
+  <script src="js/cashbank.js?v=38"></script>
+  <script src="js/accounting.js?v=38"></script>
+  <script src="js/reports.js?v=38"></script>
+  <script src="js/close.js?v=38"></script>
+  <script src="js/review.js?v=38"></script>
+  <script src="js/auth.js?v=38"></script>
   
   <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
   <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/th.js"></script>

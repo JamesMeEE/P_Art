@@ -112,7 +112,7 @@ function calculateBuybackTotal() {
 }
 
 async function calculateBuyback() {
-  const customer = document.getElementById('buybackCustomer').value;
+  const customer = document.getElementById('buybackPhone').value;
   if (!customer) {
     alert('กรุณากรอกชื่อลูกค้า');
     return;
@@ -137,7 +137,7 @@ async function calculateBuyback() {
   try {
     showLoading();
     const result = await callAppsScript('ADD_BUYBACK', {
-      customer,
+      phone,
       products: JSON.stringify(products),
       total,
       user: currentUser.nickname
@@ -147,7 +147,7 @@ async function calculateBuyback() {
       alert('✅ สร้างรายการรับซื้อสำเร็จ! รอ Manager Review');
       closeModal('buybackModal');
       
-      document.getElementById('buybackCustomer').value = '';
+      document.getElementById('buybackPhone').value = '';
       document.getElementById('buybackProducts').innerHTML = '';
       document.getElementById('buybackPrice').value = '';
       buybackCounter = 0;
@@ -179,13 +179,13 @@ async function openBuybackPaymentModalFromList(buybackId) {
     
     currentBuybackPayment = {
       buybackId: buyback[0],
-      customer: buyback[1],
+      phone: buyback[1],
       items: buyback[2],
       baseTotal: parseFloat(buyback[3]) || 0
     };
     
     document.getElementById('buybackPaymentId').textContent = buyback[0];
-    document.getElementById('buybackPaymentCustomer').textContent = buyback[1];
+    document.getElementById('buybackPaymentPhone').textContent = buyback[1];
     document.getElementById('buybackPaymentItems').textContent = formatItemsForDisplay(buyback[2]);
     document.getElementById('buybackPaymentBaseTotal').textContent = formatNumber(buyback[3]) + ' LAK';
     

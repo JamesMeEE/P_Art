@@ -113,7 +113,7 @@ function addExchangeNewGold() {
 }
 
 async function calculateExchange() {
-  const customer = document.getElementById('exchangeCustomer').value;
+  const customer = document.getElementById('exchangePhone').value;
   if (!customer) {
     alert('กรุณากรอกชื่อลูกค้า');
     return;
@@ -175,7 +175,7 @@ async function calculateExchange() {
   try {
     showLoading();
     const result = await callAppsScript('ADD_EXCHANGE', {
-      customer,
+      phone,
       oldGold: JSON.stringify(oldGold),
       newGold: JSON.stringify(newGold),
       exchangeFee,
@@ -187,7 +187,7 @@ async function calculateExchange() {
     if (result.success) {
       alert('✅ สร้างรายการแลกเปลี่ยนสำเร็จ! รอ Manager Review');
       closeModal('exchangeModal');
-      document.getElementById('exchangeCustomer').value = '';
+      document.getElementById('exchangePhone').value = '';
       document.getElementById('exchangeOldGold').innerHTML = '';
       document.getElementById('exchangeNewGold').innerHTML = '';
       exchangeOldCounter = 0;
@@ -196,26 +196,6 @@ async function calculateExchange() {
       addExchangeNewGold();
       loadExchanges();
       loadDashboard();
-    } else {
-      alert('❌ เกิดข้อผิดพลาด: ' + result.message);
-    }
-    hideLoading();
-  } catch (error) {
-    alert('❌ เกิดข้อผิดพลาด: ' + error.message);
-    hideLoading();
-  }
-}
-
-async function reviewExchange(exchangeId) {
-  if (!confirm('ยืนยันการ Review รายการแลกเปลี่ยนนี้?')) return;
-  
-  try {
-    showLoading();
-    const result = await callAppsScript('REVIEW_EXCHANGE', { id: exchangeId });
-    
-    if (result.success) {
-      alert('✅ Review สำเร็จ! รอ User ยืนยันชำระเงิน');
-      loadExchanges();
     } else {
       alert('❌ เกิดข้อผิดพลาด: ' + result.message);
     }
@@ -240,14 +220,14 @@ async function openExchangePaymentModal(exchangeId) {
     
     currentExchangePayment = {
       exchangeId: exchange[0],
-      customer: exchange[1],
+      phone: exchange[1],
       oldGold: exchange[2],
       newGold: exchange[3],
       total: parseFloat(exchange[6]) || 0
     };
     
     document.getElementById('exchangePaymentId').textContent = exchange[0];
-    document.getElementById('exchangePaymentCustomer').textContent = exchange[1];
+    document.getElementById('exchangePaymentPhone').textContent = exchange[1];
     document.getElementById('exchangePaymentOldGold').textContent = formatItemsForDisplay(exchange[2]);
     document.getElementById('exchangePaymentNewGold').textContent = formatItemsForDisplay(exchange[3]);
     document.getElementById('exchangePaymentTotal').textContent = formatNumber(exchange[6]) + ' LAK';
