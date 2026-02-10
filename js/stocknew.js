@@ -2,24 +2,16 @@ async function loadStockNew() {
   try {
     showLoading();
 
-    await callAppsScript('INIT_STOCK');
-
-    const [stockData, sellData, tradeinData, exchangeData, switchData, freeExData, withdrawData, pricingData] = await Promise.all([
+    const [stockData, moveData] = await Promise.all([
       fetchSheetData('Stock_New!A:D'),
-      fetchSheetData('Sells!A:L'),
-      fetchSheetData('Tradeins!A:N'),
-      fetchSheetData('Exchanges!A:N'),
-      fetchSheetData('Switch!A:N'),
-      fetchSheetData('FreeExchanges!A:J'),
-      fetchSheetData('Withdraws!A:J'),
-      fetchSheetData('Pricing!A:B')
+      fetchSheetData('StockMove_New!A:H')
     ]);
 
-    const sell1Baht = pricingData.length > 1 ? parseFloat(pricingData[pricingData.length - 1][1]) || 0 : 0;
-    const sellPerG = sell1Baht / 15;
+    let carry = {};
+    FIXED_PRODUCTS.forEach(p => { carry[p.id] = 0; });
 
-    let carry = {}, qtyIn = {}, qtyOut = {};
-    FIXED_PRODUCTS.forEach(p => { carry[p.id] = 0; qtyIn[p.id] = 0; qtyOut[p.id] = 0; });
+    let qtyIn = {}, qtyOut = {};
+    FIXED_PRODUCTS.forEach(p => { qtyIn[p.id] = 0; qtyOut[p.id] = 0; });
 
     if (stockData.length > 1) {
       const lastRow = stockData[stockData.length - 1];
@@ -34,13 +26,13 @@ async function loadStockNew() {
       const i = qtyIn[p.id] || 0;
       const o = qtyOut[p.id] || 0;
       const bal = c + i - o;
-      return `<tr>
-        <td>${p.id}</td><td>${p.name}</td>
-        <td>${c}</td>
-        <td style="color:#4caf50;">${i > 0 ? '+' + i : '0'}</td>
-        <td style="color:#f44336;">${o > 0 ? '-' + o : '0'}</td>
-        <td style="font-weight:bold;">${bal}</td>
-      </tr>`;
+      return '<tr>' +
+        '<td>' + p.id + '</td><td>' + p.name + '</td>' +
+        '<td>' + c + '</td>' +
+        '<td style="color:#4caf50;">' + (i > 0 ? '+' + i : '0') + '</td>' +
+        '<td style="color:#f44336;">' + (o > 0 ? '-' + o : '0') + '</td>' +
+        '<td style="font-weight:bold;">' + bal + '</td>' +
+        '</tr>';
     }).join('');
 
     let carryWeightG = 0;
@@ -54,46 +46,24 @@ async function loadStockNew() {
     todayEnd.setHours(23,59,59,999);
 
     const movements = [];
-
-    const collectNewGoldOut = (data, type, itemsCol, dateCol, statusCol) => {
-      data.slice(1).forEach(row => {
-        if (row[statusCol] !== 'COMPLETED') return;
-        const d = new Date(row[dateCol]);
+    if (moveData.length > 1) {
+      moveData.slice(1).forEach(row => {
+        const d = new Date(row[0]);
         if (d < today || d > todayEnd) return;
-        try {
-          const items = JSON.parse(row[itemsCol]);
-          let totalWeightG = 0;
-          items.forEach(item => { totalWeightG += getGoldWeight(item.productId) * item.qty; });
-          const priceOut = totalWeightG * sellPerG;
-          movements.push({ id: row[0], type, goldIn: 0, goldOut: totalWeightG, priceIn: 0, priceOut: Math.round(priceOut / 1000) * 1000, date: row[dateCol] });
-        } catch(e) {}
+        const goldG = parseFloat(row[4]) || 0;
+        const price = parseFloat(row[6]) || 0;
+        const direction = row[5];
+        movements.push({
+          id: row[1],
+          type: row[2],
+          goldIn: direction === 'IN' ? goldG : 0,
+          goldOut: direction === 'OUT' ? goldG : 0,
+          priceIn: direction === 'IN' ? price : 0,
+          priceOut: direction === 'OUT' ? price : 0,
+          date: row[0]
+        });
       });
-    };
-
-    collectNewGoldOut(sellData, 'SELL', 2, 9, 10);
-    collectNewGoldOut(withdrawData, 'WITHDRAW', 2, 6, 7);
-
-    const collectExNewOut = (data, type, dateCol, statusCol) => {
-      data.slice(1).forEach(row => {
-        if (row[statusCol] !== 'COMPLETED') return;
-        const d = new Date(row[dateCol]);
-        if (d < today || d > todayEnd) return;
-        try {
-          const newItems = JSON.parse(row[3]);
-          let totalWeightG = 0;
-          newItems.forEach(item => { totalWeightG += getGoldWeight(item.productId) * item.qty; });
-          const priceOut = totalWeightG * sellPerG;
-          movements.push({ id: row[0], type, goldIn: 0, goldOut: totalWeightG, priceIn: 0, priceOut: Math.round(priceOut / 1000) * 1000, date: row[dateCol] });
-        } catch(e) {}
-      });
-    };
-
-    collectExNewOut(tradeinData, 'TRADE-IN', 11, 12);
-    collectExNewOut(exchangeData, 'EXCHANGE', 11, 12);
-    collectExNewOut(switchData, 'SWITCH', 11, 12);
-    collectExNewOut(freeExData, 'FREE-EX', 7, 8);
-
-    movements.sort((a, b) => new Date(a.date) - new Date(b.date));
+    }
 
     let runningWeight = carryWeightG;
     let runningCost = 0;
@@ -116,17 +86,17 @@ async function loadStockNew() {
     if (movements.length === 0) {
       movBody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:40px;">No records today</td></tr>';
     } else {
-      movBody.innerHTML = movements.map(m => `<tr>
-        <td>${m.id}</td>
-        <td><span class="status-badge">${m.type}</span></td>
-        <td style="color:#4caf50;">${m.goldIn > 0 ? formatNumber(m.goldIn.toFixed(2)) : '-'}</td>
-        <td style="color:#f44336;">${m.goldOut > 0 ? formatNumber(m.goldOut.toFixed(2)) : '-'}</td>
-        <td>${formatNumber(Math.abs(m.runningWeight).toFixed(2))} g</td>
-        <td>${m.priceIn > 0 ? formatNumber(m.priceIn) : '-'}</td>
-        <td>${m.priceOut > 0 ? formatNumber(m.priceOut) : '-'}</td>
-        <td>${formatNumber(Math.round(Math.abs(m.runningCost) / 1000) * 1000)}</td>
-        <td><button class="btn-action" onclick="viewBillDetail('${m.id}','${m.type}')">📋</button></td>
-      </tr>`).join('');
+      movBody.innerHTML = movements.map(m => '<tr>' +
+        '<td>' + m.id + '</td>' +
+        '<td><span class="status-badge">' + m.type + '</span></td>' +
+        '<td style="color:#4caf50;">' + (m.goldIn > 0 ? formatNumber(m.goldIn.toFixed(2)) : '-') + '</td>' +
+        '<td style="color:#f44336;">' + (m.goldOut > 0 ? formatNumber(m.goldOut.toFixed(2)) : '-') + '</td>' +
+        '<td>' + formatNumber(Math.abs(m.runningWeight).toFixed(2)) + ' g</td>' +
+        '<td>' + (m.priceIn > 0 ? formatNumber(m.priceIn) : '-') + '</td>' +
+        '<td>' + (m.priceOut > 0 ? formatNumber(m.priceOut) : '-') + '</td>' +
+        '<td>' + formatNumber(Math.round(Math.abs(m.runningCost) / 1000) * 1000) + '</td>' +
+        '<td><button class="btn-action" onclick="viewBillDetail(\'' + m.id + '\',\'' + m.type + '\')">📋</button></td>' +
+        '</tr>').join('');
     }
 
     hideLoading();

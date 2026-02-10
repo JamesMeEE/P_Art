@@ -2,25 +2,16 @@ async function loadStockOld() {
   try {
     showLoading();
 
-    await callAppsScript('INIT_STOCK');
-
-    const [stockData, buybackData, tradeinData, exchangeData, switchData, freeExData, pricingData] = await Promise.all([
+    const [stockData, moveData] = await Promise.all([
       fetchSheetData('Stock_Old!A:D'),
-      fetchSheetData('Buybacks!A:L'),
-      fetchSheetData('Tradeins!A:N'),
-      fetchSheetData('Exchanges!A:N'),
-      fetchSheetData('Switch!A:N'),
-      fetchSheetData('FreeExchanges!A:J'),
-      fetchSheetData('Pricing!A:B')
+      fetchSheetData('StockMove_Old!A:H')
     ]);
 
-    const sell1Baht = pricingData.length > 1 ? parseFloat(pricingData[pricingData.length - 1][1]) || 0 : 0;
-    const buyback1Baht = sell1Baht - 530000;
-    const sellPerG = sell1Baht / 15;
-    const buybackPerG = buyback1Baht / 15;
+    let carry = {};
+    FIXED_PRODUCTS.forEach(p => { carry[p.id] = 0; });
 
-    let carry = {}, qtyIn = {}, qtyOut = {};
-    FIXED_PRODUCTS.forEach(p => { carry[p.id] = 0; qtyIn[p.id] = 0; qtyOut[p.id] = 0; });
+    let qtyIn = {}, qtyOut = {};
+    FIXED_PRODUCTS.forEach(p => { qtyIn[p.id] = 0; qtyOut[p.id] = 0; });
 
     if (stockData.length > 1) {
       const lastRow = stockData[stockData.length - 1];
@@ -35,13 +26,13 @@ async function loadStockOld() {
       const i = qtyIn[p.id] || 0;
       const o = qtyOut[p.id] || 0;
       const bal = c + i - o;
-      return `<tr>
-        <td>${p.id}</td><td>${p.name}</td>
-        <td>${c}</td>
-        <td style="color:#4caf50;">${i > 0 ? '+' + i : '0'}</td>
-        <td style="color:#f44336;">${o > 0 ? '-' + o : '0'}</td>
-        <td style="font-weight:bold;">${bal}</td>
-      </tr>`;
+      return '<tr>' +
+        '<td>' + p.id + '</td><td>' + p.name + '</td>' +
+        '<td>' + c + '</td>' +
+        '<td style="color:#4caf50;">' + (i > 0 ? '+' + i : '0') + '</td>' +
+        '<td style="color:#f44336;">' + (o > 0 ? '-' + o : '0') + '</td>' +
+        '<td style="font-weight:bold;">' + bal + '</td>' +
+        '</tr>';
     }).join('');
 
     let carryWeightG = 0;
@@ -55,30 +46,24 @@ async function loadStockOld() {
     todayEnd.setHours(23,59,59,999);
 
     const movements = [];
-
-    const collectOldGoldIn = (data, type, dateCol, statusCol, useBuybackPrice) => {
-      data.slice(1).forEach(row => {
-        if (row[statusCol] !== 'COMPLETED' && row[statusCol] !== 'PARTIAL') return;
-        const d = new Date(row[dateCol]);
+    if (moveData.length > 1) {
+      moveData.slice(1).forEach(row => {
+        const d = new Date(row[0]);
         if (d < today || d > todayEnd) return;
-        try {
-          const items = JSON.parse(row[2]);
-          let totalWeightG = 0;
-          items.forEach(item => { totalWeightG += getGoldWeight(item.productId) * item.qty; });
-          const perG = useBuybackPrice ? buybackPerG : sellPerG;
-          const priceIn = totalWeightG * perG;
-          movements.push({ id: row[0], type, goldIn: totalWeightG, goldOut: 0, priceIn: Math.round(priceIn / 1000) * 1000, priceOut: 0, date: row[dateCol] });
-        } catch(e) {}
+        const goldG = parseFloat(row[4]) || 0;
+        const price = parseFloat(row[6]) || 0;
+        const direction = row[5];
+        movements.push({
+          id: row[1],
+          type: row[2],
+          goldIn: direction === 'IN' ? goldG : 0,
+          goldOut: direction === 'OUT' ? goldG : 0,
+          priceIn: direction === 'IN' ? price : 0,
+          priceOut: direction === 'OUT' ? price : 0,
+          date: row[0]
+        });
       });
-    };
-
-    collectOldGoldIn(buybackData, 'BUYBACK', 9, 10, true);
-    collectOldGoldIn(tradeinData, 'TRADE-IN', 11, 12, false);
-    collectOldGoldIn(exchangeData, 'EXCHANGE', 11, 12, false);
-    collectOldGoldIn(switchData, 'SWITCH', 11, 12, false);
-    collectOldGoldIn(freeExData, 'FREE-EX', 7, 8, false);
-
-    movements.sort((a, b) => new Date(a.date) - new Date(b.date));
+    }
 
     let runningWeight = carryWeightG;
     let runningCost = 0;
@@ -101,17 +86,17 @@ async function loadStockOld() {
     if (movements.length === 0) {
       movBody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:40px;">No records today</td></tr>';
     } else {
-      movBody.innerHTML = movements.map(m => `<tr>
-        <td>${m.id}</td>
-        <td><span class="status-badge">${m.type}</span></td>
-        <td style="color:#4caf50;">${m.goldIn > 0 ? formatNumber(m.goldIn.toFixed(2)) : '-'}</td>
-        <td style="color:#f44336;">${m.goldOut > 0 ? formatNumber(m.goldOut.toFixed(2)) : '-'}</td>
-        <td>${formatNumber(m.runningWeight.toFixed(2))} g</td>
-        <td>${m.priceIn > 0 ? formatNumber(m.priceIn) : '-'}</td>
-        <td>${m.priceOut > 0 ? formatNumber(m.priceOut) : '-'}</td>
-        <td>${formatNumber(Math.round(m.runningCost / 1000) * 1000)}</td>
-        <td><button class="btn-action" onclick="viewBillDetail('${m.id}','${m.type}')">📋</button></td>
-      </tr>`).join('');
+      movBody.innerHTML = movements.map(m => '<tr>' +
+        '<td>' + m.id + '</td>' +
+        '<td><span class="status-badge">' + m.type + '</span></td>' +
+        '<td style="color:#4caf50;">' + (m.goldIn > 0 ? formatNumber(m.goldIn.toFixed(2)) : '-') + '</td>' +
+        '<td style="color:#f44336;">' + (m.goldOut > 0 ? formatNumber(m.goldOut.toFixed(2)) : '-') + '</td>' +
+        '<td>' + formatNumber(m.runningWeight.toFixed(2)) + ' g</td>' +
+        '<td>' + (m.priceIn > 0 ? formatNumber(m.priceIn) : '-') + '</td>' +
+        '<td>' + (m.priceOut > 0 ? formatNumber(m.priceOut) : '-') + '</td>' +
+        '<td>' + formatNumber(Math.round(m.runningCost / 1000) * 1000) + '</td>' +
+        '<td><button class="btn-action" onclick="viewBillDetail(\'' + m.id + '\',\'' + m.type + '\')">📋</button></td>' +
+        '</tr>').join('');
     }
 
     hideLoading();
@@ -140,19 +125,23 @@ async function viewBillDetail(id, type) {
 
     if (!row) { alert('ไม่พบข้อมูลบิล: ' + id); return; }
 
+    const formatItems = (json) => {
+      try {
+        return JSON.parse(json).map(i => (FIXED_PRODUCTS.find(p => p.id === i.productId) || {}).name + ' x' + i.qty).join(', ');
+      } catch(e) { return json; }
+    };
+
     let detail = 'Transaction ID: ' + row[0] + '\nPhone: ' + (row[1] || '-') + '\n';
     if (type === 'BUYBACK') {
-      detail += 'Items: ' + formatItemsForDisplay(row[2]) + '\nPrice: ' + formatNumber(row[3]) + ' LAK\nFee: ' + formatNumber(row[5]) + ' LAK\nTotal: ' + formatNumber(row[6]) + ' LAK\nStatus: ' + row[10];
+      detail += 'Items: ' + formatItems(row[2]) + '\nPrice: ' + formatNumber(row[3]) + ' LAK\nFee: ' + formatNumber(row[5]) + ' LAK\nTotal: ' + formatNumber(row[6]) + ' LAK\nStatus: ' + row[10];
     } else if (type === 'TRADE-IN' || type === 'EXCHANGE' || type === 'SWITCH') {
-      detail += 'Old Gold: ' + formatItemsForDisplay(row[2]) + '\nNew Gold: ' + formatItemsForDisplay(row[3]) + '\nTotal: ' + formatNumber(row[6]) + ' LAK\nStatus: ' + row[12];
+      detail += 'Old Gold: ' + formatItems(row[2]) + '\nNew Gold: ' + formatItems(row[3]) + '\nTotal: ' + formatNumber(row[6]) + ' LAK\nStatus: ' + row[12];
     } else if (type === 'FREE-EX') {
-      detail += 'Old Gold: ' + formatItemsForDisplay(row[2]) + '\nNew Gold: ' + formatItemsForDisplay(row[3]) + '\nPremium: ' + formatNumber(row[4]) + ' LAK\nStatus: ' + row[8];
+      detail += 'Old Gold: ' + formatItems(row[2]) + '\nNew Gold: ' + formatItems(row[3]) + '\nPremium: ' + formatNumber(row[4]) + ' LAK\nStatus: ' + row[8];
     } else if (type === 'SELL') {
-      detail += 'Items: ' + formatItemsForDisplay(row[2]) + '\nTotal: ' + formatNumber(row[3]) + ' LAK\nStatus: ' + row[10];
+      detail += 'Items: ' + formatItems(row[2]) + '\nTotal: ' + formatNumber(row[3]) + ' LAK\nStatus: ' + row[10];
     } else if (type === 'WITHDRAW') {
-      detail += 'Items: ' + formatItemsForDisplay(row[2]) + '\nTotal: ' + formatNumber(row[4]) + ' LAK\nStatus: ' + row[7];
-    } else {
-      detail += 'Type: ' + row[1] + '\nProduct: ' + row[3];
+      detail += 'Items: ' + formatItems(row[2]) + '\nTotal: ' + formatNumber(row[4]) + ' LAK\nStatus: ' + row[7];
     }
     alert(detail);
   } catch(e) {
