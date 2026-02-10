@@ -47,10 +47,14 @@ function renderCashPayments() {
         </select>
         <input type="number" class="form-input cash-amount-input" data-id="${item.id}" placeholder="Amount" value="${item.amount || ''}" 
                style="flex: 1;" oninput="updateCashAmountOnly(${item.id}, this.value)">
-        ${item.currency !== 'LAK' ? `<span class="lak-display" style="color: var(--gold-primary); font-weight: bold; min-width: 120px; text-align: right;">= ${formatNumber(lakAmount)} LAK</span>` : ''}
         <button class="btn-secondary" style="padding: 8px 12px; background: #f44336; color: white;" onclick="removeCashPayment(${item.id})">✕</button>
       </div>
-      ${item.currency !== 'LAK' ? `<div style="font-size: 11px; color: var(--text-secondary); margin-top: 5px;">Rate: 1 ${item.currency} = ${formatNumber(item.rate)} LAK</div>` : ''}
+      ${item.currency !== 'LAK' ? `
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 8px; padding-top: 8px; border-top: 1px dashed var(--border-color);">
+          <span style="font-size: 11px; color: var(--text-secondary);">Rate: 1 ${item.currency} = ${formatNumber(item.rate)} LAK</span>
+          <span class="lak-display" style="color: var(--gold-primary); font-weight: bold;">= ${formatNumber(lakAmount)} LAK</span>
+        </div>
+      ` : ''}
     </div>
   `}).join('');
   updatePaymentSummary();
@@ -88,10 +92,14 @@ function renderBankPayments() {
         </select>
         <input type="number" class="form-input bank-amount-input" data-id="${item.id}" placeholder="Amount" value="${item.amount || ''}" 
                style="flex: 1;" oninput="updateBankAmountOnly(${item.id}, this.value)">
-        ${item.currency !== 'LAK' ? `<span class="lak-display" style="color: var(--gold-primary); font-weight: bold; min-width: 120px; text-align: right;">= ${formatNumber(lakAmount)} LAK</span>` : ''}
         <button class="btn-secondary" style="padding: 8px 12px; background: #f44336; color: white;" onclick="removeBankPayment(${item.id})">✕</button>
       </div>
-      ${item.currency !== 'LAK' ? `<div style="font-size: 11px; color: var(--text-secondary); margin-top: 5px;">Rate: 1 ${item.currency} = ${formatNumber(item.rate)} LAK</div>` : ''}
+      ${item.currency !== 'LAK' ? `
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 8px; padding-top: 8px; border-top: 1px dashed var(--border-color);">
+          <span style="font-size: 11px; color: var(--text-secondary);">Rate: 1 ${item.currency} = ${formatNumber(item.rate)} LAK</span>
+          <span class="lak-display" style="color: var(--gold-primary); font-weight: bold;">= ${formatNumber(lakAmount)} LAK</span>
+        </div>
+      ` : ''}
     </div>
   `}).join('');
   updatePaymentSummary();
