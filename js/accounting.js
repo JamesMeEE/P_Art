@@ -187,12 +187,14 @@ async function loadTodayStats() {
       fetchSheetData('Switches!A:N'),
       fetchSheetData('FreeExchanges!A:J'),
       fetchSheetData('CashBank!A:I'),
-      callAppsScript('GET_WAC')
+      callAppsScript('GET_WAC'),
+      fetchSheetData('Diff!A:I')
     ]);
 
     var sells = results[0], tradeins = results[1], exchanges = results[2];
     var buybacks = results[3], withdraws = results[4], switchData = results[5];
     var freeExData = results[6], cashbankData = results[7], wacResult = results[8];
+    var diffData = results[9];
 
     var wacPerG = wacResult.data ? wacResult.data.wacPerG || 0 : 0;
 
@@ -344,6 +346,14 @@ async function loadTodayStats() {
     var bbCostLAK = wacPerG * bb.oldGoldG;
 
     var gpDiff = 0;
+    if (diffData && diffData.length > 1) {
+      diffData.slice(1).forEach(function(row) {
+        var date = parseSheetDate(row[8]);
+        if (date && date >= todayStart && date <= todayEnd) {
+          gpDiff += parseFloat(row[7]) || 0;
+        }
+      });
+    }
     var pl = gpDiff - otherExpenseLAK;
 
     document.getElementById('accountingStats').innerHTML =
@@ -436,7 +446,6 @@ async function loadTodayStats() {
       '<div class="stat-card">' +
       '<h3 style="color:var(--gold-primary);margin-bottom:8px;">GP / Diff</h3>' +
       '<p style="font-size:20px;font-weight:bold;color:' + (gpDiff >= 0 ? '#4caf50' : '#f44336') + ';margin:10px 0;">' + formatNumber(Math.round(gpDiff)) + ' <span style="font-size:12px;">LAK</span></p>' +
-      '<p style="font-size:11px;color:var(--text-secondary);">Coming soon...</p>' +
       '</div>' +
 
       '<div class="stat-card">' +

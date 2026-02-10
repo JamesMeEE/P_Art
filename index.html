@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600;700&family=Montserrat:wght@200;300;400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-  <link rel="stylesheet" href="style.css?v=63">
+  <link rel="stylesheet" href="style.css?v=64">
   <script>
     (function() {
       const cb = localStorage.getItem('cacheBuster') || Date.now();
@@ -86,6 +86,7 @@
       <button class="nav-btn" onclick="showSection('inventory')">◒ Inventory</button>
       <button class="nav-btn" onclick="showSection('cashbank')">◔ Cash/Bank</button>
       <button class="nav-btn" onclick="showSection('accounting')">◕ Accounting</button>
+      <button class="nav-btn" onclick="showSection('diff')">◈ Diff</button>
       <button class="nav-btn" onclick="showSection('reports')">◖ Reports</button>
       <button class="nav-btn" onclick="showSection('stockold')">◗ Stock (OLD)</button>
       <button class="nav-btn" onclick="showSection('stocknew')">◘ Stock (NEW)</button>
@@ -711,6 +712,46 @@
             </tbody>
           </table>
         </div>
+      </div>
+    </section>
+
+    <section id="diff" class="section">
+      <div style="margin-bottom: 30px;">
+        <h2 style="font-family: 'Cormorant Garamond', serif; font-size: 36px; color: var(--gold-primary);">Diff (Profit per Transaction)</h2>
+      </div>
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <div style="display: flex; gap: 10px; align-items: center;">
+          <input type="date" id="diffStartDate" class="form-input" style="width: 150px;" onchange="checkDiffFilter()">
+          <span style="color: var(--text-secondary);">to</span>
+          <input type="date" id="diffEndDate" class="form-input" style="width: 150px;" onchange="checkDiffFilter()">
+          <button class="btn-secondary" onclick="showTodayDiff()">TODAY</button>
+        </div>
+      </div>
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr style="background: #2d2d2d !important; border-bottom: 2px solid #d4af37 !important;">
+              <th style="background: #2d2d2d !important; color: #d4af37 !important; border: 1px solid rgba(212, 175, 55, 0.5) !important; text-transform: uppercase !important; font-weight: 700 !important; padding: 14px 8px !important; font-size: 13px !important; text-align: center !important;">Transaction ID</th>
+              <th style="background: #2d2d2d !important; color: #d4af37 !important; border: 1px solid rgba(212, 175, 55, 0.5) !important; text-transform: uppercase !important; font-weight: 700 !important; padding: 14px 8px !important; font-size: 13px !important; text-align: center !important;">DIFFERENCE</th>
+              <th style="background: #2d2d2d !important; color: #d4af37 !important; border: 1px solid rgba(212, 175, 55, 0.5) !important; text-transform: uppercase !important; font-weight: 700 !important; padding: 14px 8px !important; font-size: 13px !important; text-align: center !important;">EXCHANGE</th>
+              <th style="background: #2d2d2d !important; color: #d4af37 !important; border: 1px solid rgba(212, 175, 55, 0.5) !important; text-transform: uppercase !important; font-weight: 700 !important; padding: 14px 8px !important; font-size: 13px !important; text-align: center !important;">PREMIUM</th>
+              <th style="background: #2d2d2d !important; color: #d4af37 !important; border: 1px solid rgba(212, 175, 55, 0.5) !important; text-transform: uppercase !important; font-weight: 700 !important; padding: 14px 8px !important; font-size: 13px !important; text-align: center !important;">Cost(ส่วนต่าง)</th>
+              <th style="background: #2d2d2d !important; color: #d4af37 !important; border: 1px solid rgba(212, 175, 55, 0.5) !important; text-transform: uppercase !important; font-weight: 700 !important; padding: 14px 8px !important; font-size: 13px !important; text-align: center !important;">Cost(ทองเก่า)</th>
+              <th style="background: #2d2d2d !important; color: #d4af37 !important; border: 1px solid rgba(212, 175, 55, 0.5) !important; text-transform: uppercase !important; font-weight: 700 !important; padding: 14px 8px !important; font-size: 13px !important; text-align: center !important;">Diff</th>
+              <th style="background: #2d2d2d !important; color: #d4af37 !important; border: 1px solid rgba(212, 175, 55, 0.5) !important; text-transform: uppercase !important; font-weight: 700 !important; padding: 14px 8px !important; font-size: 13px !important; text-align: center !important;">Date</th>
+            </tr>
+          </thead>
+          <tbody id="diffTable">
+            <tr><td colspan="8" style="text-align: center; padding: 40px;">No records</td></tr>
+          </tbody>
+          <tfoot>
+            <tr id="diffTotalRow" style="background: #2d2d2d !important; border-top: 2px solid #d4af37;">
+              <td colspan="6" style="text-align:right;font-weight:bold;font-size:16px;">Total Diff:</td>
+              <td style="font-weight:bold;font-size:18px;">0 LAK</td>
+              <td></td>
+            </tr>
+          </tfoot>
+        </table>
       </div>
     </section>
 
@@ -1948,31 +1989,32 @@
   </style>
   
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="js/config.js?v=63"></script>
-  <script src="js/utils.js?v=63"></script>
-  <script src="js/api.js?v=63"></script>
-  <script src="js/ui.js?v=63"></script>
-  <script src="js/dashboard.js?v=63"></script>
-  <script src="js/products.js?v=63"></script>
-  <script src="js/pricerate.js?v=63"></script>
-  <script src="js/sell.js?v=63"></script>
-  <script src="js/payment.js?v=63"></script>
-  <script src="js/tradein.js?v=63"></script>
-  <script src="js/buyback.js?v=63"></script>
-  <script src="js/exchange.js?v=63"></script>
-  <script src="js/switch.js?v=63"></script>
-  <script src="js/freeexchange.js?v=63"></script>
-  <script src="js/withdraw.js?v=63"></script>
-  <script src="js/inventory.js?v=63"></script>
-  <script src="js/cashbank.js?v=63"></script>
-  <script src="js/accounting.js?v=63"></script>
-  <script src="js/reports.js?v=63"></script>
-  <script src="js/stockold.js?v=63"></script>
-  <script src="js/stocknew.js?v=63"></script>
-  <script src="js/wac.js?v=63"></script>
-  <script src="js/close.js?v=63"></script>
-  <script src="js/review.js?v=63"></script>
-  <script src="js/auth.js?v=63"></script>
+  <script src="js/config.js?v=64"></script>
+  <script src="js/utils.js?v=64"></script>
+  <script src="js/api.js?v=64"></script>
+  <script src="js/ui.js?v=64"></script>
+  <script src="js/dashboard.js?v=64"></script>
+  <script src="js/products.js?v=64"></script>
+  <script src="js/pricerate.js?v=64"></script>
+  <script src="js/sell.js?v=64"></script>
+  <script src="js/payment.js?v=64"></script>
+  <script src="js/tradein.js?v=64"></script>
+  <script src="js/buyback.js?v=64"></script>
+  <script src="js/exchange.js?v=64"></script>
+  <script src="js/switch.js?v=64"></script>
+  <script src="js/freeexchange.js?v=64"></script>
+  <script src="js/withdraw.js?v=64"></script>
+  <script src="js/inventory.js?v=64"></script>
+  <script src="js/cashbank.js?v=64"></script>
+  <script src="js/accounting.js?v=64"></script>
+  <script src="js/diff.js?v=64"></script>
+  <script src="js/reports.js?v=64"></script>
+  <script src="js/stockold.js?v=64"></script>
+  <script src="js/stocknew.js?v=64"></script>
+  <script src="js/wac.js?v=64"></script>
+  <script src="js/close.js?v=64"></script>
+  <script src="js/review.js?v=64"></script>
+  <script src="js/auth.js?v=64"></script>
   
   <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
   <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/th.js"></script>

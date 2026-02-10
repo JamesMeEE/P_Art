@@ -20,12 +20,15 @@ async function loadDashboard() {
       fetchSheetData('Switches!A:N'),
       fetchSheetData('FreeExchanges!A:J'),
       fetchSheetData('_database!A1:G20'),
-      callAppsScript('GET_WAC')
+      callAppsScript('GET_WAC'),
+      fetchSheetData('Diff!A:I'),
+      fetchSheetData('CashBank!A:I')
     ]);
 
     var sellData = results[0], tradeinData = results[1], buybackData = results[2];
     var exchangeData = results[3], withdrawData = results[4], switchData = results[5];
     var freeExData = results[6], dbData = results[7], wacResult = results[8];
+    var diffData = results[9], cashbankData = results[10];
 
     var sales = { moneyLAK: 0, newGoldOutG: 0, oldGoldInG: 0, txCount: 0 };
     var bb = { moneyLAK: 0, oldGoldInG: 0, txCount: 0 };
@@ -34,8 +37,8 @@ async function loadDashboard() {
     sellData.slice(1).forEach(function(row) {
       var date = parseSheetDate(row[9]);
       if (date && date >= todayStart && date <= todayEnd && row[10] === 'COMPLETED') {
-        sales.moneyLAK += parseFloat(row[3]) || 0;
         sales.txCount++;
+        sales.moneyLAK += parseFloat(row[3]) || 0;
         try {
           JSON.parse(row[2]).forEach(function(item) {
             sales.newGoldOutG += getGoldWeight(item.productId) * item.qty;
@@ -47,11 +50,8 @@ async function loadDashboard() {
     tradeinData.slice(1).forEach(function(row) {
       var date = parseSheetDate(row[11]);
       if (date && date >= todayStart && date <= todayEnd && row[12] === 'COMPLETED') {
-        var diff = parseFloat(row[4]) || 0;
-        var fee = parseFloat(row[5]) || 0;
-        var premium = parseFloat(row[6]) || 0;
-        sales.moneyLAK += (diff + fee + premium);
         sales.txCount++;
+        sales.moneyLAK += (parseFloat(row[4]) || 0) + (parseFloat(row[5]) || 0) + (parseFloat(row[6]) || 0);
         try {
           JSON.parse(row[2]).forEach(function(item) { sales.oldGoldInG += getGoldWeight(item.productId) * item.qty; });
           JSON.parse(row[3]).forEach(function(item) { sales.newGoldOutG += getGoldWeight(item.productId) * item.qty; });
@@ -62,8 +62,8 @@ async function loadDashboard() {
     exchangeData.slice(1).forEach(function(row) {
       var date = parseSheetDate(row[11]);
       if (date && date >= todayStart && date <= todayEnd && row[12] === 'COMPLETED') {
-        sales.moneyLAK += (parseFloat(row[4]) || 0) + (parseFloat(row[5]) || 0);
         sales.txCount++;
+        sales.moneyLAK += parseFloat(row[6]) || 0;
         try {
           JSON.parse(row[2]).forEach(function(item) { sales.oldGoldInG += getGoldWeight(item.productId) * item.qty; });
           JSON.parse(row[3]).forEach(function(item) { sales.newGoldOutG += getGoldWeight(item.productId) * item.qty; });
@@ -74,8 +74,8 @@ async function loadDashboard() {
     switchData.slice(1).forEach(function(row) {
       var date = parseSheetDate(row[11]);
       if (date && date >= todayStart && date <= todayEnd && row[12] === 'COMPLETED') {
-        sales.moneyLAK += parseFloat(row[6]) || 0;
         sales.txCount++;
+        sales.moneyLAK += parseFloat(row[6]) || 0;
         try {
           JSON.parse(row[2]).forEach(function(item) { sales.oldGoldInG += getGoldWeight(item.productId) * item.qty; });
           JSON.parse(row[3]).forEach(function(item) { sales.newGoldOutG += getGoldWeight(item.productId) * item.qty; });
@@ -86,8 +86,8 @@ async function loadDashboard() {
     freeExData.slice(1).forEach(function(row) {
       var date = parseSheetDate(row[7]);
       if (date && date >= todayStart && date <= todayEnd && row[8] === 'COMPLETED') {
-        sales.moneyLAK += parseFloat(row[4]) || 0;
         sales.txCount++;
+        sales.moneyLAK += parseFloat(row[5]) || 0;
         try {
           JSON.parse(row[2]).forEach(function(item) { sales.oldGoldInG += getGoldWeight(item.productId) * item.qty; });
           JSON.parse(row[3]).forEach(function(item) { sales.newGoldOutG += getGoldWeight(item.productId) * item.qty; });
@@ -98,8 +98,8 @@ async function loadDashboard() {
     buybackData.slice(1).forEach(function(row) {
       var date = parseSheetDate(row[9]);
       if (date && date >= todayStart && date <= todayEnd && (row[10] === 'COMPLETED' || row[10] === 'PAID')) {
-        bb.moneyLAK += parseFloat(row[6]) || 0;
         bb.txCount++;
+        bb.moneyLAK += parseFloat(row[6]) || 0;
         try {
           JSON.parse(row[2]).forEach(function(item) { bb.oldGoldInG += getGoldWeight(item.productId) * item.qty; });
         } catch(e) {}
@@ -109,37 +109,60 @@ async function loadDashboard() {
     withdrawData.slice(1).forEach(function(row) {
       var date = parseSheetDate(row[6]);
       if (date && date >= todayStart && date <= todayEnd && row[7] === 'COMPLETED') {
-        wd.moneyLAK += parseFloat(row[4]) || 0;
         wd.txCount++;
+        wd.moneyLAK += parseFloat(row[4]) || 0;
         try {
           JSON.parse(row[2]).forEach(function(item) { wd.newGoldOutG += getGoldWeight(item.productId) * item.qty; });
         } catch(e) {}
       }
     });
 
+    var todayDiffTotal = 0;
+    if (diffData && diffData.length > 1) {
+      diffData.slice(1).forEach(function(row) {
+        var date = parseSheetDate(row[8]);
+        if (date && date >= todayStart && date <= todayEnd) {
+          todayDiffTotal += parseFloat(row[7]) || 0;
+        }
+      });
+    }
+
+    var todayOtherExpense = 0;
+    cashbankData.slice(1).forEach(function(row) {
+      var date = parseSheetDate(row[7]);
+      if (date && date >= todayStart && date <= todayEnd && row[1] === 'OTHER_EXPENSE') {
+        var amt = parseFloat(row[2]) || 0;
+        var cur = row[3];
+        if (cur === 'THB') amt = amt * 700;
+        else if (cur === 'USD') amt = amt * 22000;
+        todayOtherExpense += Math.abs(amt);
+      }
+    });
+
+    var todayPL = todayDiffTotal - todayOtherExpense;
+
     document.getElementById('dashSalesBox').innerHTML =
-      '<h3 style="color:var(--gold-primary);margin-bottom:10px;">📊 SALES</h3>' +
-      '<p style="font-size:11px;color:var(--text-secondary);margin-bottom:8px;">Sell · Trade-in · Exchange · Switch · Free Ex</p>' +
-      '<p style="font-size:18px;margin:5px 0;font-weight:bold;">' + formatNumber(sales.moneyLAK) + ' <span style="font-size:12px;">LAK</span></p>' +
+      '<h3 style="color:var(--gold-primary);margin-bottom:10px;">💰 SALES</h3>' +
+      '<p style="font-size:18px;margin:5px 0;font-weight:bold;">' + formatNumber(Math.round(sales.moneyLAK)) + ' <span style="font-size:12px;">LAK</span></p>' +
       '<p style="font-size:13px;color:var(--text-secondary);margin:3px 0;">New Gold Out: <b style="color:#f44336;">' + sales.newGoldOutG.toFixed(2) + ' g</b></p>' +
       '<p style="font-size:13px;color:var(--text-secondary);margin:3px 0;">Old Gold In: <b style="color:#4caf50;">' + sales.oldGoldInG.toFixed(2) + ' g</b></p>' +
       '<p style="font-size:13px;color:var(--text-secondary);margin:3px 0;">Transactions: <b>' + sales.txCount + '</b></p>';
 
     document.getElementById('dashBuybackBox').innerHTML =
-      '<h3 style="color:var(--gold-primary);margin-bottom:10px;">💰 BUYBACK</h3>' +
-      '<p style="font-size:18px;margin:5px 0;font-weight:bold;">' + formatNumber(bb.moneyLAK) + ' <span style="font-size:12px;">LAK</span></p>' +
+      '<h3 style="color:var(--gold-primary);margin-bottom:10px;">🔄 BUYBACK</h3>' +
+      '<p style="font-size:18px;margin:5px 0;font-weight:bold;">' + formatNumber(Math.round(bb.moneyLAK)) + ' <span style="font-size:12px;">LAK</span></p>' +
       '<p style="font-size:13px;color:var(--text-secondary);margin:3px 0;">Old Gold In: <b style="color:#4caf50;">' + bb.oldGoldInG.toFixed(2) + ' g</b></p>' +
       '<p style="font-size:13px;color:var(--text-secondary);margin:3px 0;">Transactions: <b>' + bb.txCount + '</b></p>';
 
     document.getElementById('dashWithdrawBox').innerHTML =
       '<h3 style="color:var(--gold-primary);margin-bottom:10px;">📤 WITHDRAW</h3>' +
-      '<p style="font-size:18px;margin:5px 0;font-weight:bold;">' + formatNumber(wd.moneyLAK) + ' <span style="font-size:12px;">LAK</span></p>' +
+      '<p style="font-size:18px;margin:5px 0;font-weight:bold;">' + formatNumber(Math.round(wd.moneyLAK)) + ' <span style="font-size:12px;">LAK</span></p>' +
       '<p style="font-size:13px;color:var(--text-secondary);margin:3px 0;">New Gold Out: <b style="color:#f44336;">' + wd.newGoldOutG.toFixed(2) + ' g</b></p>' +
       '<p style="font-size:13px;color:var(--text-secondary);margin:3px 0;">Transactions: <b>' + wd.txCount + '</b></p>';
 
     document.getElementById('dashPLBox').innerHTML =
       '<h3 style="color:var(--gold-primary);margin-bottom:10px;">📈 P/L</h3>' +
-      '<p style="font-size:14px;color:var(--text-secondary);text-align:center;padding:20px 0;">Coming soon...</p>';
+      '<p style="font-size:24px;font-weight:bold;color:' + (todayPL >= 0 ? '#4caf50' : '#f44336') + ';margin:10px 0;">' + formatNumber(Math.round(todayPL)) + ' <span style="font-size:12px;">LAK</span></p>';
 
     var wacPerG = wacResult.data ? wacResult.data.wacPerG || 0 : 0;
     var wacPerBaht = wacResult.data ? wacResult.data.wacPerBaht || 0 : 0;
@@ -165,7 +188,6 @@ async function loadDashboard() {
         newStock.goldG += qty * getGoldWeight(p);
       });
     }
-
     if (dbData.length >= 10) {
       var oldGoldRow = dbData[9];
       ['G01','G02','G03','G04','G05','G06','G07'].forEach(function(p, i) {
@@ -174,13 +196,11 @@ async function loadDashboard() {
         oldStock.goldG += qty * getGoldWeight(p);
       });
     }
-
     if (dbData.length >= 14) {
       cash.LAK = parseFloat(dbData[13][0]) || 0;
       cash.THB = parseFloat(dbData[13][1]) || 0;
       cash.USD = parseFloat(dbData[13][2]) || 0;
     }
-
     if (dbData.length >= 20) {
       bank.LAK = (parseFloat(dbData[16][0]) || 0) + (parseFloat(dbData[19][0]) || 0);
       bank.THB = (parseFloat(dbData[16][1]) || 0) + (parseFloat(dbData[19][1]) || 0);
@@ -221,20 +241,11 @@ async function refreshDashReport() {
   try {
     var result = await callAppsScript('GET_LIVE_REPORT');
     if (!result.data) return;
-    var carry = result.data.carryForward || 0;
     var net = result.data.netTotal || 0;
-    var diff = net - carry;
-    var diffColor = diff >= 0 ? '#4caf50' : '#f44336';
-    var diffSign = diff >= 0 ? '+' : '';
 
     document.getElementById('dashReportBox').innerHTML =
-      '<h3 style="color:var(--gold-primary);margin-bottom:10px;">📋 REPORT</h3>' +
-      '<p style="font-size:12px;color:var(--text-secondary);margin:4px 0;">ยอดยกมา</p>' +
-      '<p style="font-size:18px;font-weight:bold;margin:2px 0;">' + carry.toFixed(2) + ' g</p>' +
-      '<p style="font-size:12px;color:var(--text-secondary);margin:8px 0 4px 0;">ยอดสุทธิ</p>' +
-      '<p style="font-size:18px;font-weight:bold;margin:2px 0;">' + net.toFixed(2) + ' g</p>' +
-      '<p style="font-size:12px;color:var(--text-secondary);margin:8px 0 4px 0;">ส่วนต่าง</p>' +
-      '<p style="font-size:20px;font-weight:bold;color:' + diffColor + ';margin:2px 0;">' + diffSign + diff.toFixed(2) + ' g</p>';
+      '<h3 style="color:var(--gold-primary);margin-bottom:10px;">📋 Report</h3>' +
+      '<p style="font-size:24px;font-weight:bold;margin:15px 0;">' + net.toFixed(2) + ' g</p>';
   } catch(e) {}
 }
 
