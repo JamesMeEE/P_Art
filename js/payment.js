@@ -35,54 +35,80 @@ function addBankPayment() {
 
 function renderCashPayments() {
   const container = document.getElementById('cashPaymentsList');
-  container.innerHTML = paymentItems.cash.map((item, idx) => `
-    <div class="payment-item" style="display: flex; gap: 10px; margin-bottom: 10px; padding: 10px; background: var(--bg-light); border-radius: 8px; align-items: center;">
-      <select class="form-select" style="width: 100px;" onchange="updateCashCurrency(${item.id}, this.value)">
-        <option value="LAK" ${item.currency === 'LAK' ? 'selected' : ''}>LAK</option>
-        <option value="THB" ${item.currency === 'THB' ? 'selected' : ''}>THB</option>
-        <option value="USD" ${item.currency === 'USD' ? 'selected' : ''}>USD</option>
-      </select>
-      <input type="number" class="form-input" placeholder="Amount" value="${item.amount || ''}" 
-             style="flex: 1;" oninput="updateCashAmount(${item.id}, this.value)">
-      ${item.currency !== 'LAK' ? `
-        <div style="display: flex; align-items: center; gap: 5px;">
-          <span style="color: var(--text-secondary); font-size: 12px;">Rate:</span>
-          <input type="number" class="form-input" placeholder="Rate" value="${item.rate}" 
-                 style="width: 100px;" oninput="updateCashRate(${item.id}, this.value)">
-        </div>
-      ` : ''}
-      <button class="btn-secondary" style="padding: 8px 12px; background: #f44336; color: white;" onclick="removeCashPayment(${item.id})">✕</button>
+  container.innerHTML = paymentItems.cash.map((item, idx) => {
+    const lakAmount = item.amount * item.rate;
+    return `
+    <div class="payment-item" data-id="${item.id}" style="margin-bottom: 10px; padding: 12px; background: var(--bg-light); border-radius: 8px;">
+      <div style="display: flex; gap: 10px; align-items: center;">
+        <select class="form-select" style="width: 90px;" onchange="updateCashCurrency(${item.id}, this.value)">
+          <option value="LAK" ${item.currency === 'LAK' ? 'selected' : ''}>LAK</option>
+          <option value="THB" ${item.currency === 'THB' ? 'selected' : ''}>THB</option>
+          <option value="USD" ${item.currency === 'USD' ? 'selected' : ''}>USD</option>
+        </select>
+        <input type="number" class="form-input cash-amount-input" data-id="${item.id}" placeholder="Amount" value="${item.amount || ''}" 
+               style="flex: 1;" oninput="updateCashAmountOnly(${item.id}, this.value)">
+        ${item.currency !== 'LAK' ? `<span class="lak-display" style="color: var(--gold-primary); font-weight: bold; min-width: 120px; text-align: right;">= ${formatNumber(lakAmount)} LAK</span>` : ''}
+        <button class="btn-secondary" style="padding: 8px 12px; background: #f44336; color: white;" onclick="removeCashPayment(${item.id})">✕</button>
+      </div>
+      ${item.currency !== 'LAK' ? `<div style="font-size: 11px; color: var(--text-secondary); margin-top: 5px;">Rate: 1 ${item.currency} = ${formatNumber(item.rate)} LAK</div>` : ''}
     </div>
-  `).join('');
+  `}).join('');
   updatePaymentSummary();
+}
+
+function updateCashAmountOnly(id, value) {
+  const item = paymentItems.cash.find(i => i.id === id);
+  if (item) {
+    item.amount = parseFloat(value) || 0;
+    const lakAmount = item.amount * item.rate;
+    const container = document.querySelector(`#cashPaymentsList .payment-item[data-id="${id}"]`);
+    if (container && item.currency !== 'LAK') {
+      const lakSpan = container.querySelector('.lak-display');
+      if (lakSpan) lakSpan.textContent = `= ${formatNumber(lakAmount)} LAK`;
+    }
+    updatePaymentSummary();
+  }
 }
 
 function renderBankPayments() {
   const container = document.getElementById('bankPaymentsList');
-  container.innerHTML = paymentItems.bank.map((item, idx) => `
-    <div class="payment-item" style="display: flex; gap: 10px; margin-bottom: 10px; padding: 10px; background: var(--bg-light); border-radius: 8px; align-items: center;">
-      <select class="form-select" style="width: 90px;" onchange="updateBankName(${item.id}, this.value)">
-        <option value="BCEL" ${item.bank === 'BCEL' ? 'selected' : ''}>BCEL</option>
-        <option value="LDB" ${item.bank === 'LDB' ? 'selected' : ''}>LDB</option>
-      </select>
-      <select class="form-select" style="width: 80px;" onchange="updateBankCurrency(${item.id}, this.value)">
-        <option value="LAK" ${item.currency === 'LAK' ? 'selected' : ''}>LAK</option>
-        <option value="THB" ${item.currency === 'THB' ? 'selected' : ''}>THB</option>
-        <option value="USD" ${item.currency === 'USD' ? 'selected' : ''}>USD</option>
-      </select>
-      <input type="number" class="form-input" placeholder="Amount" value="${item.amount || ''}" 
-             style="flex: 1;" oninput="updateBankAmount(${item.id}, this.value)">
-      ${item.currency !== 'LAK' ? `
-        <div style="display: flex; align-items: center; gap: 5px;">
-          <span style="color: var(--text-secondary); font-size: 12px;">Rate:</span>
-          <input type="number" class="form-input" placeholder="Rate" value="${item.rate}" 
-                 style="width: 100px;" oninput="updateBankRate(${item.id}, this.value)">
-        </div>
-      ` : ''}
-      <button class="btn-secondary" style="padding: 8px 12px; background: #f44336; color: white;" onclick="removeBankPayment(${item.id})">✕</button>
+  container.innerHTML = paymentItems.bank.map((item, idx) => {
+    const lakAmount = item.amount * item.rate;
+    return `
+    <div class="payment-item" data-id="${item.id}" style="margin-bottom: 10px; padding: 12px; background: var(--bg-light); border-radius: 8px;">
+      <div style="display: flex; gap: 10px; align-items: center;">
+        <select class="form-select" style="width: 80px;" onchange="updateBankName(${item.id}, this.value)">
+          <option value="BCEL" ${item.bank === 'BCEL' ? 'selected' : ''}>BCEL</option>
+          <option value="LDB" ${item.bank === 'LDB' ? 'selected' : ''}>LDB</option>
+        </select>
+        <select class="form-select" style="width: 80px;" onchange="updateBankCurrency(${item.id}, this.value)">
+          <option value="LAK" ${item.currency === 'LAK' ? 'selected' : ''}>LAK</option>
+          <option value="THB" ${item.currency === 'THB' ? 'selected' : ''}>THB</option>
+          <option value="USD" ${item.currency === 'USD' ? 'selected' : ''}>USD</option>
+        </select>
+        <input type="number" class="form-input bank-amount-input" data-id="${item.id}" placeholder="Amount" value="${item.amount || ''}" 
+               style="flex: 1;" oninput="updateBankAmountOnly(${item.id}, this.value)">
+        ${item.currency !== 'LAK' ? `<span class="lak-display" style="color: var(--gold-primary); font-weight: bold; min-width: 120px; text-align: right;">= ${formatNumber(lakAmount)} LAK</span>` : ''}
+        <button class="btn-secondary" style="padding: 8px 12px; background: #f44336; color: white;" onclick="removeBankPayment(${item.id})">✕</button>
+      </div>
+      ${item.currency !== 'LAK' ? `<div style="font-size: 11px; color: var(--text-secondary); margin-top: 5px;">Rate: 1 ${item.currency} = ${formatNumber(item.rate)} LAK</div>` : ''}
     </div>
-  `).join('');
+  `}).join('');
   updatePaymentSummary();
+}
+
+function updateBankAmountOnly(id, value) {
+  const item = paymentItems.bank.find(i => i.id === id);
+  if (item) {
+    item.amount = parseFloat(value) || 0;
+    const lakAmount = item.amount * item.rate;
+    const container = document.querySelector(`#bankPaymentsList .payment-item[data-id="${id}"]`);
+    if (container && item.currency !== 'LAK') {
+      const lakSpan = container.querySelector('.lak-display');
+      if (lakSpan) lakSpan.textContent = `= ${formatNumber(lakAmount)} LAK`;
+    }
+    updatePaymentSummary();
+  }
 }
 
 function updateCashCurrency(id, value) {
@@ -98,15 +124,7 @@ function updateCashAmount(id, value) {
   const item = paymentItems.cash.find(i => i.id === id);
   if (item) {
     item.amount = parseFloat(value) || 0;
-    updatePaymentSummary();
-  }
-}
-
-function updateCashRate(id, value) {
-  const item = paymentItems.cash.find(i => i.id === id);
-  if (item) {
-    item.rate = parseFloat(value) || 1;
-    updatePaymentSummary();
+    renderCashPayments();
   }
 }
 
@@ -133,15 +151,7 @@ function updateBankAmount(id, value) {
   const item = paymentItems.bank.find(i => i.id === id);
   if (item) {
     item.amount = parseFloat(value) || 0;
-    updatePaymentSummary();
-  }
-}
-
-function updateBankRate(id, value) {
-  const item = paymentItems.bank.find(i => i.id === id);
-  if (item) {
-    item.rate = parseFloat(value) || 1;
-    updatePaymentSummary();
+    renderBankPayments();
   }
 }
 
