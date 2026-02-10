@@ -229,12 +229,12 @@ async function refreshDashReport() {
 
     document.getElementById('dashReportBox').innerHTML =
       '<h3 style="color:var(--gold-primary);margin-bottom:10px;">📋 REPORT</h3>' +
-      '<p style="font-size:12px;color:var(--text-secondary);margin:2px 0;">ยอดยกมา (g)</p>' +
-      '<p style="font-size:16px;font-weight:bold;margin:2px 0;">' + carry.toFixed(2) + '</p>' +
-      '<p style="font-size:12px;color:var(--text-secondary);margin:6px 0 2px 0;">ยอดสุทธิ (g)</p>' +
-      '<p style="font-size:16px;font-weight:bold;margin:2px 0;">' + net.toFixed(2) + '</p>' +
-      '<p style="font-size:12px;color:var(--text-secondary);margin:6px 0 2px 0;">ส่วนต่าง</p>' +
-      '<p style="font-size:18px;font-weight:bold;color:' + diffColor + ';margin:2px 0;">' + diffSign + diff.toFixed(2) + ' g</p>';
+      '<p style="font-size:12px;color:var(--text-secondary);margin:4px 0;">ยอดยกมา</p>' +
+      '<p style="font-size:18px;font-weight:bold;margin:2px 0;">' + carry.toFixed(2) + ' g</p>' +
+      '<p style="font-size:12px;color:var(--text-secondary);margin:8px 0 4px 0;">ยอดสุทธิ</p>' +
+      '<p style="font-size:18px;font-weight:bold;margin:2px 0;">' + net.toFixed(2) + ' g</p>' +
+      '<p style="font-size:12px;color:var(--text-secondary);margin:8px 0 4px 0;">ส่วนต่าง</p>' +
+      '<p style="font-size:20px;font-weight:bold;color:' + diffColor + ';margin:2px 0;">' + diffSign + diff.toFixed(2) + ' g</p>';
   } catch(e) {}
 }
 
