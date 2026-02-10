@@ -2,6 +2,8 @@ async function loadStockOld() {
   try {
     showLoading();
 
+    await callAppsScript('INIT_STOCK');
+
     const [stockData, buybackData, tradeinData, exchangeData, switchData, freeExData, pricingData] = await Promise.all([
       fetchSheetData('Stock_Old!A:D'),
       fetchSheetData('Buybacks!A:L'),
@@ -99,7 +101,7 @@ async function loadStockOld() {
     if (movements.length === 0) {
       movBody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:40px;">No records today</td></tr>';
     } else {
-      movBody.innerHTML = movements.slice().reverse().map(m => `<tr>
+      movBody.innerHTML = movements.map(m => `<tr>
         <td>${m.id}</td>
         <td><span class="status-badge">${m.type}</span></td>
         <td style="color:#4caf50;">${m.goldIn > 0 ? formatNumber(m.goldIn.toFixed(2)) : '-'}</td>

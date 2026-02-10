@@ -2,6 +2,8 @@ async function loadWAC() {
   try {
     showLoading();
 
+    await callAppsScript('INIT_STOCK');
+
     const [stockOldData, stockNewData, pricingData, buybackData, tradeinData, exchangeData, switchData, freeExData, sellData, withdrawData] = await Promise.all([
       fetchSheetData('Stock_Old!A:D'),
       fetchSheetData('Stock_New!A:D'),
