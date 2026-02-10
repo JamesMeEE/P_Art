@@ -69,28 +69,40 @@ async function loadStockNew() {
       m.w = w; m.c = c;
     });
 
-    const latestW = todayMovements.length > 0 ? Math.abs(todayMovements[todayMovements.length - 1].w) : Math.abs(prevW);
-    const latestC = todayMovements.length > 0 ? Math.abs(todayMovements[todayMovements.length - 1].c) : Math.abs(prevC);
+    const latestW = todayMovements.length > 0 ? todayMovements[todayMovements.length - 1].w : prevW;
+    const latestC = todayMovements.length > 0 ? todayMovements[todayMovements.length - 1].c : prevC;
 
     document.getElementById('stockNewGoldG').textContent = formatNumber(latestW.toFixed(2)) + ' g';
     document.getElementById('stockNewCostValue').textContent = formatNumber(Math.round(latestC / 1000) * 1000) + ' LAK';
     window._stockNewLatest = { goldG: latestW, cost: latestC };
 
     const movBody = document.getElementById('stockNewMovementTable');
-    if (todayMovements.length === 0) {
+    let rows = '';
+
+    if (prevW !== 0 || prevC !== 0) {
+      rows += '<tr style="background:rgba(212,175,55,0.06);">' +
+        '<td colspan="4" style="font-style:italic;color:var(--gold-primary);">📌 ยกมา</td>' +
+        '<td style="font-weight:bold;">' + formatNumber(prevW.toFixed(2)) + '</td>' +
+        '<td colspan="2"></td>' +
+        '<td style="font-weight:bold;">' + formatNumber(Math.round(prevC / 1000) * 1000) + '</td>' +
+        '<td></td></tr>';
+    }
+
+    if (todayMovements.length === 0 && rows === '') {
       movBody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:40px;">ไม่มีรายการวันนี้</td></tr>';
     } else {
-      movBody.innerHTML = todayMovements.map(m => '<tr>' +
+      rows += todayMovements.map(m => '<tr>' +
         '<td>' + m.id + '</td>' +
         '<td><span class="status-badge">' + m.type + '</span></td>' +
         '<td style="color:#4caf50;">' + (m.goldIn > 0 ? formatNumber(m.goldIn.toFixed(2)) : '-') + '</td>' +
         '<td style="color:#f44336;">' + (m.goldOut > 0 ? formatNumber(m.goldOut.toFixed(2)) : '-') + '</td>' +
-        '<td style="font-weight:bold;">' + formatNumber(Math.abs(m.w).toFixed(2)) + '</td>' +
+        '<td style="font-weight:bold;">' + formatNumber(m.w.toFixed(2)) + '</td>' +
         '<td style="color:#4caf50;">' + (m.priceIn > 0 ? formatNumber(m.priceIn) : '-') + '</td>' +
         '<td style="color:#f44336;">' + (m.priceOut > 0 ? formatNumber(m.priceOut) : '-') + '</td>' +
-        '<td style="font-weight:bold;">' + formatNumber(Math.round(Math.abs(m.c) / 1000) * 1000) + '</td>' +
+        '<td style="font-weight:bold;">' + formatNumber(Math.round(m.c / 1000) * 1000) + '</td>' +
         '<td><button class="btn-action" onclick="viewBillDetail(\'' + m.id + '\',\'' + m.type + '\')">📋</button></td>' +
         '</tr>').join('');
+      movBody.innerHTML = rows;
     }
 
     hideLoading();

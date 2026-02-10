@@ -86,10 +86,21 @@ async function loadStockOld() {
     window._stockOldLatest = { goldG: latestW, cost: latestC };
 
     const movBody = document.getElementById('stockOldMovementTable');
-    if (todayMovements.length === 0) {
+    let rows = '';
+
+    if (prevW !== 0 || prevC !== 0) {
+      rows += '<tr style="background:rgba(212,175,55,0.06);">' +
+        '<td colspan="4" style="font-style:italic;color:var(--gold-primary);">📌 ยกมา</td>' +
+        '<td style="font-weight:bold;">' + formatNumber(prevW.toFixed(2)) + '</td>' +
+        '<td colspan="2"></td>' +
+        '<td style="font-weight:bold;">' + formatNumber(Math.round(prevC / 1000) * 1000) + '</td>' +
+        '<td></td></tr>';
+    }
+
+    if (todayMovements.length === 0 && rows === '') {
       movBody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:40px;">ไม่มีรายการวันนี้</td></tr>';
     } else {
-      movBody.innerHTML = todayMovements.map(m => '<tr>' +
+      rows += todayMovements.map(m => '<tr>' +
         '<td>' + m.id + '</td>' +
         '<td><span class="status-badge">' + m.type + '</span></td>' +
         '<td style="color:#4caf50;">' + (m.goldIn > 0 ? formatNumber(m.goldIn.toFixed(2)) : '-') + '</td>' +
@@ -100,6 +111,7 @@ async function loadStockOld() {
         '<td style="font-weight:bold;">' + formatNumber(Math.round(m.c / 1000) * 1000) + '</td>' +
         '<td><button class="btn-action" onclick="viewBillDetail(\'' + m.id + '\',\'' + m.type + '\')">📋</button></td>' +
         '</tr>').join('');
+      movBody.innerHTML = rows;
     }
 
     hideLoading();
@@ -216,7 +228,6 @@ async function viewBillDetail(id, type) {
   }
 }
 
-
 function showBillModal(id, type, contentHtml) {
   let modal = document.getElementById('billDetailModal');
   if (!modal) {
@@ -226,7 +237,7 @@ function showBillModal(id, type, contentHtml) {
     modal.innerHTML = '<div class="modal-content" style="max-width:520px;"><div class="modal-header"><h3 id="billDetailTitle"></h3><button class="close-btn" onclick="closeModal(\'billDetailModal\')">&times;</button></div><div class="modal-body" id="billDetailBody" style="max-height:70vh;overflow-y:auto;"></div><div class="modal-footer"><button class="btn-secondary" onclick="closeModal(\'billDetailModal\')">ปิด</button></div></div>';
     document.body.appendChild(modal);
   }
-  document.getElementById('billDetailTitle').textContent = '📋 รายละเอียด ' + type + ' - ' + id;
+  document.getElementById('billDetailTitle').textContent = '📋 ' + type + ' - ' + id;
   document.getElementById('billDetailBody').innerHTML = contentHtml;
   openModal('billDetailModal');
 }
