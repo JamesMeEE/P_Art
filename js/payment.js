@@ -80,19 +80,21 @@ function renderBankPayments() {
     const lakAmount = item.amount * item.rate;
     return `
     <div class="payment-item" data-id="${item.id}" style="margin-bottom: 10px; padding: 12px; background: var(--bg-light); border-radius: 8px;">
-      <div style="display: flex; gap: 10px; align-items: center;">
-        <select class="form-select" style="width: 80px;" onchange="updateBankName(${item.id}, this.value)">
+      <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 8px;">
+        <select class="form-select" style="flex: 1;" onchange="updateBankName(${item.id}, this.value)">
           <option value="BCEL" ${item.bank === 'BCEL' ? 'selected' : ''}>BCEL</option>
           <option value="LDB" ${item.bank === 'LDB' ? 'selected' : ''}>LDB</option>
         </select>
-        <select class="form-select" style="width: 80px;" onchange="updateBankCurrency(${item.id}, this.value)">
+        <select class="form-select" style="flex: 1;" onchange="updateBankCurrency(${item.id}, this.value)">
           <option value="LAK" ${item.currency === 'LAK' ? 'selected' : ''}>LAK</option>
           <option value="THB" ${item.currency === 'THB' ? 'selected' : ''}>THB</option>
           <option value="USD" ${item.currency === 'USD' ? 'selected' : ''}>USD</option>
         </select>
+        <button class="btn-secondary" style="padding: 8px 12px; background: #f44336; color: white;" onclick="removeBankPayment(${item.id})">✕</button>
+      </div>
+      <div style="display: flex; gap: 10px; align-items: center;">
         <input type="number" class="form-input bank-amount-input" data-id="${item.id}" placeholder="Amount" value="${item.amount || ''}" 
                style="flex: 1;" oninput="updateBankAmountOnly(${item.id}, this.value)">
-        <button class="btn-secondary" style="padding: 8px 12px; background: #f44336; color: white;" onclick="removeBankPayment(${item.id})">✕</button>
       </div>
       ${item.currency !== 'LAK' ? `
         <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 8px; padding-top: 8px; border-top: 1px dashed var(--border-color);">
