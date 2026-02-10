@@ -50,33 +50,44 @@ function renderPriceRateCharts(data) {
   if (data.length <= 1) return;
   
   const chartData = data.slice(1).slice(-30);
-  const labels = chartData.map(row => {
+  const labels = chartData.map(function(row) {
     try {
-      const d = new Date(row[0]);
+      var d = new Date(row[0]);
       return d.toLocaleDateString('th-TH', { day: '2-digit', month: 'short' });
     } catch(e) { return row[0]; }
   });
+
+  var firstDate = '', lastDate = '';
+  try {
+    firstDate = new Date(chartData[0][0]).toLocaleDateString('th-TH', { day: '2-digit', month: 'short', year: 'numeric' });
+    lastDate = new Date(chartData[chartData.length - 1][0]).toLocaleDateString('th-TH', { day: '2-digit', month: 'short', year: 'numeric' });
+  } catch(e) {}
+  var rangeEl = document.getElementById('priceRateDateRange');
+  if (rangeEl) rangeEl.textContent = firstDate + ' — ' + lastDate;
   
   const thbSellValues = chartData.map(row => parseFloat(row[1]) || 0);
   const thbBuyValues = chartData.map(row => parseFloat(row[3]) || 0);
   const usdSellValues = chartData.map(row => parseFloat(row[2]) || 0);
   const usdBuyValues = chartData.map(row => parseFloat(row[4]) || 0);
   
-  const chartOptions = {
-    responsive: true,
-    interaction: { mode: 'index', intersect: false },
-    plugins: {
-      legend: { labels: { color: '#ccc', font: { size: 12 } } },
-      tooltip: {
-        callbacks: {
-          label: function(ctx) { return ctx.dataset.label + ': ' + formatNumber(ctx.parsed.y) + ' LAK'; }
+  var makeOpts = function(yTitle) {
+    return {
+      responsive: true,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { labels: { color: '#ccc', font: { size: 12 } } },
+        tooltip: {
+          callbacks: {
+            title: function(items) { return labels[items[0].dataIndex]; },
+            label: function(ctx) { return ctx.dataset.label + ': ' + formatNumber(ctx.parsed.y) + ' LAK'; }
+          }
         }
+      },
+      scales: {
+        x: { display: false },
+        y: { title: { display: true, text: yTitle, color: '#ccc', font: { size: 13 } }, ticks: { color: '#999', callback: function(v) { return formatNumber(v); } }, grid: { color: 'rgba(255,255,255,0.1)' } }
       }
-    },
-    scales: {
-      x: { ticks: { color: '#999', maxRotation: 45 }, grid: { color: 'rgba(255,255,255,0.05)' } },
-      y: { ticks: { color: '#999', callback: v => formatNumber(v) }, grid: { color: 'rgba(255,255,255,0.1)' } }
-    }
+    };
   };
   
   if (thbChartInstance) thbChartInstance.destroy();
@@ -92,7 +103,7 @@ function renderPriceRateCharts(data) {
         { label: 'THB Buyback', data: thbBuyValues, borderColor: '#f44336', backgroundColor: 'rgba(244,67,54,0.1)', tension: 0.3, fill: false, pointRadius: 3 }
       ]
     },
-    options: chartOptions
+    options: makeOpts('LAK / บาท')
   });
   
   const usdCtx = document.getElementById('usdChart').getContext('2d');
@@ -105,7 +116,7 @@ function renderPriceRateCharts(data) {
         { label: 'USD Buyback', data: usdBuyValues, borderColor: '#ff9800', backgroundColor: 'rgba(255,152,0,0.1)', tension: 0.3, fill: false, pointRadius: 3 }
       ]
     },
-    options: chartOptions
+    options: makeOpts('LAK / USD')
   });
 }
 

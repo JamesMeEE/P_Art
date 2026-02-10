@@ -6,93 +6,67 @@ async function safeFetch(range) {
   }
 }
 
+var stockOldDateFrom = null;
+var stockOldDateTo = null;
+
 async function loadStockOld() {
   try {
     showLoading();
-
-    const [stockData, moveResult] = await Promise.all([
-      safeFetch('Stock_Old!A:D'),
-      callAppsScript('GET_STOCK_MOVES', { sheet: 'StockMove_Old' })
-    ]);
-
-    let carry = {};
-    FIXED_PRODUCTS.forEach(p => { carry[p.id] = 0; });
-    let qtyIn = {}, qtyOut = {};
-    FIXED_PRODUCTS.forEach(p => { qtyIn[p.id] = 0; qtyOut[p.id] = 0; });
-
-    if (stockData.length > 1) {
-      const lastRow = stockData[stockData.length - 1];
-      try { carry = JSON.parse(lastRow[1] || '{}'); } catch(e) {}
-      try { qtyIn = JSON.parse(lastRow[2] || '{}'); } catch(e) {}
-      try { qtyOut = JSON.parse(lastRow[3] || '{}'); } catch(e) {}
+    var isFiltered = stockOldDateFrom && stockOldDateTo;
+    var isToday = false;
+    if (isFiltered) {
+      var td = getTodayDateString();
+      isToday = (stockOldDateFrom === td && stockOldDateTo === td);
     }
 
-    document.getElementById('stockOldSummaryTable').innerHTML = FIXED_PRODUCTS.map(p => {
-      const c = carry[p.id] || 0;
-      const i = qtyIn[p.id] || 0;
-      const o = qtyOut[p.id] || 0;
-      return '<tr><td>' + p.id + '</td><td>' + p.name + '</td><td>' + c + '</td>' +
-        '<td style="color:#4caf50;">' + i + '</td>' +
-        '<td style="color:#f44336;">' + o + '</td>' +
-        '<td style="font-weight:bold;">' + (c + i - o) + '</td></tr>';
-    }).join('');
+    var stockData = await safeFetch('Stock_Old!A:D');
 
-    let carryWeightG = 0;
-    FIXED_PRODUCTS.forEach(p => { carryWeightG += (carry[p.id] || 0) * getGoldWeight(p.id); });
+    if (!isFiltered || isToday) {
+      var carry = {}, qtyIn = {}, qtyOut = {};
+      FIXED_PRODUCTS.forEach(function(p) { carry[p.id] = 0; qtyIn[p.id] = 0; qtyOut[p.id] = 0; });
+      if (stockData.length > 1) {
+        var lastRow = stockData[stockData.length - 1];
+        try { carry = JSON.parse(lastRow[1] || '{}'); } catch(e) {}
+        try { qtyIn = JSON.parse(lastRow[2] || '{}'); } catch(e) {}
+        try { qtyOut = JSON.parse(lastRow[3] || '{}'); } catch(e) {}
+      }
+      renderStockOldSummary(carry, qtyIn, qtyOut);
 
-    var prevW = carryWeightG + (moveResult.data ? moveResult.data.prevW || 0 : 0);
-    var prevC = moveResult.data ? moveResult.data.prevC || 0 : 0;
-    var moves = moveResult.data ? moveResult.data.moves || [] : [];
-
-    var todayMovements = moves.map(function(m) {
-      var gIn = m.dir === 'IN' ? m.goldG : 0;
-      var gOut = m.dir === 'OUT' ? m.goldG : 0;
-      var pIn = m.dir === 'IN' ? m.price : 0;
-      var pOut = m.dir === 'OUT' ? m.price : 0;
-      return { id: m.id, type: m.type, goldIn: gIn, goldOut: gOut, priceIn: pIn, priceOut: pOut };
-    });
-
-    let w = prevW, c = prevC;
-    todayMovements.forEach(m => {
-      w += m.goldIn - m.goldOut;
-      c += m.priceIn - m.priceOut;
-      m.w = w; m.c = c;
-    });
-
-    const latestW = todayMovements.length > 0 ? todayMovements[todayMovements.length - 1].w : prevW;
-    const latestC = todayMovements.length > 0 ? todayMovements[todayMovements.length - 1].c : prevC;
-
-    document.getElementById('stockOldGoldG').textContent = formatWeight(latestW) + ' g';
-    document.getElementById('stockOldCostValue').textContent = formatNumber(Math.round(latestC / 1000) * 1000) + ' LAK';
-    window._stockOldLatest = { goldG: latestW, cost: latestC };
-
-    const movBody = document.getElementById('stockOldMovementTable');
-    let rows = '';
-
-    if (prevW !== 0 || prevC !== 0) {
-      rows += '<tr style="background:rgba(212,175,55,0.06);">' +
-        '<td colspan="4" style="font-style:italic;color:var(--gold-primary);">📌 ยกมา</td>' +
-        '<td style="font-weight:bold;">' + formatWeight(prevW) + '</td>' +
-        '<td colspan="2"></td>' +
-        '<td style="font-weight:bold;">' + formatNumber(Math.round(prevC / 1000) * 1000) + '</td>' +
-        '<td></td></tr>';
-    }
-
-    if (todayMovements.length === 0 && rows === '') {
-      movBody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:40px;">ไม่มีรายการวันนี้</td></tr>';
+      var moveResult = await callAppsScript('GET_STOCK_MOVES', { sheet: 'StockMove_Old' });
+      var carryWeightG = 0;
+      FIXED_PRODUCTS.forEach(function(p) { carryWeightG += (carry[p.id] || 0) * getGoldWeight(p.id); });
+      var prevW = carryWeightG + (moveResult.data ? moveResult.data.prevW || 0 : 0);
+      var prevC = moveResult.data ? moveResult.data.prevC || 0 : 0;
+      var moves = moveResult.data ? moveResult.data.moves || [] : [];
+      renderStockOldMovements(moves, prevW, prevC, true);
     } else {
-      rows += todayMovements.map(m => '<tr>' +
-        '<td>' + m.id + '</td>' +
-        '<td><span class="status-badge">' + m.type + '</span></td>' +
-        '<td style="color:#4caf50;">' + (m.goldIn > 0 ? formatWeight(m.goldIn) : '-') + '</td>' +
-        '<td style="color:#f44336;">' + (m.goldOut > 0 ? formatWeight(m.goldOut) : '-') + '</td>' +
-        '<td style="font-weight:bold;">' + formatWeight(m.w) + '</td>' +
-        '<td style="color:#4caf50;">' + (m.priceIn > 0 ? formatNumber(m.priceIn) : '-') + '</td>' +
-        '<td style="color:#f44336;">' + (m.priceOut > 0 ? formatNumber(m.priceOut) : '-') + '</td>' +
-        '<td style="font-weight:bold;">' + formatNumber(Math.round(m.c / 1000) * 1000) + '</td>' +
-        '<td><button class="btn-action" onclick="viewBillDetail(\'' + m.id + '\',\'' + m.type + '\')">📋</button></td>' +
-        '</tr>').join('');
-      movBody.innerHTML = rows;
+      var from = new Date(stockOldDateFrom); from.setHours(0,0,0,0);
+      var to = new Date(stockOldDateTo); to.setHours(23,59,59,999);
+      var carry = {}, qtyIn = {}, qtyOut = {};
+      FIXED_PRODUCTS.forEach(function(p) { carry[p.id] = 0; qtyIn[p.id] = 0; qtyOut[p.id] = 0; });
+      var foundCarry = false;
+      for (var r = 1; r < stockData.length; r++) {
+        var rd = new Date(stockData[r][0]);
+        if (isNaN(rd.getTime())) continue;
+        rd.setHours(0,0,0,0);
+        if (rd >= from && rd <= to) {
+          if (!foundCarry) {
+            try { carry = JSON.parse(stockData[r][1] || '{}'); } catch(e) {}
+            foundCarry = true;
+          }
+          var ri = {}, ro = {};
+          try { ri = JSON.parse(stockData[r][2] || '{}'); } catch(e) {}
+          try { ro = JSON.parse(stockData[r][3] || '{}'); } catch(e) {}
+          FIXED_PRODUCTS.forEach(function(p) { qtyIn[p.id] += (ri[p.id] || 0); qtyOut[p.id] += (ro[p.id] || 0); });
+        }
+      }
+      renderStockOldSummary(carry, qtyIn, qtyOut);
+
+      var moveResult = await callAppsScript('GET_STOCK_MOVES_RANGE', { sheet: 'StockMove_Old', dateFrom: stockOldDateFrom, dateTo: stockOldDateTo });
+      var moves = moveResult.data ? moveResult.data.moves || [] : [];
+      renderFilteredMoves('stockOldMovementTable', moves, stockOldDateFrom, stockOldDateTo);
+      document.getElementById('stockOldGoldG').textContent = '-';
+      document.getElementById('stockOldCostValue').textContent = '-';
     }
 
     hideLoading();
@@ -102,10 +76,93 @@ async function loadStockOld() {
   }
 }
 
+function renderStockOldSummary(carry, qtyIn, qtyOut) {
+  document.getElementById('stockOldSummaryTable').innerHTML = FIXED_PRODUCTS.map(function(p) {
+    var c = carry[p.id] || 0;
+    var i = qtyIn[p.id] || 0;
+    var o = qtyOut[p.id] || 0;
+    return '<tr><td>' + p.id + '</td><td>' + p.name + '</td><td>' + c + '</td>' +
+      '<td style="color:#4caf50;">' + i + '</td>' +
+      '<td style="color:#f44336;">' + o + '</td>' +
+      '<td style="font-weight:bold;">' + (c + i - o) + '</td></tr>';
+  }).join('');
+}
+
+function renderStockOldMovements(moves, prevW, prevC, showRunning) {
+  var todayMovements = moves.map(function(m) {
+    var gIn = m.dir === 'IN' ? m.goldG : 0;
+    var gOut = m.dir === 'OUT' ? m.goldG : 0;
+    var pIn = m.dir === 'IN' ? m.price : 0;
+    var pOut = m.dir === 'OUT' ? m.price : 0;
+    return { id: m.id, type: m.type, goldIn: gIn, goldOut: gOut, priceIn: pIn, priceOut: pOut };
+  });
+
+  var w = prevW, c = prevC;
+  todayMovements.forEach(function(m) {
+    w += m.goldIn - m.goldOut;
+    c += m.priceIn - m.priceOut;
+    m.w = w; m.c = c;
+  });
+
+  var latestW = todayMovements.length > 0 ? todayMovements[todayMovements.length - 1].w : prevW;
+  var latestC = todayMovements.length > 0 ? todayMovements[todayMovements.length - 1].c : prevC;
+
+  document.getElementById('stockOldGoldG').textContent = formatWeight(latestW) + ' g';
+  document.getElementById('stockOldCostValue').textContent = formatNumber(Math.round(latestC / 1000) * 1000) + ' LAK';
+  window._stockOldLatest = { goldG: latestW, cost: latestC };
+
+  var movBody = document.getElementById('stockOldMovementTable');
+  var rows = '';
+
+  if (prevW !== 0 || prevC !== 0) {
+    rows += '<tr style="background:rgba(212,175,55,0.06);">' +
+      '<td colspan="4" style="font-style:italic;color:var(--gold-primary);">📌 ยกมา</td>' +
+      '<td style="font-weight:bold;">' + formatWeight(prevW) + '</td>' +
+      '<td colspan="2"></td>' +
+      '<td style="font-weight:bold;">' + formatNumber(Math.round(prevC / 1000) * 1000) + '</td>' +
+      '<td></td></tr>';
+  }
+
+  if (todayMovements.length === 0 && rows === '') {
+    movBody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:40px;">ไม่มีรายการวันนี้</td></tr>';
+  } else {
+    rows += todayMovements.map(function(m) { return '<tr>' +
+      '<td>' + m.id + '</td>' +
+      '<td><span class="status-badge">' + m.type + '</span></td>' +
+      '<td style="color:#4caf50;">' + (m.goldIn > 0 ? formatWeight(m.goldIn) : '-') + '</td>' +
+      '<td style="color:#f44336;">' + (m.goldOut > 0 ? formatWeight(m.goldOut) : '-') + '</td>' +
+      '<td style="font-weight:bold;">' + formatWeight(m.w) + '</td>' +
+      '<td style="color:#4caf50;">' + (m.priceIn > 0 ? formatNumber(m.priceIn) : '-') + '</td>' +
+      '<td style="color:#f44336;">' + (m.priceOut > 0 ? formatNumber(m.priceOut) : '-') + '</td>' +
+      '<td style="font-weight:bold;">' + formatNumber(Math.round(m.c / 1000) * 1000) + '</td>' +
+      '<td><button class="btn-action" onclick="viewBillDetail(\'' + m.id + '\',\'' + m.type + '\')">📋</button></td>' +
+      '</tr>'; }).join('');
+    movBody.innerHTML = rows;
+  }
+}
+
+function resetStockOldFilter() {
+  var today = getTodayDateString();
+  document.getElementById('stockOldDateFrom').value = today;
+  document.getElementById('stockOldDateTo').value = today;
+  stockOldDateFrom = today;
+  stockOldDateTo = today;
+  loadStockOld();
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  var f = document.getElementById('stockOldDateFrom');
+  var t = document.getElementById('stockOldDateTo');
+  if (f && t) {
+    f.addEventListener('change', function() { stockOldDateFrom = this.value; if (stockOldDateFrom && stockOldDateTo) loadStockOld(); });
+    t.addEventListener('change', function() { stockOldDateTo = this.value; if (stockOldDateFrom && stockOldDateTo) loadStockOld(); });
+  }
+});
+
 async function viewBillDetail(id, type) {
   try {
     showLoading();
-    let sheetRange = null;
+    var sheetRange = null;
 
     if (type === 'BUYBACK') sheetRange = 'Buybacks!A:L';
     else if (type === 'TRADE-IN') sheetRange = 'Tradeins!A:N';
@@ -119,7 +176,7 @@ async function viewBillDetail(id, type) {
     fetches.push(callAppsScript('GET_STOCK_MOVES', { sheet: 'StockMove_Old' }));
     fetches.push(callAppsScript('GET_STOCK_MOVES', { sheet: 'StockMove_New' }));
     if (sheetRange) fetches.push(fetchSheetData(sheetRange));
-    const results = await Promise.all(fetches);
+    var results = await Promise.all(fetches);
 
     var allMoves = [];
     if (results[0].data && results[0].data.moves) allMoves = allMoves.concat(results[0].data.moves);
@@ -129,20 +186,20 @@ async function viewBillDetail(id, type) {
       if (allMoves[i].id === id) { moveRow = allMoves[i]; break; }
     }
 
-    const txData = results.length > 2 ? results[2] : [];
-    const row = txData.length > 1 ? txData.slice(1).find(r => r[0] === id) : null;
+    var txData = results.length > 2 ? results[2] : [];
+    var row = txData.length > 1 ? txData.slice(1).find(function(r) { return r[0] === id; }) : null;
     hideLoading();
 
-    const fmtItems = (json) => {
+    var fmtItems = function(json) {
       try {
-        return JSON.parse(json).map(i => {
-          const p = FIXED_PRODUCTS.find(x => x.id === i.productId);
+        return JSON.parse(json).map(function(i) {
+          var p = FIXED_PRODUCTS.find(function(x) { return x.id === i.productId; });
           return '<tr><td>' + (p ? p.name : i.productId) + '</td><td style="text-align:right;">' + i.qty + ' ชิ้น</td></tr>';
         }).join('');
       } catch(e) { return '<tr><td colspan="2">' + json + '</td></tr>'; }
     };
 
-    let html = '<div style="margin-bottom:15px;"><span style="font-size:12px;color:var(--text-secondary);">Transaction ID</span><br><span style="font-size:18px;font-weight:bold;color:var(--gold-primary);">' + id + '</span></div>';
+    var html = '<div style="margin-bottom:15px;"><span style="font-size:12px;color:var(--text-secondary);">Transaction ID</span><br><span style="font-size:18px;font-weight:bold;color:var(--gold-primary);">' + id + '</span></div>';
     html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:15px;">';
     html += '<div><span style="color:var(--text-secondary);font-size:12px;">ประเภท</span><br><span class="status-badge">' + type + '</span></div>';
 
@@ -206,7 +263,7 @@ async function viewBillDetail(id, type) {
 }
 
 function showBillModal(id, type, contentHtml) {
-  let modal = document.getElementById('billDetailModal');
+  var modal = document.getElementById('billDetailModal');
   if (!modal) {
     modal = document.createElement('div');
     modal.id = 'billDetailModal';
@@ -215,25 +272,6 @@ function showBillModal(id, type, contentHtml) {
   }
   modal.innerHTML = '<div class="modal-content" style="max-width:520px;"><div class="modal-header"><h3>' + type + ' - ' + id + '</h3><span class="close" onclick="closeModal(\'billDetailModal\')">&times;</span></div><div class="modal-body" style="max-height:70vh;overflow-y:auto;">' + contentHtml + '</div><div class="modal-footer"><button class="btn-secondary" onclick="closeModal(\'billDetailModal\')">ปิด</button></div></div>';
   openModal('billDetailModal');
-}
-
-async function loadStockOldFiltered() {
-  var from = document.getElementById('stockOldDateFrom').value;
-  var to = document.getElementById('stockOldDateTo').value;
-  if (!from || !to) { alert('กรุณาเลือกวันที่'); return; }
-  try {
-    showLoading();
-    var result = await callAppsScript('GET_STOCK_MOVES_RANGE', { sheet: 'StockMove_Old', dateFrom: from, dateTo: to });
-    var moves = result.data ? result.data.moves || [] : [];
-    renderFilteredMoves('stockOldMovementTable', moves, from, to);
-    hideLoading();
-  } catch(e) { hideLoading(); alert('❌ ' + e.message); }
-}
-
-function resetStockOldFilter() {
-  document.getElementById('stockOldDateFrom').value = '';
-  document.getElementById('stockOldDateTo').value = '';
-  loadStockOld();
 }
 
 function renderFilteredMoves(tableId, moves, from, to) {

@@ -11,34 +11,12 @@ function showSection(sectionId) {
     targetSection.classList.add('active');
   }
   
-  const sectionToTabMap = {
-    'dashboard': 'dashboard',
-    'products': 'products',
-    'pricerate': 'price rate',
-    'sell': 'sell',
-    'tradein': 'trade-in',
-    'exchange': 'exchange',
-    'switch': 'switch',
-    'freeexchange': 'free exchange',
-    'buyback': 'buyback',
-    'withdraw': 'withdraw',
-    'inventory': 'inventory',
-    'cashbank': 'cash/bank',
-    'accounting': 'accounting',
-    'reports': 'reports',
-    'stockold': 'stock (old)',
-    'stocknew': 'stock (new)',
-    'wac': 'wac'
-  };
-  
-  const tabName = sectionToTabMap[sectionId];
-  if (tabName) {
-    document.querySelectorAll('.nav-btn').forEach(btn => {
-      if (btn.textContent.trim().toLowerCase() === tabName) {
-        btn.classList.add('active');
-      }
-    });
-  }
+  document.querySelectorAll('.nav-btn').forEach(btn => {
+    var oc = btn.getAttribute('onclick') || '';
+    if (oc.indexOf("'" + sectionId + "'") !== -1) {
+      btn.classList.add('active');
+    }
+  });
   
   const loaderMap = {
     'dashboard': 'loadDashboard',
