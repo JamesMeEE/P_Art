@@ -21,11 +21,12 @@ async function loadWithdraws() {
     
     const tbody = document.getElementById('withdrawTable');
     if (filteredData.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 40px;">No records</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 40px;">No records</td></tr>';
     } else {
       tbody.innerHTML = filteredData.map(row => {
         const items = formatItemsForTable(row[2]);
         const premium = parseFloat(row[3]) || 0;
+        const total = parseFloat(row[4]) || premium;
         const saleName = row[8];
         const status = row[7];
         
@@ -53,6 +54,7 @@ async function loadWithdraws() {
             <td>${row[1]}</td>
             <td>${items}</td>
             <td>${formatNumber(premium)}</td>
+            <td>${formatNumber(total)}</td>
             <td><span class="status-badge status-${status.toLowerCase()}">${status}</span></td>
             <td>${saleName}</td>
             <td>${actions}</td>

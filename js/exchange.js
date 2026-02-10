@@ -26,7 +26,8 @@ async function loadExchanges() {
       tbody.innerHTML = filteredData.map(row => {
         const oldGold = formatItemsForTable(row[2]);
         const newGold = formatItemsForTable(row[3]);
-        const premium = calculatePremiumFromItems(row[3]);
+        const exchangeFee = parseFloat(row[4]) || 0;
+        const premium = parseFloat(row[5]) || 0;
         const saleName = row[13];
         const status = row[12];
         
@@ -54,7 +55,7 @@ async function loadExchanges() {
             <td>${row[1]}</td>
             <td>${oldGold}</td>
             <td>${newGold}</td>
-            <td>${formatNumber(row[4])}</td>
+            <td>${formatNumber(exchangeFee)}</td>
             <td>${formatNumber(premium)}</td>
             <td>${formatNumber(row[6])}</td>
             <td><span class="status-badge status-${status.toLowerCase()}">${status}</span></td>
@@ -77,7 +78,7 @@ let exchangeNewCounter = 0;
 function addExchangeOldGold() {
   exchangeOldCounter++;
   const container = document.getElementById('exchangeOldGold');
-  const productOptions = FIXED_PRODUCTS.filter(p => p.id !== 'G07').map(p => 
+  const productOptions = FIXED_PRODUCTS.map(p => 
     `<option value="${p.id}">${p.name}</option>`
   ).join('');
   
@@ -96,7 +97,7 @@ function addExchangeOldGold() {
 function addExchangeNewGold() {
   exchangeNewCounter++;
   const container = document.getElementById('exchangeNewGold');
-  const productOptions = FIXED_PRODUCTS.filter(p => p.id !== 'G07').map(p => 
+  const productOptions = FIXED_PRODUCTS.map(p => 
     `<option value="${p.id}">${p.name}</option>`
   ).join('');
   

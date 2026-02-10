@@ -7,6 +7,8 @@ function openReviewDecisionModal(type, id, items) {
     'SELL': 'Review Sell',
     'TRADEIN': 'Review Trade-in',
     'EXCHANGE': 'Review Exchange',
+    'SWITCH': 'Review Switch',
+    'FREE_EXCHANGE': 'Review Free Exchange',
     'WITHDRAW': 'Review Withdraw'
   };
   
@@ -42,6 +44,8 @@ async function submitReviewDecision(decision) {
     'SELL': 'REVIEW_SELL',
     'TRADEIN': 'REVIEW_TRADEIN',
     'EXCHANGE': 'REVIEW_EXCHANGE',
+    'SWITCH': 'REVIEW_SWITCH',
+    'FREE_EXCHANGE': 'REVIEW_FREE_EXCHANGE',
     'WITHDRAW': 'REVIEW_WITHDRAW'
   };
   
@@ -72,6 +76,8 @@ async function submitReviewDecision(decision) {
       if (type === 'SELL') loadSells();
       else if (type === 'TRADEIN') loadTradeins();
       else if (type === 'EXCHANGE') loadExchanges();
+      else if (type === 'SWITCH') loadSwitches();
+      else if (type === 'FREE_EXCHANGE') loadFreeExchanges();
       else if (type === 'WITHDRAW') loadWithdraws();
       
       loadDashboard();

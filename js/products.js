@@ -29,6 +29,7 @@ async function loadProducts() {
       const sellPrice = calculateSellPrice(product.id, currentPricing.sell1Baht);
       const buybackPrice = calculateBuybackPrice(product.id, currentPricing.sell1Baht);
       const exchangeFee = EXCHANGE_FEES[product.id];
+      const switchFee = EXCHANGE_FEES_SWITCH[product.id];
       const unit = unitLabels[product.id] || product.unit;
       
       return `
@@ -39,6 +40,7 @@ async function loadProducts() {
           <td>${formatNumber(sellPrice)}</td>
           <td>${formatNumber(buybackPrice)}</td>
           <td>${formatNumber(exchangeFee)}</td>
+          <td>${formatNumber(switchFee)}</td>
         </tr>
       `;
     }).join('');

@@ -207,12 +207,23 @@ async function confirmMultiPayment() {
   
   const total = currentPaymentData.total;
   
-  if (totalPaid < total) {
-    alert('❌ ยอดชำระยังไม่ครบ! ขาดอีก ' + formatNumber(total - totalPaid) + ' LAK');
-    return;
+  if (currentPaymentData.type === 'BUYBACK') {
+    if (totalPaid <= 0) {
+      alert('❌ กรุณากรอกจำนวนเงินที่จ่าย');
+      return;
+    }
+    if (totalPaid > total) {
+      alert('❌ จำนวนเงินที่จ่ายมากกว่ายอดคงค้าง!');
+      return;
+    }
+  } else {
+    if (totalPaid < total) {
+      alert('❌ ยอดชำระยังไม่ครบ! ขาดอีก ' + formatNumber(total - totalPaid) + ' LAK');
+      return;
+    }
   }
   
-  const change = totalPaid - total;
+  const change = Math.max(0, totalPaid - total);
   
   try {
     showLoading();
@@ -222,7 +233,9 @@ async function confirmMultiPayment() {
       'TRADEIN': 'CONFIRM_TRADEIN_PAYMENT',
       'EXCHANGE': 'CONFIRM_EXCHANGE_PAYMENT',
       'WITHDRAW': 'CONFIRM_WITHDRAW_PAYMENT',
-      'BUYBACK': 'CONFIRM_BUYBACK_PAYMENT'
+      'BUYBACK': 'CONFIRM_BUYBACK_PAYMENT',
+      'SWITCH': 'CONFIRM_SWITCH_PAYMENT',
+      'FREE_EXCHANGE': 'CONFIRM_FREE_EXCHANGE_PAYMENT'
     };
     
     const action = actionMap[currentPaymentData.type];
@@ -232,7 +245,9 @@ async function confirmMultiPayment() {
       'TRADEIN': 'tradeinId',
       'EXCHANGE': 'exchangeId',
       'WITHDRAW': 'id',
-      'BUYBACK': 'buybackId'
+      'BUYBACK': 'buybackId',
+      'SWITCH': 'switchId',
+      'FREE_EXCHANGE': 'freeExId'
     };
     
     const result = await callAppsScript(action, {
@@ -255,6 +270,8 @@ async function confirmMultiPayment() {
       if (typeof loadExchanges === 'function') loadExchanges();
       if (typeof loadWithdraws === 'function') loadWithdraws();
       if (typeof loadBuybacks === 'function') loadBuybacks();
+      if (typeof loadSwitches === 'function') loadSwitches();
+      if (typeof loadFreeExchanges === 'function') loadFreeExchanges();
     } else {
       alert('❌ เกิดข้อผิดพลาด: ' + result.message);
     }
@@ -327,24 +344,37 @@ function formatItemsForPayment(itemsJson) {
 }
 
 async function openBuybackPaymentModalFromList(buybackId) {
-  const data = await fetchSheetData('Buybacks!A:J');
+  const data = await fetchSheetData('Buybacks!A:L');
   const buyback = data.slice(1).find(row => row[0] === buybackId);
   if (!buyback) return;
+  
+  const price = parseFloat(buyback[3]) || 0;
+  const fee = parseFloat(buyback[5]) || 0;
+  const total = parseFloat(buyback[6]) || 0;
+  const paid = parseFloat(buyback[7]) || 0;
+  const balance = parseFloat(buyback[8]) || 0;
   
   currentPaymentData = { 
     type: 'BUYBACK', 
     id: buybackId, 
-    total: parseFloat(buyback[6]) || 0, 
+    total: balance,
+    fullTotal: total,
     phone: buyback[1], 
-    details: `<strong>Items:</strong> ${formatItemsForPayment(buyback[2])}`
+    details: `<strong>Items:</strong> ${formatItemsForPayment(buyback[2])}<br>
+              <strong>Price:</strong> ${formatNumber(price)} LAK<br>
+              <strong>Fee:</strong> ${formatNumber(fee)} LAK<br>
+              <strong>Total:</strong> ${formatNumber(total)} LAK<br>
+              <strong>Paid:</strong> ${formatNumber(paid)} LAK<br>
+              <strong style="color: #f44336;">Balance:</strong> <span style="color: #f44336; font-weight: bold;">${formatNumber(balance)} LAK</span>`,
+    allowPartial: true
   };
   paymentItems = { cash: [], bank: [] };
   
-  document.getElementById('multiPaymentTitle').textContent = 'Payment Confirmation';
+  document.getElementById('multiPaymentTitle').textContent = 'Payment Confirmation (Buyback)';
   document.getElementById('multiPaymentId').textContent = buybackId;
   document.getElementById('multiPaymentPhone').textContent = buyback[1];
   document.getElementById('multiPaymentDetails').innerHTML = currentPaymentData.details;
-  document.getElementById('multiPaymentTotal').textContent = formatNumber(currentPaymentData.total) + ' LAK';
+  document.getElementById('multiPaymentTotal').textContent = formatNumber(balance) + ' LAK (Balance)';
   
   document.getElementById('cashPaymentsList').innerHTML = '';
   document.getElementById('bankPaymentsList').innerHTML = '';

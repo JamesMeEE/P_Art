@@ -18,6 +18,8 @@ function showSection(sectionId) {
     'sell': 'sell',
     'tradein': 'trade-in',
     'exchange': 'exchange',
+    'switch': 'switch',
+    'freeexchange': 'free ex',
     'buyback': 'buyback',
     'withdraw': 'withdraw',
     'inventory': 'inventory',
@@ -43,6 +45,8 @@ function showSection(sectionId) {
   }
   else if (sectionId === 'tradein') loadTradeins();
   else if (sectionId === 'exchange') loadExchanges();
+  else if (sectionId === 'switch') loadSwitches();
+  else if (sectionId === 'freeexchange') loadFreeExchanges();
   else if (sectionId === 'buyback') loadBuybacks();
   else if (sectionId === 'withdraw') loadWithdraws();
   else if (sectionId === 'inventory') loadInventory();

@@ -31,10 +31,20 @@ const GOLD_WEIGHTS = {
   'G07': 1/15
 };
 
-const PREMIUM_PRODUCTS = ['G05', 'G06', 'G07'];
+const PREMIUM_PRODUCTS = ['G05', 'G06'];
 let PREMIUM_PER_PIECE = 120000;
 
 const EXCHANGE_FEES = {
+  'G01': 1690000,
+  'G02': 845000,
+  'G03': 338000,
+  'G04': 169000,
+  'G05': 99000,
+  'G06': 99000,
+  'G07': 99000
+};
+
+const EXCHANGE_FEES_SWITCH = {
   'G01': 1690000,
   'G02': 845000,
   'G03': 338000,
@@ -60,6 +70,8 @@ let currentPriceRates = {
 let sellSortOrder = 'desc';
 let tradeinSortOrder = 'desc';
 let exchangeSortOrder = 'desc';
+let switchSortOrder = 'desc';
+let freeExchangeSortOrder = 'desc';
 let buybackSortOrder = 'desc';
 let withdrawSortOrder = 'desc';
 let tradeinOldCounter = 0;
@@ -71,6 +83,10 @@ let tradeinDateFrom = null;
 let tradeinDateTo = null;
 let exchangeDateFrom = null;
 let exchangeDateTo = null;
+let switchDateFrom = null;
+let switchDateTo = null;
+let freeExchangeDateFrom = null;
+let freeExchangeDateTo = null;
 let buybackDateFrom = null;
 let buybackDateTo = null;
 let withdrawDateFrom = null;

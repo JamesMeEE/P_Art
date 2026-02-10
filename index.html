@@ -79,6 +79,8 @@
       <button class="nav-btn" onclick="showSection('sell')">◐ Sell</button>
       <button class="nav-btn" onclick="showSection('tradein')">◎ Trade-in</button>
       <button class="nav-btn" onclick="showSection('exchange')">◍ Exchange</button>
+      <button class="nav-btn" onclick="showSection('switch')">⟳ Switch</button>
+      <button class="nav-btn" onclick="showSection('freeexchange')">◇ Free Ex</button>
       <button class="nav-btn" onclick="showSection('buyback')">◑ Buyback</button>
       <button class="nav-btn" onclick="showSection('withdraw')">◌ Withdraw</button>
       <button class="nav-btn" onclick="showSection('inventory')">◒ Inventory</button>
@@ -146,11 +148,12 @@
               <th>Sell Price (LAK)</th>
               <th>Buyback (LAK)</th>
               <th>Exchange Fee (LAK)</th>
+              <th>Switch Fee (LAK)</th>
             </tr>
           </thead>
           <tbody id="productsTable">
             <tr>
-              <td colspan="6" style="text-align: center; padding: 40px;">Loading...</td>
+              <td colspan="7" style="text-align: center; padding: 40px;">Loading...</td>
             </tr>
           </tbody>
         </table>
@@ -258,6 +261,7 @@
               <th>PHONE NO.</th>
               <th>Items</th>
               <th>Premium (LAK)</th>
+              <th>Total (LAK)</th>
               <th>Status</th>
               <th>Sale</th>
               <th>Actions</th>
@@ -265,7 +269,7 @@
           </thead>
           <tbody id="withdrawTable">
             <tr>
-              <td colspan="7" style="text-align: center; padding: 40px;">Loading...</td>
+              <td colspan="8" style="text-align: center; padding: 40px;">Loading...</td>
             </tr>
           </tbody>
         </table>
@@ -378,6 +382,77 @@
       </div>
     </section>
 
+    <section id="switch" class="section">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+        <h2 style="font-family: 'Cormorant Garamond', serif; font-size: 36px; color: var(--gold-primary);">Switch Management</h2>
+        <div style="display: flex; gap: 10px; align-items: center;">
+          <input type="date" class="form-input" id="switchDateFrom" style="width: 150px;">
+          <span>to</span>
+          <input type="date" class="form-input" id="switchDateTo" style="width: 150px;">
+          <button class="btn-secondary" onclick="clearSwitchDateFilter()">Today</button>
+          <button class="btn-primary" onclick="openSwitchModal()" id="addSwitchBtn">+ New Switch</button>
+        </div>
+      </div>
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Transaction ID</th>
+              <th>PHONE NO.</th>
+              <th>Old Gold</th>
+              <th>New Gold</th>
+              <th>Switch Fee</th>
+              <th>Premium</th>
+              <th>Total (LAK)</th>
+              <th>Status</th>
+              <th>Sale</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="switchTable">
+            <tr>
+              <td colspan="10" style="text-align: center; padding: 40px;">Loading...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="freeexchange" class="section">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+        <h2 style="font-family: 'Cormorant Garamond', serif; font-size: 36px; color: var(--gold-primary);">Free Exchange Management</h2>
+        <div style="display: flex; gap: 10px; align-items: center;">
+          <input type="date" class="form-input" id="freeExchangeDateFrom" style="width: 150px;">
+          <span>to</span>
+          <input type="date" class="form-input" id="freeExchangeDateTo" style="width: 150px;">
+          <button class="btn-secondary" onclick="clearFreeExchangeDateFilter()">Today</button>
+          <button class="btn-primary" onclick="openFreeExchangeModal()" id="addFreeExchangeBtn">+ New Free Exchange</button>
+        </div>
+      </div>
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Transaction ID</th>
+              <th>PHONE NO.</th>
+              <th>Old Gold</th>
+              <th>New Gold</th>
+              <th>Premium</th>
+              <th>Total (LAK)</th>
+              <th>Status</th>
+              <th>Sale</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="freeExchangeTable">
+            <tr>
+              <td colspan="9" style="text-align: center; padding: 40px;">Loading...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
     <section id="buyback" class="section">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
         <h2 style="font-family: 'Cormorant Garamond', serif; font-size: 36px; color: var(--gold-primary);">Buyback Management</h2>
@@ -396,7 +471,11 @@
               <th>Transaction ID</th>
               <th>PHONE NO.</th>
               <th>Items</th>
-              <th>Total (LAK)</th>
+              <th>Price</th>
+              <th>Fee</th>
+              <th>Total</th>
+              <th>Paid</th>
+              <th>Balance</th>
               <th>Status</th>
               <th>Sale</th>
               <th>Actions</th>
@@ -404,7 +483,7 @@
           </thead>
           <tbody id="buybackTable">
             <tr>
-              <td colspan="7" style="text-align: center; padding: 40px;">Loading...</td>
+              <td colspan="11" style="text-align: center; padding: 40px;">Loading...</td>
             </tr>
           </tbody>
         </table>
@@ -850,6 +929,58 @@
     </div>
   </div>
 
+  <div id="switchModal" class="modal">
+    <div class="modal-content modal-large">
+      <div class="modal-header">
+        <h2 class="modal-title">New Switch</h2>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Phone Number</label>
+        <input type="text" class="form-input" id="switchPhone" placeholder="Enter phone number">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Old Gold</label>
+        <div id="switchOldGold"></div>
+        <button class="btn-secondary" style="margin-top: 10px;" onclick="addSwitchOldGold()">+ Add Old Gold</button>
+      </div>
+      <div class="form-group">
+        <label class="form-label">New Gold</label>
+        <div id="switchNewGold"></div>
+        <button class="btn-secondary" style="margin-top: 10px;" onclick="addSwitchNewGold()">+ Add New Gold</button>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" onclick="closeModal('switchModal')">Cancel</button>
+        <button class="btn-primary" onclick="calculateSwitch()">Create Switch</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="freeExchangeModal" class="modal">
+    <div class="modal-content modal-large">
+      <div class="modal-header">
+        <h2 class="modal-title">New Free Exchange</h2>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Phone Number</label>
+        <input type="text" class="form-input" id="freeExPhone" placeholder="Enter phone number">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Old Gold</label>
+        <div id="freeExOldGold"></div>
+        <button class="btn-secondary" style="margin-top: 10px;" onclick="addFreeExOldGold()">+ Add Old Gold</button>
+      </div>
+      <div class="form-group">
+        <label class="form-label">New Gold</label>
+        <div id="freeExNewGold"></div>
+        <button class="btn-secondary" style="margin-top: 10px;" onclick="addFreeExNewGold()">+ Add New Gold</button>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" onclick="closeModal('freeExchangeModal')">Cancel</button>
+        <button class="btn-primary" onclick="calculateFreeExchange()">Create Free Exchange</button>
+      </div>
+    </div>
+  </div>
+
   <div id="exchangeResultModal" class="modal">
     <div class="modal-content">
       <div class="modal-header">
@@ -969,6 +1100,10 @@
       <div class="form-group">
         <label class="form-label">Total Price (LAK)</label>
         <input type="text" class="form-input" id="buybackPrice" placeholder="0" readonly>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Fee (LAK) - ค่าธรรมเนียม</label>
+        <input type="number" class="form-input" id="buybackFee" placeholder="0" value="0">
       </div>
       <div class="modal-footer">
         <button class="btn-secondary" onclick="closeModal('buybackModal')">Cancel</button>
@@ -1717,26 +1852,28 @@
     }
   </style>
   
-  <script src="js/config.js?v=41"></script>
-  <script src="js/utils.js?v=41"></script>
-  <script src="js/api.js?v=41"></script>
-  <script src="js/ui.js?v=41"></script>
-  <script src="js/dashboard.js?v=41"></script>
-  <script src="js/products.js"></script>
+  <script src="js/config.js?v=42"></script>
+  <script src="js/utils.js?v=42"></script>
+  <script src="js/api.js?v=42"></script>
+  <script src="js/ui.js?v=42"></script>
+  <script src="js/dashboard.js?v=42"></script>
+  <script src="js/products.js?v=42"></script>
   <script src="js/pricerate.js"></script>
-  <script src="js/sell.js?v=41"></script>
-  <script src="js/payment.js?v=41"></script>
-  <script src="js/tradein.js?v=41"></script>
-  <script src="js/buyback.js?v=41"></script>
-  <script src="js/exchange.js?v=41"></script>
-  <script src="js/withdraw.js?v=41"></script>
-  <script src="js/inventory.js?v=41"></script>
-  <script src="js/cashbank.js?v=41"></script>
-  <script src="js/accounting.js?v=41"></script>
-  <script src="js/reports.js?v=41"></script>
-  <script src="js/close.js?v=41"></script>
-  <script src="js/review.js?v=41"></script>
-  <script src="js/auth.js?v=41"></script>
+  <script src="js/sell.js?v=42"></script>
+  <script src="js/payment.js?v=42"></script>
+  <script src="js/tradein.js?v=42"></script>
+  <script src="js/buyback.js?v=42"></script>
+  <script src="js/exchange.js?v=42"></script>
+  <script src="js/switch.js?v=42"></script>
+  <script src="js/freeexchange.js?v=42"></script>
+  <script src="js/withdraw.js?v=42"></script>
+  <script src="js/inventory.js?v=42"></script>
+  <script src="js/cashbank.js?v=42"></script>
+  <script src="js/accounting.js?v=42"></script>
+  <script src="js/reports.js?v=42"></script>
+  <script src="js/close.js?v=42"></script>
+  <script src="js/review.js?v=42"></script>
+  <script src="js/auth.js?v=42"></script>
   
   <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
   <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/th.js"></script>

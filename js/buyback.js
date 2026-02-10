@@ -1,37 +1,41 @@
 async function loadBuybacks() {
   try {
     showLoading();
-    const data = await fetchSheetData('Buybacks!A:J');
+    const data = await fetchSheetData('Buybacks!A:L');
     
     let filteredData = data.slice(1);
     
     if (currentUser.role === 'User' || currentUser.role === 'Manager') {
       if (buybackDateFrom || buybackDateTo) {
-        filteredData = filterByDateRange(filteredData, 7, 9, buybackDateFrom, buybackDateTo);
+        filteredData = filterByDateRange(filteredData, 9, 11, buybackDateFrom, buybackDateTo);
       } else {
-        filteredData = filterTodayData(filteredData, 7, 9);
+        filteredData = filterTodayData(filteredData, 9, 11);
       }
     }
     
     if (buybackSortOrder === 'asc') {
-      filteredData.sort((a, b) => new Date(a[7]) - new Date(b[7]));
+      filteredData.sort((a, b) => new Date(a[9]) - new Date(b[9]));
     } else {
-      filteredData.sort((a, b) => new Date(b[7]) - new Date(a[7]));
+      filteredData.sort((a, b) => new Date(b[9]) - new Date(a[9]));
     }
     
     const tbody = document.getElementById('buybackTable');
     if (filteredData.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 40px;">No records</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="10" style="text-align: center; padding: 40px;">No records</td></tr>';
     } else {
       tbody.innerHTML = filteredData.map(row => {
         const items = formatItemsForTable(row[2]);
-        const total = row[6] || row[3];
-        const saleName = row[9];
-        const status = row[8];
+        const price = parseFloat(row[3]) || 0;
+        const fee = parseFloat(row[5]) || 0;
+        const total = parseFloat(row[6]) || 0;
+        const paid = parseFloat(row[7]) || 0;
+        const balance = parseFloat(row[8]) || 0;
+        const saleName = row[11];
+        const status = row[10];
         
         let actions = '';
         
-        if (status === 'PENDING') {
+        if (status === 'PENDING' || status === 'PARTIAL') {
           if (currentUser.role === 'Manager') {
             actions = `<button class="btn-action" onclick="openBuybackPaymentModalFromList('${row[0]}')">Payment</button>`;
           } else {
@@ -46,7 +50,11 @@ async function loadBuybacks() {
             <td>${row[0]}</td>
             <td>${row[1]}</td>
             <td>${items}</td>
+            <td>${formatNumber(price)}</td>
+            <td>${formatNumber(fee)}</td>
             <td>${formatNumber(total)}</td>
+            <td>${formatNumber(paid)}</td>
+            <td style="color: ${balance > 0 ? '#f44336' : '#4caf50'}; font-weight: bold;">${formatNumber(balance)}</td>
             <td><span class="status-badge status-${status.toLowerCase()}">${status}</span></td>
             <td>${saleName}</td>
             <td>${actions}</td>
@@ -132,24 +140,27 @@ async function calculateBuyback() {
     return;
   }
 
-  const total = calculateBuybackTotal();
+  const price = calculateBuybackTotal();
+  const fee = parseFloat(document.getElementById('buybackFee').value) || 0;
 
   try {
     showLoading();
     const result = await callAppsScript('ADD_BUYBACK', {
       phone,
       products: JSON.stringify(products),
-      total,
+      price,
+      fee,
       user: currentUser.nickname
     });
     
     if (result.success) {
-      alert('✅ สร้างรายการรับซื้อสำเร็จ! รอ Manager Review');
+      alert('✅ สร้างรายการรับซื้อสำเร็จ! รอ Manager Payment');
       closeModal('buybackModal');
       
       document.getElementById('buybackPhone').value = '';
       document.getElementById('buybackProducts').innerHTML = '';
       document.getElementById('buybackPrice').value = '';
+      document.getElementById('buybackFee').value = '';
       buybackCounter = 0;
       addBuybackProduct();
       
