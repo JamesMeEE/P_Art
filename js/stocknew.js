@@ -107,6 +107,8 @@ async function loadPendingTransferCount() {
   } catch(e) {}
 }
 
+var _pendingTransfers = [];
+
 async function openPendingTransferModal() {
   openModal('pendingTransferModal');
   const body = document.getElementById('pendingTransferBody');
@@ -114,37 +116,92 @@ async function openPendingTransferModal() {
 
   try {
     var result = await callAppsScript('GET_PENDING_TRANSFERS');
-    var pending = result.data ? result.data.pending || [] : [];
+    _pendingTransfers = result.data ? result.data.pending || [] : [];
 
-    if (pending.length === 0) {
+    if (_pendingTransfers.length === 0) {
       body.innerHTML = '<p style="text-align:center;padding:40px;color:var(--text-secondary);">ไม่มีรายการรอรับทอง</p>';
       return;
     }
 
-    body.innerHTML = pending.map(function(row) {
-      var id = row.id;
-      var itemsHtml = '';
-      try {
-        var items = JSON.parse(row.items);
-        itemsHtml = items.map(function(i) {
-          var p = FIXED_PRODUCTS.find(function(x) { return x.id === i.productId; });
-          return '<span style="display:inline-block;background:rgba(212,175,55,0.15);padding:4px 10px;border-radius:12px;margin:2px;font-size:13px;">' + (p ? p.name : i.productId) + ' x' + i.qty + '</span>';
-        }).join('');
-      } catch(e) {}
+    body.innerHTML = _pendingTransfers.map(function(row, idx) {
+      var items = [];
+      try { items = JSON.parse(row.items); } catch(e) {}
+      var totalQty = 0;
+      items.forEach(function(i) { totalQty += i.qty; });
+      var chips = items.map(function(i) {
+        var p = FIXED_PRODUCTS.find(function(x) { return x.id === i.productId; });
+        return '<span style="display:inline-block;background:rgba(212,175,55,0.15);padding:3px 8px;border-radius:10px;margin:2px;font-size:12px;">' + (p ? p.name : i.productId) + ' x' + i.qty + '</span>';
+      }).join('');
 
-      return '<div style="border:1px solid rgba(212,175,55,0.3);border-radius:10px;padding:15px;margin-bottom:12px;">' +
-        '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">' +
-        '<span style="font-weight:bold;color:var(--gold-primary);font-size:16px;">' + id + '</span>' +
+      return '<div onclick="openTransferDetail(' + idx + ')" style="border:1px solid rgba(212,175,55,0.3);border-radius:10px;padding:15px;margin-bottom:10px;cursor:pointer;transition:background 0.2s;" onmouseover="this.style.background=\'rgba(212,175,55,0.08)\'" onmouseout="this.style.background=\'transparent\'">' +
+        '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">' +
+        '<span style="font-weight:bold;color:var(--gold-primary);font-size:16px;">' + row.id + '</span>' +
         '<span style="font-size:12px;color:var(--text-secondary);">โดย ' + (row.user || '-') + '</span></div>' +
-        '<div style="margin-bottom:12px;">' + itemsHtml + '</div>' +
-        '<div style="display:flex;gap:10px;justify-content:flex-end;">' +
-        '<button class="btn-danger" onclick="rejectTransfer(\'' + id + '\')" style="padding:6px 16px;font-size:13px;">ปฏิเสธ</button>' +
-        '<button class="btn-primary" onclick="confirmTransferReceive(\'' + id + '\')" style="padding:6px 16px;font-size:13px;">✅ ยืนยันรับทอง</button>' +
-        '</div></div>';
+        '<div>' + chips + '</div>' +
+        '<div style="text-align:right;margin-top:6px;font-size:12px;color:var(--text-secondary);">รวม ' + totalQty + ' ชิ้น →</div>' +
+        '</div>';
     }).join('');
   } catch(e) {
     body.innerHTML = '<p style="color:#f44336;">Error: ' + e.message + '</p>';
   }
+}
+
+async function openTransferDetail(idx) {
+  var row = _pendingTransfers[idx];
+  if (!row) return;
+  closeModal('pendingTransferModal');
+
+  var titleEl = document.getElementById('transferDetailTitle');
+  var bodyEl = document.getElementById('transferDetailBody');
+  var footerEl = document.getElementById('transferDetailFooter');
+  titleEl.textContent = '📋 ' + row.id;
+  bodyEl.innerHTML = '<p style="text-align:center;padding:20px;">กำลังคำนวณ...</p>';
+  footerEl.innerHTML = '';
+  openModal('transferDetailModal');
+
+  var items = [];
+  try { items = JSON.parse(row.items); } catch(e) {}
+
+  var wacPerG = 0;
+  try {
+    var wacResult = await callAppsScript('GET_WAC');
+    if (wacResult.data) wacPerG = wacResult.data.wacPerG || 0;
+  } catch(e) {}
+
+  var tableRows = '';
+  var totalWeight = 0;
+  items.forEach(function(i) {
+    var p = FIXED_PRODUCTS.find(function(x) { return x.id === i.productId; });
+    var w = getGoldWeight(i.productId) * i.qty;
+    totalWeight += w;
+    tableRows += '<tr><td>' + (p ? p.name : i.productId) + '</td><td style="text-align:center;">' + i.qty + '</td><td style="text-align:right;">' + formatWeight(w) + '</td></tr>';
+  });
+
+  var totalCost = Math.round(totalWeight * wacPerG / 1000) * 1000;
+
+  var html = '<div class="table-container"><table style="width:100%;font-size:14px;"><thead><tr><th>สินค้า</th><th style="text-align:center;">จำนวน</th><th style="text-align:right;">น้ำหนัก (g)</th></tr></thead><tbody>' + tableRows +
+    '<tr style="font-weight:bold;background:rgba(212,175,55,0.1);"><td>รวม</td><td></td><td style="text-align:right;">' + formatWeight(totalWeight) + ' g</td></tr></tbody></table></div>';
+
+  html += '<div style="margin-top:20px;display:grid;grid-template-columns:1fr 1fr;gap:12px;">';
+  html += '<div style="padding:12px;background:rgba(212,175,55,0.08);border-radius:8px;border:1px solid rgba(212,175,55,0.2);"><div style="font-size:11px;color:var(--text-secondary);margin-bottom:4px;">WAC /g ปัจจุบัน</div><div style="font-size:18px;font-weight:bold;color:var(--gold-primary);">' + formatNumber(wacPerG) + ' LAK</div></div>';
+  html += '<div style="padding:12px;background:rgba(212,175,55,0.08);border-radius:8px;border:1px solid rgba(212,175,55,0.2);"><div style="font-size:11px;color:var(--text-secondary);margin-bottom:4px;">PRICE ต้นทุน</div><div style="font-size:18px;font-weight:bold;color:var(--gold-primary);">' + formatNumber(totalCost) + ' LAK</div></div>';
+  html += '</div>';
+
+  html += '<div style="margin-top:8px;font-size:11px;color:var(--text-secondary);">= ' + formatWeight(totalWeight) + ' g × ' + formatNumber(wacPerG) + ' LAK/g</div>';
+
+  html += '<div style="margin-top:15px;"><label style="font-size:12px;color:var(--text-secondary);display:block;margin-bottom:6px;">Note</label><textarea id="transferNote" class="form-input" rows="2" placeholder="หมายเหตุ (ถ้ามี)" style="font-size:13px;"></textarea></div>';
+
+  html += '<div style="margin-top:10px;font-size:11px;color:var(--text-secondary);">สร้างโดย: ' + (row.user || '-') + '</div>';
+
+  bodyEl.innerHTML = html;
+  footerEl.innerHTML = '<button class="btn-secondary" onclick="backToPendingList()">ย้อนกลับ</button>' +
+    '<button class="btn-danger" onclick="rejectTransfer(\'' + row.id + '\')" style="margin-left:auto;">ปฏิเสธ</button>' +
+    '<button class="btn-primary" onclick="confirmTransferReceive(\'' + row.id + '\')">✅ ยืนยันรับทอง</button>';
+}
+
+function backToPendingList() {
+  closeModal('transferDetailModal');
+  openPendingTransferModal();
 }
 
 async function confirmTransferReceive(id) {
@@ -155,7 +212,7 @@ async function confirmTransferReceive(id) {
     hideLoading();
     if (result.success) {
       alert('✅ ' + result.message);
-      await openPendingTransferModal();
+      closeModal('transferDetailModal');
       await loadStockNew();
     } else {
       alert('❌ ' + result.message);
@@ -171,7 +228,7 @@ async function rejectTransfer(id) {
     hideLoading();
     if (result.success) {
       alert('✅ ' + result.message);
-      await openPendingTransferModal();
+      closeModal('transferDetailModal');
       loadPendingTransferCount();
     } else {
       alert('❌ ' + result.message);

@@ -499,6 +499,31 @@ tbody tr:hover {
 
 .modal-header {
   margin-bottom: 30px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modal-header h2,
+.modal-header h3 {
+  margin: 0;
+  flex: 1;
+}
+
+.modal-header .close {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 28px;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+  flex-shrink: 0;
+  margin-left: 15px;
+}
+
+.modal-header .close:hover {
+  color: var(--gold-primary);
 }
 
 .modal-title {
