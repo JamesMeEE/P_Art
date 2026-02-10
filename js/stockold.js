@@ -211,10 +211,8 @@ function showBillModal(id, type, contentHtml) {
     modal = document.createElement('div');
     modal.id = 'billDetailModal';
     modal.className = 'modal';
-    modal.innerHTML = '<div class="modal-content" style="max-width:520px;"><div class="modal-header"><h3 class="bill-title"></h3><button class="close-btn" onclick="closeModal(\'billDetailModal\')">&times;</button></div><div class="modal-body bill-body" style="max-height:70vh;overflow-y:auto;"></div><div class="modal-footer"><button class="btn-secondary" onclick="closeModal(\'billDetailModal\')">ปิด</button></div></div>';
     document.body.appendChild(modal);
   }
-  modal.querySelector('.bill-title').textContent = '📋 ' + type + ' - ' + id;
-  modal.querySelector('.bill-body').innerHTML = contentHtml;
+  modal.innerHTML = '<div class="modal-content" style="max-width:520px;"><div class="modal-header"><h3>' + type + ' - ' + id + '</h3><button class="close-btn" onclick="closeModal(\'billDetailModal\')">&times;</button></div><div class="modal-body" style="max-height:70vh;overflow-y:auto;">' + contentHtml + '</div><div class="modal-footer"><button class="btn-secondary" onclick="closeModal(\'billDetailModal\')">ปิด</button></div></div>';
   openModal('billDetailModal');
 }
