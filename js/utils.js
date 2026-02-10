@@ -2,6 +2,10 @@ function formatNumber(num) {
   return new Intl.NumberFormat('en-US').format(Math.round(num));
 }
 
+function formatWeight(num) {
+  return new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(num);
+}
+
 function parseSheetDate(dateValue) {
   if (!dateValue) return null;
   
