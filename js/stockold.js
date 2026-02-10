@@ -81,7 +81,7 @@ async function loadStockOld() {
     const latestW = todayMovements.length > 0 ? todayMovements[todayMovements.length - 1].w : prevW;
     const latestC = todayMovements.length > 0 ? todayMovements[todayMovements.length - 1].c : prevC;
 
-    document.getElementById('stockOldGoldG').textContent = formatNumber(latestW.toFixed(2)) + ' g';
+    document.getElementById('stockOldGoldG').textContent = formatWeight(latestW) + ' g';
     document.getElementById('stockOldCostValue').textContent = formatNumber(Math.round(latestC / 1000) * 1000) + ' LAK';
     window._stockOldLatest = { goldG: latestW, cost: latestC };
 
@@ -91,7 +91,7 @@ async function loadStockOld() {
     if (prevW !== 0 || prevC !== 0) {
       rows += '<tr style="background:rgba(212,175,55,0.06);">' +
         '<td colspan="4" style="font-style:italic;color:var(--gold-primary);">📌 ยกมา</td>' +
-        '<td style="font-weight:bold;">' + formatNumber(prevW.toFixed(2)) + '</td>' +
+        '<td style="font-weight:bold;">' + formatWeight(prevW) + '</td>' +
         '<td colspan="2"></td>' +
         '<td style="font-weight:bold;">' + formatNumber(Math.round(prevC / 1000) * 1000) + '</td>' +
         '<td></td></tr>';
@@ -103,9 +103,9 @@ async function loadStockOld() {
       rows += todayMovements.map(m => '<tr>' +
         '<td>' + m.id + '</td>' +
         '<td><span class="status-badge">' + m.type + '</span></td>' +
-        '<td style="color:#4caf50;">' + (m.goldIn > 0 ? formatNumber(m.goldIn.toFixed(2)) : '-') + '</td>' +
-        '<td style="color:#f44336;">' + (m.goldOut > 0 ? formatNumber(m.goldOut.toFixed(2)) : '-') + '</td>' +
-        '<td style="font-weight:bold;">' + formatNumber(m.w.toFixed(2)) + '</td>' +
+        '<td style="color:#4caf50;">' + (m.goldIn > 0 ? formatWeight(m.goldIn) : '-') + '</td>' +
+        '<td style="color:#f44336;">' + (m.goldOut > 0 ? formatWeight(m.goldOut) : '-') + '</td>' +
+        '<td style="font-weight:bold;">' + formatWeight(m.w) + '</td>' +
         '<td style="color:#4caf50;">' + (m.priceIn > 0 ? formatNumber(m.priceIn) : '-') + '</td>' +
         '<td style="color:#f44336;">' + (m.priceOut > 0 ? formatNumber(m.priceOut) : '-') + '</td>' +
         '<td style="font-weight:bold;">' + formatNumber(Math.round(m.c / 1000) * 1000) + '</td>' +
@@ -129,7 +129,7 @@ async function viewBillDetail(id, type) {
     if (type === 'BUYBACK') sheetRange = 'Buybacks!A:L';
     else if (type === 'TRADE-IN') sheetRange = 'Tradeins!A:N';
     else if (type === 'EXCHANGE') sheetRange = 'Exchanges!A:N';
-    else if (type === 'SWITCH') sheetRange = 'Switch!A:N';
+    else if (type === 'SWITCH') sheetRange = 'Switches!A:N';
     else if (type === 'FREE-EX') sheetRange = 'FreeExchanges!A:J';
     else if (type === 'SELL') sheetRange = 'Sells!A:L';
     else if (type === 'WITHDRAW') sheetRange = 'Withdraws!A:J';
@@ -202,7 +202,7 @@ async function viewBillDetail(id, type) {
       html += '<div><span style="color:var(--text-secondary);font-size:12px;">Direction</span><br><span class="status-badge">' + (moveRow[5] || '') + '</span></div></div>';
       html += '<div style="margin-bottom:15px;"><table class="data-table" style="width:100%;"><thead><tr><th>สินค้า</th><th>จำนวน</th></tr></thead><tbody>' + fmtItems(moveRow[3]) + '</tbody></table></div>';
       html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">';
-      html += '<div class="stat-card" style="padding:10px;"><div style="color:var(--text-secondary);font-size:11px;">น้ำหนัก</div><div style="font-weight:bold;">' + formatNumber(parseFloat(moveRow[4] || 0).toFixed(2)) + ' g</div></div>';
+      html += '<div class="stat-card" style="padding:10px;"><div style="color:var(--text-secondary);font-size:11px;">น้ำหนัก</div><div style="font-weight:bold;">' + formatWeight(parseFloat(moveRow[4] || 0)) + ' g</div></div>';
       html += '<div class="stat-card" style="padding:10px;"><div style="color:var(--text-secondary);font-size:11px;">มูลค่า</div><div style="font-weight:bold;color:var(--gold-primary);">' + formatNumber(moveRow[6]) + ' LAK</div></div></div>';
     } else {
       html += '<div></div></div><p style="text-align:center;color:var(--text-secondary);">ไม่พบข้อมูลเพิ่มเติม</p>';

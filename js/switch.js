@@ -15,7 +15,7 @@ function openSwitchModal() {
 async function loadSwitches() {
   try {
     showLoading();
-    const data = await fetchSheetData('Switch!A:N');
+    const data = await fetchSheetData('Switches!A:N');
     
     let filteredData = data.slice(1);
     
@@ -238,7 +238,7 @@ function clearSwitchDateFilter() {
 }
 
 async function openSwitchPaymentModal(switchId) {
-  const data = await fetchSheetData('Switch!A:N');
+  const data = await fetchSheetData('Switches!A:N');
   const switchData = data.slice(1).find(row => row[0] === switchId);
   if (!switchData) return;
   

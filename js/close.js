@@ -15,7 +15,7 @@ async function openCloseWorkModal() {
       fetchSheetData('Exchanges!A:N'),
       fetchSheetData('Buybacks!A:L'),
       fetchSheetData('Withdraws!A:J'),
-      fetchSheetData('Switch!A:N'),
+      fetchSheetData('Switches!A:N'),
       fetchSheetData('FreeExchanges!A:J')
     ]);
     
