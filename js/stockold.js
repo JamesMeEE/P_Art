@@ -57,8 +57,8 @@ async function loadStockOld() {
     const movements = [];
     if (moveData.length > 1) {
       moveData.slice(1).forEach(row => {
-        const d = new Date(row[0]);
-        if (isNaN(d.getTime()) || d < today || d > todayEnd) return;
+        const d = parseSheetDate(row[0]);
+        if (!d || d < today || d > todayEnd) return;
         const goldG = parseFloat(row[4]) || 0;
         const price = parseFloat(row[6]) || 0;
         const direction = String(row[5] || '');

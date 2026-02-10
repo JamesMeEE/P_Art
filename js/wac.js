@@ -28,7 +28,7 @@ async function loadWAC() {
     const todayEnd = new Date(today);
     todayEnd.setHours(23,59,59,999);
 
-    const isToday = (dateStr) => { const d = new Date(dateStr); return !isNaN(d.getTime()) && d >= today && d <= todayEnd; };
+    const isToday = (dateStr) => { const d = parseSheetDate(dateStr); return d && d >= today && d <= todayEnd; };
 
     let oldWeight = oldCarryWeight;
     let oldCost = 0;
