@@ -18,7 +18,6 @@ async function loadStockOld() {
 
     let carry = {};
     FIXED_PRODUCTS.forEach(p => { carry[p.id] = 0; });
-
     let qtyIn = {}, qtyOut = {};
     FIXED_PRODUCTS.forEach(p => { qtyIn[p.id] = 0; qtyOut[p.id] = 0; });
 
@@ -29,87 +28,76 @@ async function loadStockOld() {
       try { qtyOut = JSON.parse(lastRow[3] || '{}'); } catch(e) {}
     }
 
-    const summaryBody = document.getElementById('stockOldSummaryTable');
-    summaryBody.innerHTML = FIXED_PRODUCTS.map(p => {
+    document.getElementById('stockOldSummaryTable').innerHTML = FIXED_PRODUCTS.map(p => {
       const c = carry[p.id] || 0;
       const i = qtyIn[p.id] || 0;
       const o = qtyOut[p.id] || 0;
-      const bal = c + i - o;
-      return '<tr>' +
-        '<td>' + p.id + '</td><td>' + p.name + '</td>' +
-        '<td>' + c + '</td>' +
+      return '<tr><td>' + p.id + '</td><td>' + p.name + '</td><td>' + c + '</td>' +
         '<td style="color:#4caf50;">' + (i > 0 ? '+' + i : '0') + '</td>' +
         '<td style="color:#f44336;">' + (o > 0 ? '-' + o : '0') + '</td>' +
-        '<td style="font-weight:bold;">' + bal + '</td>' +
-        '</tr>';
+        '<td style="font-weight:bold;">' + (c + i - o) + '</td></tr>';
     }).join('');
 
     let carryWeightG = 0;
-    FIXED_PRODUCTS.forEach(p => {
-      carryWeightG += (carry[p.id] || 0) * getGoldWeight(p.id);
-    });
+    FIXED_PRODUCTS.forEach(p => { carryWeightG += (carry[p.id] || 0) * getGoldWeight(p.id); });
 
     const today = new Date();
-    today.setHours(0,0,0,0);
+    today.setHours(0, 0, 0, 0);
     const todayEnd = new Date(today);
-    todayEnd.setHours(23,59,59,999);
+    todayEnd.setHours(23, 59, 59, 999);
 
-    const movements = [];
+    let prevW = carryWeightG;
+    let prevC = 0;
+    const todayMovements = [];
+
     if (moveData.length > 1) {
       moveData.slice(1).forEach(row => {
         const d = parseSheetDate(row[0]);
-        if (!d || d < today || d > todayEnd) return;
+        if (!d) return;
         const goldG = parseFloat(row[4]) || 0;
         const price = parseFloat(row[6]) || 0;
-        const direction = String(row[5] || '');
-        const wacG = parseFloat(row[8]) || 0;
-        const wacBaht = parseFloat(row[9]) || 0;
-        movements.push({
-          id: row[1],
-          type: row[2],
-          goldIn: direction === 'IN' ? goldG : 0,
-          goldOut: direction === 'OUT' ? goldG : 0,
-          priceIn: direction === 'IN' ? price : 0,
-          priceOut: direction === 'OUT' ? price : 0,
-          wacG: wacG,
-          wacBaht: wacBaht,
-          date: row[0]
-        });
+        const dir = String(row[5] || '');
+        const gIn = dir === 'IN' ? goldG : 0;
+        const gOut = dir === 'OUT' ? goldG : 0;
+        const pIn = dir === 'IN' ? price : 0;
+        const pOut = dir === 'OUT' ? price : 0;
+
+        if (d < today) {
+          prevW += gIn - gOut;
+          prevC += pIn - pOut;
+        } else if (d <= todayEnd) {
+          todayMovements.push({ id: row[1], type: row[2], goldIn: gIn, goldOut: gOut, priceIn: pIn, priceOut: pOut });
+        }
       });
     }
 
-    let runningWeight = carryWeightG;
-    let runningCost = 0;
-    movements.forEach(m => {
-      runningWeight += m.goldIn - m.goldOut;
-      runningCost += m.priceIn - m.priceOut;
-      m.runningWeight = runningWeight;
-      m.runningCost = runningCost;
+    let w = prevW, c = prevC;
+    todayMovements.forEach(m => {
+      w += m.goldIn - m.goldOut;
+      c += m.priceIn - m.priceOut;
+      m.w = w; m.c = c;
     });
 
-    const latestWeight = movements.length > 0 ? movements[movements.length - 1].runningWeight : carryWeightG;
-    const latestCost = movements.length > 0 ? movements[movements.length - 1].runningCost : 0;
+    const latestW = todayMovements.length > 0 ? todayMovements[todayMovements.length - 1].w : prevW;
+    const latestC = todayMovements.length > 0 ? todayMovements[todayMovements.length - 1].c : prevC;
 
-    document.getElementById('stockOldGoldG').textContent = formatNumber(latestWeight.toFixed(2)) + ' g';
-    document.getElementById('stockOldCostValue').textContent = formatNumber(Math.round(latestCost / 1000) * 1000) + ' LAK';
-
-    window._stockOldLatest = { goldG: latestWeight, cost: latestCost };
+    document.getElementById('stockOldGoldG').textContent = formatNumber(latestW.toFixed(2)) + ' g';
+    document.getElementById('stockOldCostValue').textContent = formatNumber(Math.round(latestC / 1000) * 1000) + ' LAK';
+    window._stockOldLatest = { goldG: latestW, cost: latestC };
 
     const movBody = document.getElementById('stockOldMovementTable');
-    if (movements.length === 0) {
-      movBody.innerHTML = '<tr><td colspan="11" style="text-align:center;padding:40px;">No records today</td></tr>';
+    if (todayMovements.length === 0) {
+      movBody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:40px;">ไม่มีรายการวันนี้</td></tr>';
     } else {
-      movBody.innerHTML = movements.map(m => '<tr>' +
+      movBody.innerHTML = todayMovements.map(m => '<tr>' +
         '<td>' + m.id + '</td>' +
         '<td><span class="status-badge">' + m.type + '</span></td>' +
         '<td style="color:#4caf50;">' + (m.goldIn > 0 ? formatNumber(m.goldIn.toFixed(2)) : '-') + '</td>' +
         '<td style="color:#f44336;">' + (m.goldOut > 0 ? formatNumber(m.goldOut.toFixed(2)) : '-') + '</td>' +
-        '<td>' + formatNumber(m.runningWeight.toFixed(2)) + ' g</td>' +
-        '<td>' + (m.priceIn > 0 ? formatNumber(m.priceIn) : '-') + '</td>' +
-        '<td>' + (m.priceOut > 0 ? formatNumber(m.priceOut) : '-') + '</td>' +
-        '<td>' + formatNumber(Math.round(m.runningCost / 1000) * 1000) + '</td>' +
-        '<td>' + (m.wacG > 0 ? formatNumber(m.wacG) : '-') + '</td>' +
-        '<td>' + (m.wacBaht > 0 ? formatNumber(m.wacBaht) : '-') + '</td>' +
+        '<td style="font-weight:bold;">' + formatNumber(m.w.toFixed(2)) + '</td>' +
+        '<td style="color:#4caf50;">' + (m.priceIn > 0 ? formatNumber(m.priceIn) : '-') + '</td>' +
+        '<td style="color:#f44336;">' + (m.priceOut > 0 ? formatNumber(m.priceOut) : '-') + '</td>' +
+        '<td style="font-weight:bold;">' + formatNumber(Math.round(m.c / 1000) * 1000) + '</td>' +
         '<td><button class="btn-action" onclick="viewBillDetail(\'' + m.id + '\',\'' + m.type + '\')">📋</button></td>' +
         '</tr>').join('');
     }
@@ -124,43 +112,101 @@ async function loadStockOld() {
 async function viewBillDetail(id, type) {
   try {
     showLoading();
-    let sheetName;
-    if (type === 'BUYBACK') sheetName = 'Buybacks!A:L';
-    else if (type === 'TRADE-IN') sheetName = 'Tradeins!A:N';
-    else if (type === 'EXCHANGE') sheetName = 'Exchanges!A:N';
-    else if (type === 'SWITCH') sheetName = 'Switch!A:N';
-    else if (type === 'FREE-EX') sheetName = 'FreeExchanges!A:J';
-    else if (type === 'SELL') sheetName = 'Sells!A:L';
-    else if (type === 'WITHDRAW') sheetName = 'Withdraws!A:J';
-    else sheetName = 'Inventory!A:R';
+    let sheetRange, moveSheet;
+    if (type === 'BUYBACK') { sheetRange = 'Buybacks!A:L'; moveSheet = 'StockMove_Old'; }
+    else if (type === 'TRADE-IN') { sheetRange = 'Tradeins!A:N'; moveSheet = 'StockMove_Old'; }
+    else if (type === 'EXCHANGE') { sheetRange = 'Exchanges!A:N'; moveSheet = 'StockMove_Old'; }
+    else if (type === 'SWITCH') { sheetRange = 'Switch!A:N'; moveSheet = 'StockMove_Old'; }
+    else if (type === 'FREE-EX') { sheetRange = 'FreeExchanges!A:J'; moveSheet = 'StockMove_Old'; }
+    else if (type === 'SELL') { sheetRange = 'Sells!A:L'; moveSheet = 'StockMove_New'; }
+    else if (type === 'WITHDRAW') { sheetRange = 'Withdraws!A:J'; moveSheet = 'StockMove_New'; }
 
-    const data = await fetchSheetData(sheetName);
-    const row = data.slice(1).find(r => r[0] === id);
+    const [txData, moveData] = await Promise.all([
+      fetchSheetData(sheetRange),
+      safeFetch(moveSheet + '!A:J')
+    ]);
+
+    const row = txData.slice(1).find(r => r[0] === id);
     hideLoading();
+    if (!row) { showBillModal(id, type, '<p style="text-align:center;color:var(--text-secondary);">ไม่พบข้อมูลบิล</p>'); return; }
 
-    if (!row) { alert('ไม่พบข้อมูลบิล: ' + id); return; }
+    let moveRow = null;
+    if (moveData.length > 1) {
+      moveRow = moveData.slice(1).find(r => r[1] === id);
+    }
 
-    const formatItems = (json) => {
+    const fmtItems = (json) => {
       try {
-        return JSON.parse(json).map(i => (FIXED_PRODUCTS.find(p => p.id === i.productId) || {}).name + ' x' + i.qty).join(', ');
-      } catch(e) { return json; }
+        return JSON.parse(json).map(i => {
+          const p = FIXED_PRODUCTS.find(x => x.id === i.productId);
+          return '<tr><td>' + (p ? p.name : i.productId) + '</td><td style="text-align:right;">' + i.qty + ' ชิ้น</td></tr>';
+        }).join('');
+      } catch(e) { return '<tr><td colspan="2">' + json + '</td></tr>'; }
     };
 
-    let detail = 'Transaction ID: ' + row[0] + '\nPhone: ' + (row[1] || '-') + '\n';
+    let html = '<div style="margin-bottom:15px;"><span style="font-size:12px;color:var(--text-secondary);">Transaction ID</span><br><span style="font-size:18px;font-weight:bold;color:var(--gold-primary);">' + id + '</span></div>';
+    html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:15px;">';
+    html += '<div><span style="color:var(--text-secondary);font-size:12px;">ประเภท</span><br><span class="status-badge">' + type + '</span></div>';
+
     if (type === 'BUYBACK') {
-      detail += 'Items: ' + formatItems(row[2]) + '\nPrice: ' + formatNumber(row[3]) + ' LAK\nFee: ' + formatNumber(row[5]) + ' LAK\nTotal: ' + formatNumber(row[6]) + ' LAK\nStatus: ' + row[10];
+      html += '<div><span style="color:var(--text-secondary);font-size:12px;">สถานะ</span><br><span class="status-badge">' + (row[10] || '-') + '</span></div></div>';
+      html += '<div style="margin-bottom:15px;"><span style="color:var(--text-secondary);font-size:12px;">รายการทอง</span><table class="data-table" style="width:100%;margin-top:5px;"><thead><tr><th>สินค้า</th><th>จำนวน</th></tr></thead><tbody>' + fmtItems(row[2]) + '</tbody></table></div>';
+      html += '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;">';
+      html += '<div class="stat-card" style="padding:10px;"><div style="color:var(--text-secondary);font-size:11px;">ราคา</div><div style="font-weight:bold;">' + formatNumber(row[3]) + '</div></div>';
+      html += '<div class="stat-card" style="padding:10px;"><div style="color:var(--text-secondary);font-size:11px;">ค่าธรรมเนียม</div><div style="font-weight:bold;">' + formatNumber(row[5]) + '</div></div>';
+      html += '<div class="stat-card" style="padding:10px;"><div style="color:var(--text-secondary);font-size:11px;">รวม</div><div style="font-weight:bold;color:var(--gold-primary);">' + formatNumber(row[6]) + '</div></div></div>';
     } else if (type === 'TRADE-IN' || type === 'EXCHANGE' || type === 'SWITCH') {
-      detail += 'Old Gold: ' + formatItems(row[2]) + '\nNew Gold: ' + formatItems(row[3]) + '\nTotal: ' + formatNumber(row[6]) + ' LAK\nStatus: ' + row[12];
+      html += '<div><span style="color:var(--text-secondary);font-size:12px;">สถานะ</span><br><span class="status-badge">' + (row[12] || '-') + '</span></div></div>';
+      html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:15px;margin-bottom:15px;">';
+      html += '<div><span style="color:#ff9800;font-size:12px;">🥇 ทองเก่า (รับเข้า)</span><table class="data-table" style="width:100%;margin-top:5px;"><tbody>' + fmtItems(row[2]) + '</tbody></table></div>';
+      html += '<div><span style="color:#2196f3;font-size:12px;">💎 ทองใหม่ (จ่ายออก)</span><table class="data-table" style="width:100%;margin-top:5px;"><tbody>' + fmtItems(row[3]) + '</tbody></table></div></div>';
+      html += '<div class="stat-card" style="padding:10px;text-align:center;"><div style="color:var(--text-secondary);font-size:11px;">ยอดรวม</div><div style="font-weight:bold;font-size:18px;color:var(--gold-primary);">' + formatNumber(row[6]) + ' LAK</div></div>';
     } else if (type === 'FREE-EX') {
-      detail += 'Old Gold: ' + formatItems(row[2]) + '\nNew Gold: ' + formatItems(row[3]) + '\nPremium: ' + formatNumber(row[4]) + ' LAK\nStatus: ' + row[8];
+      html += '<div><span style="color:var(--text-secondary);font-size:12px;">สถานะ</span><br><span class="status-badge">' + (row[8] || '-') + '</span></div></div>';
+      html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:15px;margin-bottom:15px;">';
+      html += '<div><span style="color:#ff9800;font-size:12px;">🥇 ทองเก่า</span><table class="data-table" style="width:100%;margin-top:5px;"><tbody>' + fmtItems(row[2]) + '</tbody></table></div>';
+      html += '<div><span style="color:#2196f3;font-size:12px;">💎 ทองใหม่</span><table class="data-table" style="width:100%;margin-top:5px;"><tbody>' + fmtItems(row[3]) + '</tbody></table></div></div>';
+      html += '<div class="stat-card" style="padding:10px;text-align:center;"><div style="color:var(--text-secondary);font-size:11px;">Premium</div><div style="font-weight:bold;font-size:18px;color:var(--gold-primary);">' + formatNumber(row[4]) + ' LAK</div></div>';
     } else if (type === 'SELL') {
-      detail += 'Items: ' + formatItems(row[2]) + '\nTotal: ' + formatNumber(row[3]) + ' LAK\nStatus: ' + row[10];
+      html += '<div><span style="color:var(--text-secondary);font-size:12px;">สถานะ</span><br><span class="status-badge">' + (row[10] || '-') + '</span></div></div>';
+      html += '<div style="margin-bottom:15px;"><span style="color:var(--text-secondary);font-size:12px;">รายการทอง</span><table class="data-table" style="width:100%;margin-top:5px;"><thead><tr><th>สินค้า</th><th>จำนวน</th></tr></thead><tbody>' + fmtItems(row[2]) + '</tbody></table></div>';
+      html += '<div class="stat-card" style="padding:10px;text-align:center;"><div style="color:var(--text-secondary);font-size:11px;">ยอดรวม</div><div style="font-weight:bold;font-size:18px;color:var(--gold-primary);">' + formatNumber(row[3]) + ' LAK</div></div>';
     } else if (type === 'WITHDRAW') {
-      detail += 'Items: ' + formatItems(row[2]) + '\nTotal: ' + formatNumber(row[4]) + ' LAK\nStatus: ' + row[7];
+      html += '<div><span style="color:var(--text-secondary);font-size:12px;">สถานะ</span><br><span class="status-badge">' + (row[7] || '-') + '</span></div></div>';
+      html += '<div style="margin-bottom:15px;"><span style="color:var(--text-secondary);font-size:12px;">รายการทอง</span><table class="data-table" style="width:100%;margin-top:5px;"><thead><tr><th>สินค้า</th><th>จำนวน</th></tr></thead><tbody>' + fmtItems(row[2]) + '</tbody></table></div>';
+      html += '<div class="stat-card" style="padding:10px;text-align:center;"><div style="color:var(--text-secondary);font-size:11px;">ยอดรวม</div><div style="font-weight:bold;font-size:18px;color:var(--gold-primary);">' + formatNumber(row[4]) + ' LAK</div></div>';
     }
-    alert(detail);
+
+    if (moveRow) {
+      const wG = parseFloat(moveRow[8]) || 0;
+      const wB = parseFloat(moveRow[9]) || 0;
+      if (wG > 0 || wB > 0) {
+        html += '<div style="margin-top:15px;padding:12px;background:rgba(212,175,55,0.08);border-radius:8px;border:1px solid rgba(212,175,55,0.2);">';
+        html += '<div style="font-size:12px;color:var(--gold-primary);margin-bottom:8px;font-weight:bold;">📊 WAC ณ เวลาทำรายการ</div>';
+        html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">';
+        html += '<div><span style="color:var(--text-secondary);font-size:11px;">WAC/g</span><br><span style="font-weight:bold;">' + formatNumber(wG) + ' LAK</span></div>';
+        html += '<div><span style="color:var(--text-secondary);font-size:11px;">WAC/บาท</span><br><span style="font-weight:bold;">' + formatNumber(wB) + ' LAK</span></div>';
+        html += '</div></div>';
+      }
+    }
+
+    showBillModal(id, type, html);
   } catch(e) {
     hideLoading();
-    alert('Error: ' + e.message);
+    showBillModal('Error', '', '<p style="color:#f44336;">' + e.message + '</p>');
   }
+}
+
+function showBillModal(id, type, contentHtml) {
+  let modal = document.getElementById('billDetailModal');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'billDetailModal';
+    modal.className = 'modal';
+    modal.innerHTML = '<div class="modal-content" style="max-width:520px;"><div class="modal-header"><h3 id="billDetailTitle"></h3><button class="close-btn" onclick="closeModal(\'billDetailModal\')">&times;</button></div><div class="modal-body" id="billDetailBody" style="max-height:70vh;overflow-y:auto;"></div><div class="modal-footer"><button class="btn-secondary" onclick="closeModal(\'billDetailModal\')">ปิด</button></div></div>';
+    document.body.appendChild(modal);
+  }
+  document.getElementById('billDetailTitle').textContent = '📋 รายละเอียด ' + type + ' - ' + id;
+  document.getElementById('billDetailBody').innerHTML = contentHtml;
+  openModal('billDetailModal');
 }
