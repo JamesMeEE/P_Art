@@ -18,6 +18,10 @@ function showSection(sectionId) {
     }
   });
   
+  if (sectionId !== 'dashboard' && typeof stopDashReportRefresh === 'function') {
+    stopDashReportRefresh();
+  }
+
   const loaderMap = {
     'dashboard': 'loadDashboard',
     'products': 'loadProducts',

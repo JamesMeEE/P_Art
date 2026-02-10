@@ -51,17 +51,16 @@ function renderPriceRateCharts(data) {
   
   const chartData = data.slice(1).slice(-30);
   const labels = chartData.map(function(row) {
-    try {
-      var d = new Date(row[0]);
-      return d.toLocaleDateString('th-TH', { day: '2-digit', month: 'short' });
-    } catch(e) { return row[0]; }
+    var d = parseSheetDate(row[0]);
+    if (d) return d.toLocaleDateString('th-TH', { day: '2-digit', month: 'short' });
+    return String(row[0]);
   });
 
   var firstDate = '', lastDate = '';
-  try {
-    firstDate = new Date(chartData[0][0]).toLocaleDateString('th-TH', { day: '2-digit', month: 'short', year: 'numeric' });
-    lastDate = new Date(chartData[chartData.length - 1][0]).toLocaleDateString('th-TH', { day: '2-digit', month: 'short', year: 'numeric' });
-  } catch(e) {}
+  var fd = parseSheetDate(chartData[0][0]);
+  var ld = parseSheetDate(chartData[chartData.length - 1][0]);
+  if (fd) firstDate = fd.toLocaleDateString('th-TH', { day: '2-digit', month: 'short', year: 'numeric' });
+  if (ld) lastDate = ld.toLocaleDateString('th-TH', { day: '2-digit', month: 'short', year: 'numeric' });
   var rangeEl = document.getElementById('priceRateDateRange');
   if (rangeEl) rangeEl.textContent = firstDate + ' — ' + lastDate;
   
