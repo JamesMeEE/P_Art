@@ -39,7 +39,7 @@ async function loadSells() {
           }
         } else if (status === 'READY') {
           if (currentUser.role === 'User') {
-            actions = `<button class="btn-action" onclick="openPaymentModal('${row[0]}')">Confirm</button>`;
+            actions = `<button class="btn-action" onclick="openSellPayment('${row[0]}')">Confirm</button>`;
           } else {
             actions = '<span style="color: var(--text-secondary);">Waiting for confirmation</span>';
           }

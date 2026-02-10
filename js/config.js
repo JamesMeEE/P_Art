@@ -79,4 +79,3 @@ let withdrawDateTo = null;
 let currentExchangeRates = { LAK: 1, THB: 270, USD: 21500 };
 let currentReconcileType = null;
 let currentReconcileData = {};
-let currentPaymentData = null;
