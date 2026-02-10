@@ -215,6 +215,23 @@ async function submitCloseWork() {
   }
 }
 
+var _autoRefreshInterval = null;
+
+function startAutoRefresh() {
+  stopAutoRefresh();
+  _autoRefreshInterval = setInterval(function() {
+    checkPendingClose();
+    if (typeof loadPendingTransferCount === 'function') loadPendingTransferCount();
+  }, 30000);
+}
+
+function stopAutoRefresh() {
+  if (_autoRefreshInterval) {
+    clearInterval(_autoRefreshInterval);
+    _autoRefreshInterval = null;
+  }
+}
+
 async function checkPendingClose() {
   const closeBtn = document.getElementById('closeWorkBtn');
   const reviewBtn = document.getElementById('reviewCloseBtn');
