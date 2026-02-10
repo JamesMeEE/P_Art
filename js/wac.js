@@ -3,10 +3,10 @@ async function loadWAC() {
     showLoading();
 
     const [stockOldData, stockNewData, moveOldData, moveNewData] = await Promise.all([
-      fetchSheetData('Stock_Old!A:D'),
-      fetchSheetData('Stock_New!A:D'),
-      fetchSheetData('StockMove_Old!A:H'),
-      fetchSheetData('StockMove_New!A:H')
+      safeFetch('Stock_Old!A:D'),
+      safeFetch('Stock_New!A:D'),
+      safeFetch('StockMove_Old!A:J'),
+      safeFetch('StockMove_New!A:J')
     ]);
 
     let oldCarry = {};
@@ -28,7 +28,7 @@ async function loadWAC() {
     const todayEnd = new Date(today);
     todayEnd.setHours(23,59,59,999);
 
-    const isToday = (dateStr) => { const d = new Date(dateStr); return d >= today && d <= todayEnd; };
+    const isToday = (dateStr) => { const d = new Date(dateStr); return !isNaN(d.getTime()) && d >= today && d <= todayEnd; };
 
     let oldWeight = oldCarryWeight;
     let oldCost = 0;
@@ -37,7 +37,7 @@ async function loadWAC() {
         if (!isToday(row[0])) return;
         const g = parseFloat(row[4]) || 0;
         const p = parseFloat(row[6]) || 0;
-        if (row[5] === 'IN') { oldWeight += g; oldCost += p; }
+        if (String(row[5]) === 'IN') { oldWeight += g; oldCost += p; }
         else { oldWeight -= g; oldCost -= p; }
       });
     }
@@ -49,7 +49,7 @@ async function loadWAC() {
         if (!isToday(row[0])) return;
         const g = parseFloat(row[4]) || 0;
         const p = parseFloat(row[6]) || 0;
-        if (row[5] === 'IN') { newWeight += g; newCost += p; }
+        if (String(row[5]) === 'IN') { newWeight += g; newCost += p; }
         else { newWeight -= g; newCost -= p; }
       });
     }
