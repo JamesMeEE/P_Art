@@ -47,6 +47,10 @@ function login() {
     
     fetchExchangeRates();
     checkPendingClose();
+
+    if (currentUser.role === 'Manager') {
+      callAppsScript('INIT_STOCK').catch(function(e) { console.error('INIT_STOCK error:', e); });
+    }
     
     if (currentUser.role === 'User') {
       showSection('sell');
