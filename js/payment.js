@@ -17,7 +17,6 @@ function openMultiPaymentModal(type, id, total, phone, details) {
   document.getElementById('bankPaymentsList').innerHTML = '';
   
   document.getElementById('multiPaymentFeeGroup').style.display = 'none';
-  document.getElementById('multiPaymentBalanceGroup').style.display = 'none';
   document.getElementById('multiPaymentFeeInput').value = '0';
   
   updatePaymentSummary();
@@ -383,11 +382,9 @@ async function openBuybackPaymentModalFromList(buybackId) {
   document.getElementById('multiPaymentTotal').textContent = formatNumber(price) + ' LAK';
   
   document.getElementById('multiPaymentFeeGroup').style.display = 'block';
-  document.getElementById('multiPaymentBalanceGroup').style.display = 'block';
   document.getElementById('multiPaymentFeeInput').value = '0';
   
   const balance = price - paid;
-  document.getElementById('multiPaymentBalance').textContent = formatNumber(balance) + ' LAK';
   currentPaymentData.total = balance;
   
   document.getElementById('cashPaymentsList').innerHTML = '';
@@ -404,7 +401,6 @@ function onBuybackFeeChange() {
   const balance = currentPaymentData.basePrice - currentPaymentData.paid - fee;
   currentPaymentData.total = Math.max(0, balance);
   currentPaymentData.fee = fee;
-  document.getElementById('multiPaymentBalance').textContent = formatNumber(Math.max(0, balance)) + ' LAK';
   document.getElementById('multiPaymentTotal').textContent = formatNumber(Math.max(0, balance)) + ' LAK';
   updatePaymentSummary();
 }

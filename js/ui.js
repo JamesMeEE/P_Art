@@ -25,7 +25,10 @@ function showSection(sectionId) {
     'inventory': 'inventory',
     'cashbank': 'cash/bank',
     'accounting': 'accounting',
-    'reports': 'reports'
+    'reports': 'reports',
+    'stockold': 'stock (old)',
+    'stocknew': 'stock (new)',
+    'wac': 'wac'
   };
   
   const tabName = sectionToTabMap[sectionId];
@@ -53,6 +56,9 @@ function showSection(sectionId) {
   else if (sectionId === 'cashbank') loadCashBank();
   else if (sectionId === 'accounting') loadAccounting();
   else if (sectionId === 'reports') loadReports();
+  else if (sectionId === 'stockold') loadStockOld();
+  else if (sectionId === 'stocknew') loadStockNew();
+  else if (sectionId === 'wac') loadWAC();
 }
 
 function showLoading() {

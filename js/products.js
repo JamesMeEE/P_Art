@@ -27,7 +27,7 @@ async function loadProducts() {
     const tbody = document.getElementById('productsTable');
     tbody.innerHTML = FIXED_PRODUCTS.map(product => {
       const sellPrice = calculateSellPrice(product.id, currentPricing.sell1Baht);
-      const buybackPrice = calculateBuybackPrice(product.id, currentPricing.sell1Baht);
+      const buybackPrice = Math.round(calculateBuybackPrice(product.id, currentPricing.sell1Baht) / 1000) * 1000;
       const exchangeFee = EXCHANGE_FEES[product.id];
       const switchFee = EXCHANGE_FEES_SWITCH[product.id];
       const unit = unitLabels[product.id] || product.unit;
@@ -63,7 +63,7 @@ async function loadPriceHistory() {
       return;
     }
     
-    tbody.innerHTML = data.slice(1).reverse().map(row => `
+    tbody.innerHTML = data.slice(1).reverse().slice(0, 30).map(row => `
       <tr>
         <td>${formatDateTime(row[0])}</td>
         <td>${formatNumber(row[1])}</td>
@@ -101,26 +101,4 @@ async function updatePricing() {
     alert('❌ Error: ' + error.message);
     hideLoading();
   }
-}
-function openSwitchFeeModal() {
-  const container = document.getElementById('switchFeeInputs');
-  container.innerHTML = FIXED_PRODUCTS.map(product => `
-    <div class="form-group">
-      <label class="form-label">${product.id} - ${product.name}</label>
-      <input type="number" class="form-input" id="switchFee_${product.id}" value="${EXCHANGE_FEES_SWITCH[product.id]}" step="1000">
-    </div>
-  `).join('');
-  openModal('switchFeeModal');
-}
-
-function updateSwitchFees() {
-  FIXED_PRODUCTS.forEach(product => {
-    const input = document.getElementById('switchFee_' + product.id);
-    if (input) {
-      EXCHANGE_FEES_SWITCH[product.id] = parseFloat(input.value) || 0;
-    }
-  });
-  alert('✅ อัพเดต Exchange Fee - SWITCH สำเร็จ!');
-  closeModal('switchFeeModal');
-  loadProducts();
 }
