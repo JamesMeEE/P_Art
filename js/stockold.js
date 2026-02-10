@@ -112,28 +112,37 @@ async function loadStockOld() {
 async function viewBillDetail(id, type) {
   try {
     showLoading();
-    let sheetRange, moveSheet;
-    if (type === 'BUYBACK') { sheetRange = 'Buybacks!A:L'; moveSheet = 'StockMove_Old'; }
-    else if (type === 'TRADE-IN') { sheetRange = 'Tradeins!A:N'; moveSheet = 'StockMove_Old'; }
-    else if (type === 'EXCHANGE') { sheetRange = 'Exchanges!A:N'; moveSheet = 'StockMove_Old'; }
-    else if (type === 'SWITCH') { sheetRange = 'Switch!A:N'; moveSheet = 'StockMove_Old'; }
-    else if (type === 'FREE-EX') { sheetRange = 'FreeExchanges!A:J'; moveSheet = 'StockMove_Old'; }
-    else if (type === 'SELL') { sheetRange = 'Sells!A:L'; moveSheet = 'StockMove_New'; }
-    else if (type === 'WITHDRAW') { sheetRange = 'Withdraws!A:J'; moveSheet = 'StockMove_New'; }
+    let sheetRange = null;
 
-    const [txData, moveData] = await Promise.all([
-      fetchSheetData(sheetRange),
-      safeFetch(moveSheet + '!A:J')
-    ]);
+    if (type === 'BUYBACK') sheetRange = 'Buybacks!A:L';
+    else if (type === 'TRADE-IN') sheetRange = 'Tradeins!A:N';
+    else if (type === 'EXCHANGE') sheetRange = 'Exchanges!A:N';
+    else if (type === 'SWITCH') sheetRange = 'Switch!A:N';
+    else if (type === 'FREE-EX') sheetRange = 'FreeExchanges!A:J';
+    else if (type === 'SELL') sheetRange = 'Sells!A:L';
+    else if (type === 'WITHDRAW') sheetRange = 'Withdraws!A:J';
 
-    const row = txData.slice(1).find(r => r[0] === id);
+    const fetches = [safeFetch('StockMove_Old!A:J'), safeFetch('StockMove_New!A:J')];
+    if (sheetRange) fetches.push(fetchSheetData(sheetRange));
+    const results = await Promise.all(fetches);
+    const moveOld = results[0];
+    const moveNew = results[1];
+    const txData = results.length > 2 ? results[2] : [];
+
+    const findMove = (data) => {
+      if (data.length <= 1) return null;
+      for (let i = data.length - 1; i >= 1; i--) {
+        if (data[i][1] === id && data[i][2] === type) return data[i];
+      }
+      for (let i = data.length - 1; i >= 1; i--) {
+        if (data[i][1] === id) return data[i];
+      }
+      return null;
+    };
+    let moveRow = findMove(moveOld) || findMove(moveNew);
+
+    const row = txData.length > 1 ? txData.slice(1).find(r => r[0] === id) : null;
     hideLoading();
-    if (!row) { showBillModal(id, type, '<p style="text-align:center;color:var(--text-secondary);">ไม่พบข้อมูลบิล</p>'); return; }
-
-    let moveRow = null;
-    if (moveData.length > 1) {
-      moveRow = moveData.slice(1).find(r => r[1] === id);
-    }
 
     const fmtItems = (json) => {
       try {
@@ -148,33 +157,43 @@ async function viewBillDetail(id, type) {
     html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:15px;">';
     html += '<div><span style="color:var(--text-secondary);font-size:12px;">ประเภท</span><br><span class="status-badge">' + type + '</span></div>';
 
-    if (type === 'BUYBACK') {
-      html += '<div><span style="color:var(--text-secondary);font-size:12px;">สถานะ</span><br><span class="status-badge">' + (row[10] || '-') + '</span></div></div>';
-      html += '<div style="margin-bottom:15px;"><span style="color:var(--text-secondary);font-size:12px;">รายการทอง</span><table class="data-table" style="width:100%;margin-top:5px;"><thead><tr><th>สินค้า</th><th>จำนวน</th></tr></thead><tbody>' + fmtItems(row[2]) + '</tbody></table></div>';
-      html += '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;">';
-      html += '<div class="stat-card" style="padding:10px;"><div style="color:var(--text-secondary);font-size:11px;">ราคา</div><div style="font-weight:bold;">' + formatNumber(row[3]) + '</div></div>';
-      html += '<div class="stat-card" style="padding:10px;"><div style="color:var(--text-secondary);font-size:11px;">ค่าธรรมเนียม</div><div style="font-weight:bold;">' + formatNumber(row[5]) + '</div></div>';
-      html += '<div class="stat-card" style="padding:10px;"><div style="color:var(--text-secondary);font-size:11px;">รวม</div><div style="font-weight:bold;color:var(--gold-primary);">' + formatNumber(row[6]) + '</div></div></div>';
-    } else if (type === 'TRADE-IN' || type === 'EXCHANGE' || type === 'SWITCH') {
-      html += '<div><span style="color:var(--text-secondary);font-size:12px;">สถานะ</span><br><span class="status-badge">' + (row[12] || '-') + '</span></div></div>';
-      html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:15px;margin-bottom:15px;">';
-      html += '<div><span style="color:#ff9800;font-size:12px;">🥇 ทองเก่า (รับเข้า)</span><table class="data-table" style="width:100%;margin-top:5px;"><tbody>' + fmtItems(row[2]) + '</tbody></table></div>';
-      html += '<div><span style="color:#2196f3;font-size:12px;">💎 ทองใหม่ (จ่ายออก)</span><table class="data-table" style="width:100%;margin-top:5px;"><tbody>' + fmtItems(row[3]) + '</tbody></table></div></div>';
-      html += '<div class="stat-card" style="padding:10px;text-align:center;"><div style="color:var(--text-secondary);font-size:11px;">ยอดรวม</div><div style="font-weight:bold;font-size:18px;color:var(--gold-primary);">' + formatNumber(row[6]) + ' LAK</div></div>';
-    } else if (type === 'FREE-EX') {
-      html += '<div><span style="color:var(--text-secondary);font-size:12px;">สถานะ</span><br><span class="status-badge">' + (row[8] || '-') + '</span></div></div>';
-      html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:15px;margin-bottom:15px;">';
-      html += '<div><span style="color:#ff9800;font-size:12px;">🥇 ทองเก่า</span><table class="data-table" style="width:100%;margin-top:5px;"><tbody>' + fmtItems(row[2]) + '</tbody></table></div>';
-      html += '<div><span style="color:#2196f3;font-size:12px;">💎 ทองใหม่</span><table class="data-table" style="width:100%;margin-top:5px;"><tbody>' + fmtItems(row[3]) + '</tbody></table></div></div>';
-      html += '<div class="stat-card" style="padding:10px;text-align:center;"><div style="color:var(--text-secondary);font-size:11px;">Premium</div><div style="font-weight:bold;font-size:18px;color:var(--gold-primary);">' + formatNumber(row[4]) + ' LAK</div></div>';
-    } else if (type === 'SELL') {
-      html += '<div><span style="color:var(--text-secondary);font-size:12px;">สถานะ</span><br><span class="status-badge">' + (row[10] || '-') + '</span></div></div>';
-      html += '<div style="margin-bottom:15px;"><span style="color:var(--text-secondary);font-size:12px;">รายการทอง</span><table class="data-table" style="width:100%;margin-top:5px;"><thead><tr><th>สินค้า</th><th>จำนวน</th></tr></thead><tbody>' + fmtItems(row[2]) + '</tbody></table></div>';
-      html += '<div class="stat-card" style="padding:10px;text-align:center;"><div style="color:var(--text-secondary);font-size:11px;">ยอดรวม</div><div style="font-weight:bold;font-size:18px;color:var(--gold-primary);">' + formatNumber(row[3]) + ' LAK</div></div>';
-    } else if (type === 'WITHDRAW') {
-      html += '<div><span style="color:var(--text-secondary);font-size:12px;">สถานะ</span><br><span class="status-badge">' + (row[7] || '-') + '</span></div></div>';
-      html += '<div style="margin-bottom:15px;"><span style="color:var(--text-secondary);font-size:12px;">รายการทอง</span><table class="data-table" style="width:100%;margin-top:5px;"><thead><tr><th>สินค้า</th><th>จำนวน</th></tr></thead><tbody>' + fmtItems(row[2]) + '</tbody></table></div>';
-      html += '<div class="stat-card" style="padding:10px;text-align:center;"><div style="color:var(--text-secondary);font-size:11px;">ยอดรวม</div><div style="font-weight:bold;font-size:18px;color:var(--gold-primary);">' + formatNumber(row[4]) + ' LAK</div></div>';
+    if (row) {
+      if (type === 'BUYBACK') {
+        html += '<div><span style="color:var(--text-secondary);font-size:12px;">สถานะ</span><br><span class="status-badge">' + (row[10] || '-') + '</span></div></div>';
+        html += '<div style="margin-bottom:15px;"><table class="data-table" style="width:100%;"><thead><tr><th>สินค้า</th><th>จำนวน</th></tr></thead><tbody>' + fmtItems(row[2]) + '</tbody></table></div>';
+        html += '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;">';
+        html += '<div class="stat-card" style="padding:10px;"><div style="color:var(--text-secondary);font-size:11px;">ราคา</div><div style="font-weight:bold;">' + formatNumber(row[3]) + '</div></div>';
+        html += '<div class="stat-card" style="padding:10px;"><div style="color:var(--text-secondary);font-size:11px;">ค่าธรรมเนียม</div><div style="font-weight:bold;">' + formatNumber(row[5]) + '</div></div>';
+        html += '<div class="stat-card" style="padding:10px;"><div style="color:var(--text-secondary);font-size:11px;">รวม</div><div style="font-weight:bold;color:var(--gold-primary);">' + formatNumber(row[6]) + '</div></div></div>';
+      } else if (type === 'TRADE-IN' || type === 'EXCHANGE' || type === 'SWITCH') {
+        html += '<div><span style="color:var(--text-secondary);font-size:12px;">สถานะ</span><br><span class="status-badge">' + (row[12] || '-') + '</span></div></div>';
+        html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:15px;margin-bottom:15px;">';
+        html += '<div><span style="color:#ff9800;font-size:12px;">🥇 ทองเก่า (รับเข้า)</span><table class="data-table" style="width:100%;margin-top:5px;"><tbody>' + fmtItems(row[2]) + '</tbody></table></div>';
+        html += '<div><span style="color:#2196f3;font-size:12px;">💎 ทองใหม่ (จ่ายออก)</span><table class="data-table" style="width:100%;margin-top:5px;"><tbody>' + fmtItems(row[3]) + '</tbody></table></div></div>';
+        html += '<div class="stat-card" style="padding:10px;text-align:center;"><div style="color:var(--text-secondary);font-size:11px;">ยอดรวม</div><div style="font-weight:bold;font-size:18px;color:var(--gold-primary);">' + formatNumber(row[6]) + ' LAK</div></div>';
+      } else if (type === 'FREE-EX') {
+        html += '<div><span style="color:var(--text-secondary);font-size:12px;">สถานะ</span><br><span class="status-badge">' + (row[8] || '-') + '</span></div></div>';
+        html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:15px;margin-bottom:15px;">';
+        html += '<div><span style="color:#ff9800;font-size:12px;">🥇 ทองเก่า</span><table class="data-table" style="width:100%;margin-top:5px;"><tbody>' + fmtItems(row[2]) + '</tbody></table></div>';
+        html += '<div><span style="color:#2196f3;font-size:12px;">💎 ทองใหม่</span><table class="data-table" style="width:100%;margin-top:5px;"><tbody>' + fmtItems(row[3]) + '</tbody></table></div></div>';
+        html += '<div class="stat-card" style="padding:10px;text-align:center;"><div style="color:var(--text-secondary);font-size:11px;">Premium</div><div style="font-weight:bold;font-size:18px;color:var(--gold-primary);">' + formatNumber(row[4]) + ' LAK</div></div>';
+      } else if (type === 'SELL') {
+        html += '<div><span style="color:var(--text-secondary);font-size:12px;">สถานะ</span><br><span class="status-badge">' + (row[10] || '-') + '</span></div></div>';
+        html += '<div style="margin-bottom:15px;"><table class="data-table" style="width:100%;"><thead><tr><th>สินค้า</th><th>จำนวน</th></tr></thead><tbody>' + fmtItems(row[2]) + '</tbody></table></div>';
+        html += '<div class="stat-card" style="padding:10px;text-align:center;"><div style="color:var(--text-secondary);font-size:11px;">ยอดรวม</div><div style="font-weight:bold;font-size:18px;color:var(--gold-primary);">' + formatNumber(row[3]) + ' LAK</div></div>';
+      } else if (type === 'WITHDRAW') {
+        html += '<div><span style="color:var(--text-secondary);font-size:12px;">สถานะ</span><br><span class="status-badge">' + (row[7] || '-') + '</span></div></div>';
+        html += '<div style="margin-bottom:15px;"><table class="data-table" style="width:100%;"><thead><tr><th>สินค้า</th><th>จำนวน</th></tr></thead><tbody>' + fmtItems(row[2]) + '</tbody></table></div>';
+        html += '<div class="stat-card" style="padding:10px;text-align:center;"><div style="color:var(--text-secondary);font-size:11px;">ยอดรวม</div><div style="font-weight:bold;font-size:18px;color:var(--gold-primary);">' + formatNumber(row[4]) + ' LAK</div></div>';
+      }
+    } else if (moveRow) {
+      html += '<div><span style="color:var(--text-secondary);font-size:12px;">Direction</span><br><span class="status-badge">' + (moveRow[5] || '') + '</span></div></div>';
+      html += '<div style="margin-bottom:15px;"><table class="data-table" style="width:100%;"><thead><tr><th>สินค้า</th><th>จำนวน</th></tr></thead><tbody>' + fmtItems(moveRow[3]) + '</tbody></table></div>';
+      html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">';
+      html += '<div class="stat-card" style="padding:10px;"><div style="color:var(--text-secondary);font-size:11px;">น้ำหนัก</div><div style="font-weight:bold;">' + formatNumber(parseFloat(moveRow[4] || 0).toFixed(2)) + ' g</div></div>';
+      html += '<div class="stat-card" style="padding:10px;"><div style="color:var(--text-secondary);font-size:11px;">มูลค่า</div><div style="font-weight:bold;color:var(--gold-primary);">' + formatNumber(moveRow[6]) + ' LAK</div></div></div>';
+    } else {
+      html += '<div></div></div><p style="text-align:center;color:var(--text-secondary);">ไม่พบข้อมูลเพิ่มเติม</p>';
     }
 
     if (moveRow) {
@@ -196,6 +215,7 @@ async function viewBillDetail(id, type) {
     showBillModal('Error', '', '<p style="color:#f44336;">' + e.message + '</p>');
   }
 }
+
 
 function showBillModal(id, type, contentHtml) {
   let modal = document.getElementById('billDetailModal');
