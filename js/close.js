@@ -145,10 +145,10 @@ async function openCloseWorkModal() {
         const qty = goldObj[pid];
         if (qty > 0) {
           hasData = true;
-          html += `<tr><td>${productNames[pid] || pid}</td><td style="text-align:right;font-weight:bold;">${qty} ชิ้น</td></tr>`;
+          html += `<tr><td style="padding:6px 0;white-space:nowrap;">${productNames[pid] || pid}</td><td style="text-align:right;font-weight:bold;padding:6px 0;white-space:nowrap;">${qty} ชิ้น</td></tr>`;
         }
       });
-      return hasData ? html : '<tr><td colspan="2" style="text-align:center;color:var(--text-secondary);">ไม่มี</td></tr>';
+      return hasData ? html : '<tr><td colspan="2" style="text-align:center;color:var(--text-secondary);padding:15px 0;">ไม่มี</td></tr>';
     };
     
     document.getElementById('closeWorkSummary').innerHTML = `
@@ -308,35 +308,34 @@ async function openCloseDetail(closeId) {
         Object.keys(obj).sort().forEach(pid => {
           if (obj[pid] > 0) {
             hasData = true;
-            html += '<tr><td>' + (productNames[pid] || pid) + '</td><td style="text-align:right;font-weight:bold;">' + obj[pid] + ' ชิ้น</td></tr>';
+            html += '<tr><td style="padding:6px 0;white-space:nowrap;">' + (productNames[pid] || pid) + '</td><td style="text-align:right;font-weight:bold;padding:6px 0;white-space:nowrap;">' + obj[pid] + ' ชิ้น</td></tr>';
           }
         });
       } catch(e) {}
-      return hasData ? html : '<tr><td colspan="2" style="text-align:center;color:var(--text-secondary);">ไม่มี</td></tr>';
+      return hasData ? html : '<tr><td colspan="2" style="text-align:center;color:var(--text-secondary);padding:15px 0;">ไม่มี</td></tr>';
     };
     
     document.getElementById('closeDetailContent').innerHTML = `
       <div style="text-align:center;margin-bottom:20px;">
         <p style="font-size:20px;color:var(--gold-primary);font-weight:bold;">${closeRecord[1]}</p>
-        <p style="color:var(--text-secondary);">Close ID: ${closeRecord[0]}</p>
-        <p style="color:var(--text-secondary);">ส่งเมื่อ: ${formatDateTime(closeRecord[7])}</p>
+        <p style="color:var(--text-secondary);">Close ID: ${closeRecord[0]} — ส่งเมื่อ: ${formatDateTime(closeRecord[7])}</p>
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px;">
-        <div class="stat-card">
-          <h3 style="color:var(--gold-primary);margin-bottom:15px;">💵 เงินสด</h3>
-          <table style="width:100%;">
-            <tr><td>LAK</td><td style="text-align:right;font-weight:bold;font-size:18px;">${formatNumber(closeRecord[3])}</td></tr>
-            <tr><td>THB</td><td style="text-align:right;font-weight:bold;font-size:18px;">${formatNumber(closeRecord[4])}</td></tr>
-            <tr><td>USD</td><td style="text-align:right;font-weight:bold;font-size:18px;">${formatNumber(closeRecord[5])}</td></tr>
+        <div class="stat-card" style="padding:20px;">
+          <h3 style="color:var(--gold-primary);margin-bottom:15px;font-size:15px;white-space:nowrap;">💵 เงินสด</h3>
+          <table style="width:100%;border-collapse:collapse;">
+            <tr><td style="padding:6px 0;">LAK</td><td style="text-align:right;font-weight:bold;font-size:18px;padding:6px 0;">${formatNumber(closeRecord[3])}</td></tr>
+            <tr><td style="padding:6px 0;">THB</td><td style="text-align:right;font-weight:bold;font-size:18px;padding:6px 0;">${formatNumber(closeRecord[4])}</td></tr>
+            <tr><td style="padding:6px 0;">USD</td><td style="text-align:right;font-weight:bold;font-size:18px;padding:6px 0;">${formatNumber(closeRecord[5])}</td></tr>
           </table>
         </div>
-        <div class="stat-card">
-          <h3 style="color:#ff9800;margin-bottom:15px;">🥇 ทองเก่า (IN)</h3>
-          <table style="width:100%;">${buildGoldTable(closeRecord[6])}</table>
+        <div class="stat-card" style="padding:20px;">
+          <h3 style="color:#ff9800;margin-bottom:15px;font-size:15px;white-space:nowrap;">🥇 ทองเก่า (IN)</h3>
+          <table style="width:100%;border-collapse:collapse;">${buildGoldTable(closeRecord[6])}</table>
         </div>
-        <div class="stat-card">
-          <h3 style="color:#2196f3;margin-bottom:15px;">💎 ทองใหม่ (OUT)</h3>
-          <table style="width:100%;">${buildGoldTable(closeRecord[10])}</table>
+        <div class="stat-card" style="padding:20px;">
+          <h3 style="color:#2196f3;margin-bottom:15px;font-size:15px;white-space:nowrap;">💎 ทองใหม่ (OUT)</h3>
+          <table style="width:100%;border-collapse:collapse;">${buildGoldTable(closeRecord[10])}</table>
         </div>
       </div>
     `;

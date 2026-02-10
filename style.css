@@ -450,6 +450,24 @@ tbody tr:hover {
   color: var(--gold-primary);
 }
 
+.btn-danger {
+  padding: 12px 24px;
+  border: none;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-family: 'Montserrat', sans-serif;
+  background: linear-gradient(135deg, #e53935, #c62828);
+  color: #fff;
+}
+
+.btn-danger:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(229, 57, 53, 0.3);
+}
+
 .btn-action {
   background: rgba(212, 175, 55, 0.1);
   color: var(--gold-primary);
