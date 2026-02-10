@@ -40,25 +40,27 @@ function showSection(sectionId) {
     });
   }
   
-  if (sectionId === 'dashboard') loadDashboard();
-  else if (sectionId === 'products') loadProducts();
-  else if (sectionId === 'pricerate') loadPriceRate();
-  else if (sectionId === 'sell') {
-    loadSells();
-  }
-  else if (sectionId === 'tradein') loadTradeins();
-  else if (sectionId === 'exchange') loadExchanges();
-  else if (sectionId === 'switch') loadSwitches();
-  else if (sectionId === 'freeexchange') loadFreeExchanges();
-  else if (sectionId === 'buyback') loadBuybacks();
-  else if (sectionId === 'withdraw') loadWithdraws();
-  else if (sectionId === 'inventory') loadInventory();
-  else if (sectionId === 'cashbank') loadCashBank();
-  else if (sectionId === 'accounting') loadAccounting();
-  else if (sectionId === 'reports') loadReports();
-  else if (sectionId === 'stockold') loadStockOld();
-  else if (sectionId === 'stocknew') loadStockNew();
-  else if (sectionId === 'wac') loadWAC();
+  const loaderMap = {
+    'dashboard': 'loadDashboard',
+    'products': 'loadProducts',
+    'pricerate': 'loadPriceRate',
+    'sell': 'loadSells',
+    'tradein': 'loadTradeins',
+    'exchange': 'loadExchanges',
+    'switch': 'loadSwitches',
+    'freeexchange': 'loadFreeExchanges',
+    'buyback': 'loadBuybacks',
+    'withdraw': 'loadWithdraws',
+    'inventory': 'loadInventory',
+    'cashbank': 'loadCashBank',
+    'accounting': 'loadAccounting',
+    'reports': 'loadReports',
+    'stockold': 'loadStockOld',
+    'stocknew': 'loadStockNew',
+    'wac': 'loadWAC'
+  };
+  const fn = loaderMap[sectionId];
+  if (fn && typeof window[fn] === 'function') window[fn]();
 }
 
 function showLoading() {
