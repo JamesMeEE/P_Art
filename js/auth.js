@@ -18,7 +18,7 @@ function login() {
     
     if (currentUser.role === 'Accountant') {
       document.body.classList.add('accountant-readonly');
-      const readonlyBtns = ['quickSales', 'quickTradein', 'quickBuyback', 'addSellBtn', 'addTradeinBtn', 'addBuybackBtn', 'addExchangeBtn', 'withdrawBtn'];
+      const readonlyBtns = ['quickSales', 'quickTradein', 'quickBuyback', 'addSellBtn', 'addTradeinBtn', 'addBuybackBtn', 'addExchangeBtn', 'addSwitchBtn', 'addFreeExchangeBtn', 'withdrawBtn'];
       readonlyBtns.forEach(id => {
         const el = document.getElementById(id);
         if (el) el.style.display = 'none';
@@ -26,7 +26,7 @@ function login() {
     }
     
     if (currentUser.role === 'User') {
-      const allowedTabs = ['sell', 'trade-in', 'exchange', 'buyback', 'withdraw'];
+      const allowedTabs = ['sell', 'trade-in', 'exchange', 'switch', 'free ex', 'buyback', 'withdraw'];
       document.querySelectorAll('.nav-btn').forEach(btn => {
         const text = btn.textContent.toLowerCase();
         let isAllowed = false;
@@ -38,7 +38,7 @@ function login() {
     }
     
     if (currentUser.role === 'Manager') {
-      const managerHideButtons = ['addSellBtn', 'addTradeinBtn', 'addBuybackBtn', 'addExchangeBtn', 'addWithdrawBtn', 'withdrawBtn'];
+      const managerHideButtons = ['addSellBtn', 'addTradeinBtn', 'addBuybackBtn', 'addExchangeBtn', 'addSwitchBtn', 'addFreeExchangeBtn', 'addWithdrawBtn', 'withdrawBtn'];
       managerHideButtons.forEach(id => {
         const el = document.getElementById(id);
         if (el) el.style.display = 'none';
@@ -93,7 +93,7 @@ function logout() {
       
       if (currentUser.role === 'Accountant') {
         document.body.classList.add('accountant-readonly');
-        const readonlyBtns = ['quickSales', 'quickTradein', 'quickBuyback', 'addSellBtn', 'addTradeinBtn', 'addBuybackBtn', 'addExchangeBtn', 'withdrawBtn'];
+        const readonlyBtns = ['quickSales', 'quickTradein', 'quickBuyback', 'addSellBtn', 'addTradeinBtn', 'addBuybackBtn', 'addExchangeBtn', 'addSwitchBtn', 'addFreeExchangeBtn', 'withdrawBtn'];
         readonlyBtns.forEach(id => {
           const el = document.getElementById(id);
           if (el) el.style.display = 'none';
@@ -101,7 +101,7 @@ function logout() {
       }
       
       if (currentUser.role === 'User') {
-        const allowedTabs = ['sell', 'trade-in', 'exchange', 'buyback', 'withdraw'];
+        const allowedTabs = ['sell', 'trade-in', 'exchange', 'switch', 'free ex', 'buyback', 'withdraw'];
         document.querySelectorAll('.nav-btn').forEach(btn => {
           const text = btn.textContent.toLowerCase();
           let isAllowed = false;
@@ -113,7 +113,7 @@ function logout() {
       }
       
       if (currentUser.role === 'Manager') {
-        const managerHideButtons = ['addSellBtn', 'addTradeinBtn', 'addBuybackBtn', 'addExchangeBtn', 'addWithdrawBtn', 'withdrawBtn'];
+        const managerHideButtons = ['addSellBtn', 'addTradeinBtn', 'addBuybackBtn', 'addExchangeBtn', 'addSwitchBtn', 'addFreeExchangeBtn', 'addWithdrawBtn', 'withdrawBtn'];
         managerHideButtons.forEach(id => {
           const el = document.getElementById(id);
           if (el) el.style.display = 'none';
