@@ -172,13 +172,21 @@ async function calculateFreeExchange() {
     return;
   }
 
-  let premium = 0;
-
-  newGold.forEach(item => {
+  let oldPremium = 0;
+  oldGold.forEach(item => {
     if (PREMIUM_PRODUCTS.includes(item.productId)) {
-      premium += PREMIUM_PER_PIECE * item.qty;
+      oldPremium += PREMIUM_PER_PIECE * item.qty;
     }
   });
+
+  let newPremium = 0;
+  newGold.forEach(item => {
+    if (PREMIUM_PRODUCTS.includes(item.productId)) {
+      newPremium += PREMIUM_PER_PIECE * item.qty;
+    }
+  });
+
+  let premium = newPremium > oldPremium ? newPremium - oldPremium : 0;
 
   const total = roundTo1000(premium);
 

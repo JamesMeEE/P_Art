@@ -132,7 +132,7 @@
     <section id="products" class="section">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
         <h2 style="font-family: 'Cormorant Garamond', serif; font-size: 36px; color: var(--gold-primary);">Product Pricing</h2>
-        <button class="btn-primary manager-only" onclick="openModal('pricingModal')" id="setPricingBtn">Set Pricing</button>
+        <div style="display: flex; gap: 10px;"><button class="btn-primary manager-only" onclick="openModal('pricingModal')" id="setPricingBtn">Set Pricing</button><button class="btn-primary manager-only" onclick="openSwitchFeeModal()" id="setSwitchFeeBtn">Set Switch Fee</button></div>
       </div>
       <div style="background: rgba(212, 175, 55, 0.1); border: 1px solid var(--gold-primary); border-radius: 12px; padding: 15px 20px; margin-bottom: 30px;">
         <span style="color: var(--text-secondary); font-size: 14px;">Current Base Price (SELL 1 BAHT):</span>
@@ -148,7 +148,7 @@
               <th>Sell Price (LAK)</th>
               <th>Buyback (LAK)</th>
               <th>Exchange Fee (LAK)</th>
-              <th>Switch Fee (LAK)</th>
+              <th>Exchange Fee - SWITCH (LAK)</th>
             </tr>
           </thead>
           <tbody id="productsTable">
@@ -401,7 +401,7 @@
               <th>PHONE NO.</th>
               <th>Old Gold</th>
               <th>New Gold</th>
-              <th>Switch Fee</th>
+              <th>Exchange Fee</th>
               <th>Premium</th>
               <th>Total (LAK)</th>
               <th>Status</th>
@@ -474,8 +474,8 @@
               <th>Price</th>
               <th>Fee</th>
               <th>Total</th>
-              <th>Paid</th>
-              <th>Balance</th>
+              
+              <th>คงค้าง</th>
               <th>Status</th>
               <th>Sale</th>
               <th>Actions</th>
@@ -483,7 +483,7 @@
           </thead>
           <tbody id="buybackTable">
             <tr>
-              <td colspan="11" style="text-align: center; padding: 40px;">Loading...</td>
+              <td colspan="10" style="text-align: center; padding: 40px;">Loading...</td>
             </tr>
           </tbody>
         </table>
@@ -746,6 +746,19 @@
       <div class="modal-footer">
         <button class="btn-secondary" onclick="closeModal('pricingModal')">Cancel</button>
         <button class="btn-primary" onclick="updatePricing()">Update Pricing</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="switchFeeModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title">Set Exchange Fee - SWITCH</h2>
+      </div>
+      <div id="switchFeeInputs"></div>
+      <div class="modal-footer">
+        <button class="btn-secondary" onclick="closeModal('switchFeeModal')">Cancel</button>
+        <button class="btn-primary" onclick="updateSwitchFees()">Update Switch Fees</button>
       </div>
     </div>
   </div>

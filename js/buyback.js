@@ -53,7 +53,6 @@ async function loadBuybacks() {
             <td>${formatNumber(price)}</td>
             <td>${formatNumber(fee)}</td>
             <td>${formatNumber(total)}</td>
-            <td>${formatNumber(paid)}</td>
             <td style="color: ${balance > 0 ? '#f44336' : '#4caf50'}; font-weight: bold;">${formatNumber(balance)}</td>
             <td><span class="status-badge status-${status.toLowerCase()}">${status}</span></td>
             <td>${saleName}</td>

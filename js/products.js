@@ -102,3 +102,25 @@ async function updatePricing() {
     hideLoading();
   }
 }
+function openSwitchFeeModal() {
+  const container = document.getElementById('switchFeeInputs');
+  container.innerHTML = FIXED_PRODUCTS.map(product => `
+    <div class="form-group">
+      <label class="form-label">${product.id} - ${product.name}</label>
+      <input type="number" class="form-input" id="switchFee_${product.id}" value="${EXCHANGE_FEES_SWITCH[product.id]}" step="1000">
+    </div>
+  `).join('');
+  openModal('switchFeeModal');
+}
+
+function updateSwitchFees() {
+  FIXED_PRODUCTS.forEach(product => {
+    const input = document.getElementById('switchFee_' + product.id);
+    if (input) {
+      EXCHANGE_FEES_SWITCH[product.id] = parseFloat(input.value) || 0;
+    }
+  });
+  alert('✅ อัพเดต Exchange Fee - SWITCH สำเร็จ!');
+  closeModal('switchFeeModal');
+  loadProducts();
+}
