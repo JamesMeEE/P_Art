@@ -80,7 +80,7 @@
       <button class="nav-btn" onclick="showSection('tradein')">◎ Trade-in</button>
       <button class="nav-btn" onclick="showSection('exchange')">◍ Exchange</button>
       <button class="nav-btn" onclick="showSection('switch')">⟳ Switch</button>
-      <button class="nav-btn" onclick="showSection('freeexchange')">◇ Free Ex</button>
+      <button class="nav-btn" onclick="showSection('freeexchange')">◇ Free Exchange</button>
       <button class="nav-btn" onclick="showSection('buyback')">◑ Buyback</button>
       <button class="nav-btn" onclick="showSection('withdraw')">◌ Withdraw</button>
       <button class="nav-btn" onclick="showSection('inventory')">◒ Inventory</button>
@@ -132,7 +132,7 @@
     <section id="products" class="section">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
         <h2 style="font-family: 'Cormorant Garamond', serif; font-size: 36px; color: var(--gold-primary);">Product Pricing</h2>
-        <div style="display: flex; gap: 10px;"><button class="btn-primary manager-only" onclick="openModal('pricingModal')" id="setPricingBtn">Set Pricing</button><button class="btn-primary manager-only" onclick="openSwitchFeeModal()" id="setSwitchFeeBtn">Set Switch Fee</button></div>
+        <button class="btn-primary manager-only" onclick="openModal('pricingModal')" id="setPricingBtn">Set Pricing</button>
       </div>
       <div style="background: rgba(212, 175, 55, 0.1); border: 1px solid var(--gold-primary); border-radius: 12px; padding: 15px 20px; margin-bottom: 30px;">
         <span style="color: var(--text-secondary); font-size: 14px;">Current Base Price (SELL 1 BAHT):</span>
@@ -750,18 +750,6 @@
     </div>
   </div>
 
-  <div id="switchFeeModal" class="modal">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h2 class="modal-title">Set Exchange Fee - SWITCH</h2>
-      </div>
-      <div id="switchFeeInputs"></div>
-      <div class="modal-footer">
-        <button class="btn-secondary" onclick="closeModal('switchFeeModal')">Cancel</button>
-        <button class="btn-primary" onclick="updateSwitchFees()">Update Switch Fees</button>
-      </div>
-    </div>
-  </div>
 
   <div id="sellModal" class="modal">
     <div class="modal-content modal-large">
@@ -1114,10 +1102,6 @@
         <label class="form-label">Total Price (LAK)</label>
         <input type="text" class="form-input" id="buybackPrice" placeholder="0" readonly>
       </div>
-      <div class="form-group">
-        <label class="form-label">Fee (LAK) - ค่าธรรมเนียม</label>
-        <input type="number" class="form-input" id="buybackFee" placeholder="0" value="0">
-      </div>
       <div class="modal-footer">
         <button class="btn-secondary" onclick="closeModal('buybackModal')">Cancel</button>
         <button class="btn-primary" onclick="calculateBuyback()">Create Buyback</button>
@@ -1125,68 +1109,6 @@
     </div>
   </div>
 
-  <div id="buybackPaymentModal" class="modal">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h2 class="modal-title">Buyback Payment</h2>
-      </div>
-      
-      <div class="summary-box" style="margin-bottom: 20px;">
-        <div class="summary-row">
-          <span class="summary-label">Transaction ID:</span>
-          <span class="summary-value" id="buybackPaymentId">-</span>
-        </div>
-        <div class="summary-row">
-          <span class="summary-label">Customer:</span>
-          <span class="summary-value" id="buybackPaymentPhone">-</span>
-        </div>
-        <div class="summary-row">
-          <span class="summary-label">Items:</span>
-          <span class="summary-value" id="buybackPaymentItems" style="white-space: pre-line;">-</span>
-        </div>
-        <div class="summary-row">
-          <span class="summary-label">Buyback Total:</span>
-          <span class="summary-value" id="buybackPaymentBaseTotal">0 LAK</span>
-        </div>
-      </div>
-
-      <div class="form-group">
-        <label class="form-label">Payment Method</label>
-        <select class="form-select" id="buybackPaymentMethod" onchange="toggleBuybackPaymentBank()">
-          <option value="Cash">Cash</option>
-          <option value="Bank">Bank Transfer</option>
-        </select>
-      </div>
-
-      <div class="form-group" id="buybackPaymentBankGroup" style="display: none;">
-        <label class="form-label">Bank</label>
-        <select class="form-select" id="buybackPaymentBank">
-          <option value="BCEL">BCEL</option>
-          <option value="LDB">LDB</option>
-        </select>
-      </div>
-
-      <div class="form-group">
-        <label class="form-label">Currency</label>
-        <input type="text" class="form-input" value="LAK" readonly>
-      </div>
-
-      <div class="form-group">
-        <label class="form-label">Transaction Fee (LAK)</label>
-        <input type="number" class="form-input" id="buybackPaymentFee" placeholder="0" oninput="calculateBuybackPaymentTotal()">
-      </div>
-
-      <div class="form-group">
-        <label class="form-label" style="font-size: 18px; font-weight: 600;">Total Amount (LAK)</label>
-        <input type="text" class="form-input" id="buybackPaymentTotal" readonly style="font-size: 20px; font-weight: 600; color: var(--gold-primary);">
-      </div>
-
-      <div class="modal-footer">
-        <button class="btn-secondary" onclick="closeModal('buybackPaymentModal')">Cancel</button>
-        <button class="btn-primary" onclick="confirmBuybackPayment()">Confirm Payment</button>
-      </div>
-    </div>
-  </div>
 
   <div id="approvalModal" class="modal">
     <div class="modal-content">
@@ -1766,6 +1688,15 @@
         </div>
       </div>
       
+      <div id="multiPaymentFeeGroup" style="margin: 0 20px; padding: 15px; background: rgba(255, 152, 0, 0.1); border-radius: 8px; border: 1px solid #ff9800; margin-bottom: 15px; display: none;">
+        <label style="color: #ff9800; font-weight: bold; margin-bottom: 8px; display: block;">💰 ค่าธรรมเนียม (Fee)</label>
+        <input type="number" class="form-input" id="multiPaymentFeeInput" placeholder="0" value="0" oninput="onBuybackFeeChange()">
+      </div>
+      
+      <div id="multiPaymentBalanceGroup" style="margin: 0 20px 15px 20px; padding: 15px; background: rgba(244, 67, 54, 0.1); border-radius: 8px; border: 1px solid #f44336; text-align: center; display: none;">
+        <span style="font-size: 14px; color: #f44336;">ยอดคงค้าง</span>
+        <div style="font-size: 24px; font-weight: bold; color: #f44336;" id="multiPaymentBalance">0 LAK</div>
+      </div>
       <div style="margin: 20px;">
         <!-- Cash Section -->
         <div style="background: rgba(76, 175, 80, 0.1); padding: 15px; border-radius: 8px; border: 1px solid #4caf50; margin-bottom: 15px;">

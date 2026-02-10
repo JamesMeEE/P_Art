@@ -140,7 +140,7 @@ async function calculateBuyback() {
   }
 
   const price = calculateBuybackTotal();
-  const fee = parseFloat(document.getElementById('buybackFee').value) || 0;
+  const fee = 0;
 
   try {
     showLoading();
@@ -159,105 +159,12 @@ async function calculateBuyback() {
       document.getElementById('buybackPhone').value = '';
       document.getElementById('buybackProducts').innerHTML = '';
       document.getElementById('buybackPrice').value = '';
-      document.getElementById('buybackFee').value = '';
+      
       buybackCounter = 0;
       addBuybackProduct();
       
       loadBuybacks();
       loadDashboard();
-    } else {
-      alert('❌ เกิดข้อผิดพลาด: ' + result.message);
-    }
-    hideLoading();
-  } catch (error) {
-    alert('❌ เกิดข้อผิดพลาด: ' + error.message);
-    hideLoading();
-  }
-}
-
-async function openBuybackPaymentModalFromList(buybackId) {
-  try {
-    showLoading();
-    const data = await fetchSheetData('Buybacks!A:J');
-    const buyback = data.slice(1).find(row => row[0] === buybackId);
-    
-    if (!buyback) {
-      alert('❌ ไม่พบรายการรับซื้อ');
-      hideLoading();
-      return;
-    }
-    
-    currentBuybackPayment = {
-      buybackId: buyback[0],
-      phone: buyback[1],
-      items: buyback[2],
-      baseTotal: parseFloat(buyback[3]) || 0
-    };
-    
-    document.getElementById('buybackPaymentId').textContent = buyback[0];
-    document.getElementById('buybackPaymentPhone').textContent = buyback[1];
-    document.getElementById('buybackPaymentItems').textContent = formatItemsForDisplay(buyback[2]);
-    document.getElementById('buybackPaymentBaseTotal').textContent = formatNumber(buyback[3]) + ' LAK';
-    
-    document.getElementById('buybackPaymentMethod').value = 'Cash';
-    document.getElementById('buybackPaymentBankGroup').style.display = 'none';
-    document.getElementById('buybackPaymentFee').value = '0';
-    
-    calculateBuybackPaymentTotal();
-    
-    hideLoading();
-    openModal('buybackPaymentModal');
-  } catch (error) {
-    alert('❌ เกิดข้อผิดพลาด: ' + error.message);
-    hideLoading();
-  }
-}
-
-function calculateBuybackPaymentTotal() {
-  if (!currentBuybackPayment) return;
-  
-  const baseTotal = currentBuybackPayment.baseTotal || 0;
-  const fee = parseFloat(document.getElementById('buybackPaymentFee').value) || 0;
-  const total = baseTotal + fee;
-  
-  document.getElementById('buybackPaymentTotal').value = formatNumber(total) + ' LAK';
-}
-
-function toggleBuybackPaymentBank() {
-  const method = document.getElementById('buybackPaymentMethod').value;
-  const bankGroup = document.getElementById('buybackPaymentBankGroup');
-  bankGroup.style.display = method === 'Bank' ? 'block' : 'none';
-}
-
-async function confirmBuybackPayment() {
-  if (!currentBuybackPayment) return;
-  
-  const method = document.getElementById('buybackPaymentMethod').value;
-  const bank = method === 'Bank' ? document.getElementById('buybackPaymentBank').value : '';
-  const fee = parseFloat(document.getElementById('buybackPaymentFee').value) || 0;
-  const total = currentBuybackPayment.baseTotal + fee;
-  
-  try {
-    showLoading();
-    
-    const result = await callAppsScript('CONFIRM_BUYBACK_PAYMENT', {
-      buybackId: currentBuybackPayment.buybackId,
-      items: currentBuybackPayment.items,
-      method,
-      bank,
-      fee,
-      total,
-      user: currentUser.nickname
-    });
-    
-    if (result.success) {
-      alert('✅ ยืนยันชำระเงินสำเร็จ!');
-      closeModal('buybackPaymentModal');
-      currentBuybackPayment = null;
-      
-      loadBuybacks();
-      loadDashboard();
-      loadCashBank();
     } else {
       alert('❌ เกิดข้อผิดพลาด: ' + result.message);
     }
@@ -330,5 +237,3 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 });
-
-let currentBuybackPayment = null;

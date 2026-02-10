@@ -19,7 +19,7 @@ function showSection(sectionId) {
     'tradein': 'trade-in',
     'exchange': 'exchange',
     'switch': 'switch',
-    'freeexchange': 'free ex',
+    'freeexchange': 'free exchange',
     'buyback': 'buyback',
     'withdraw': 'withdraw',
     'inventory': 'inventory',

@@ -26,7 +26,7 @@ function login() {
     }
     
     if (currentUser.role === 'User') {
-      const allowedTabs = ['sell', 'trade-in', 'exchange', 'switch', 'free ex', 'buyback', 'withdraw'];
+      const allowedTabs = ['sell', 'trade-in', 'exchange', 'switch', 'free exchange', 'buyback', 'withdraw'];
       document.querySelectorAll('.nav-btn').forEach(btn => {
         const text = btn.textContent.toLowerCase();
         let isAllowed = false;
@@ -101,7 +101,7 @@ function logout() {
       }
       
       if (currentUser.role === 'User') {
-        const allowedTabs = ['sell', 'trade-in', 'exchange', 'switch', 'free ex', 'buyback', 'withdraw'];
+        const allowedTabs = ['sell', 'trade-in', 'exchange', 'switch', 'free exchange', 'buyback', 'withdraw'];
         document.querySelectorAll('.nav-btn').forEach(btn => {
           const text = btn.textContent.toLowerCase();
           let isAllowed = false;
