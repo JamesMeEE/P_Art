@@ -2,9 +2,9 @@ async function loadStockNew() {
   try {
     showLoading();
 
-    const [stockData, moveData] = await Promise.all([
+    const [stockData, moveResult] = await Promise.all([
       safeFetch('Stock_New!A:D'),
-      safeFetch('StockMove_New!A:J')
+      callAppsScript('GET_STOCK_MOVES', { sheet: 'StockMove_New' })
     ]);
 
     let carry = {};
@@ -32,35 +32,17 @@ async function loadStockNew() {
     let carryWeightG = 0;
     FIXED_PRODUCTS.forEach(p => { carryWeightG += (carry[p.id] || 0) * getGoldWeight(p.id); });
 
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const todayEnd = new Date(today);
-    todayEnd.setHours(23, 59, 59, 999);
+    var prevW = carryWeightG + (moveResult.data ? moveResult.data.prevW || 0 : 0);
+    var prevC = moveResult.data ? moveResult.data.prevC || 0 : 0;
+    var moves = moveResult.data ? moveResult.data.moves || [] : [];
 
-    let prevW = carryWeightG;
-    let prevC = 0;
-    const todayMovements = [];
-
-    if (moveData.length > 1) {
-      moveData.slice(1).forEach(row => {
-        const d = parseSheetDate(row[0]);
-        if (!d) return;
-        const goldG = parseFloat(row[4]) || 0;
-        const price = parseFloat(row[6]) || 0;
-        const dir = String(row[5] || '');
-        const gIn = dir === 'IN' ? goldG : 0;
-        const gOut = dir === 'OUT' ? goldG : 0;
-        const pIn = dir === 'IN' ? price : 0;
-        const pOut = dir === 'OUT' ? price : 0;
-
-        if (d < today) {
-          prevW += gIn - gOut;
-          prevC += pIn - pOut;
-        } else if (d <= todayEnd) {
-          todayMovements.push({ id: row[1], type: row[2], goldIn: gIn, goldOut: gOut, priceIn: pIn, priceOut: pOut });
-        }
-      });
-    }
+    var todayMovements = moves.map(function(m) {
+      var gIn = m.dir === 'IN' ? m.goldG : 0;
+      var gOut = m.dir === 'OUT' ? m.goldG : 0;
+      var pIn = m.dir === 'IN' ? m.price : 0;
+      var pOut = m.dir === 'OUT' ? m.price : 0;
+      return { id: m.id, type: m.type, goldIn: gIn, goldOut: gOut, priceIn: pIn, priceOut: pOut };
+    });
 
     let w = prevW, c = prevC;
     todayMovements.forEach(m => {
@@ -115,17 +97,14 @@ async function loadStockNew() {
 
 async function loadPendingTransferCount() {
   try {
-    const data = await safeFetch('StockTransfer!A:F');
-    let count = 0;
-    if (data.length > 1) {
-      data.slice(1).forEach(row => { if (row[3] === 'PENDING') count++; });
-    }
+    var result = await callAppsScript('GET_PENDING_TRANSFERS');
+    var pending = result.data ? result.data.pending || [] : [];
     const badge = document.getElementById('pendingTransferBadge');
     if (badge) {
-      if (count > 0) { badge.textContent = count; badge.style.display = 'block'; }
+      if (pending.length > 0) { badge.textContent = pending.length; badge.style.display = 'block'; }
       else { badge.style.display = 'none'; }
     }
-  } catch(e) { console.warn('loadPendingTransferCount error:', e); }
+  } catch(e) {}
 }
 
 async function openPendingTransferModal() {
@@ -134,24 +113,21 @@ async function openPendingTransferModal() {
   body.innerHTML = '<p style="text-align:center;padding:20px;">Loading...</p>';
 
   try {
-    const data = await safeFetch('StockTransfer!A:F');
-    const pending = [];
-    if (data.length > 1) {
-      data.slice(1).forEach(row => { if (row[3] === 'PENDING') pending.push(row); });
-    }
+    var result = await callAppsScript('GET_PENDING_TRANSFERS');
+    var pending = result.data ? result.data.pending || [] : [];
 
     if (pending.length === 0) {
       body.innerHTML = '<p style="text-align:center;padding:40px;color:var(--text-secondary);">ไม่มีรายการรอรับทอง</p>';
       return;
     }
 
-    body.innerHTML = pending.map(row => {
-      const id = row[0];
-      let itemsHtml = '';
+    body.innerHTML = pending.map(function(row) {
+      var id = row.id;
+      var itemsHtml = '';
       try {
-        const items = JSON.parse(row[1]);
-        itemsHtml = items.map(i => {
-          const p = FIXED_PRODUCTS.find(x => x.id === i.productId);
+        var items = JSON.parse(row.items);
+        itemsHtml = items.map(function(i) {
+          var p = FIXED_PRODUCTS.find(function(x) { return x.id === i.productId; });
           return '<span style="display:inline-block;background:rgba(212,175,55,0.15);padding:4px 10px;border-radius:12px;margin:2px;font-size:13px;">' + (p ? p.name : i.productId) + ' x' + i.qty + '</span>';
         }).join('');
       } catch(e) {}
@@ -159,7 +135,7 @@ async function openPendingTransferModal() {
       return '<div style="border:1px solid rgba(212,175,55,0.3);border-radius:10px;padding:15px;margin-bottom:12px;">' +
         '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">' +
         '<span style="font-weight:bold;color:var(--gold-primary);font-size:16px;">' + id + '</span>' +
-        '<span style="font-size:12px;color:var(--text-secondary);">โดย ' + (row[4] || '-') + '</span></div>' +
+        '<span style="font-size:12px;color:var(--text-secondary);">โดย ' + (row.user || '-') + '</span></div>' +
         '<div style="margin-bottom:12px;">' + itemsHtml + '</div>' +
         '<div style="display:flex;gap:10px;justify-content:flex-end;">' +
         '<button class="btn-danger" onclick="rejectTransfer(\'' + id + '\')" style="padding:6px 16px;font-size:13px;">ปฏิเสธ</button>' +
@@ -175,13 +151,12 @@ async function confirmTransferReceive(id) {
   if (!confirm('ยืนยันรับทอง ' + id + ' เข้า Stock (NEW)?')) return;
   try {
     showLoading();
-    const result = await executeGoogleScript('CONFIRM_TRANSFER', { id: id });
+    const result = await callAppsScript('CONFIRM_TRANSFER', { id: id });
     hideLoading();
     if (result.success) {
       alert('✅ ' + result.message);
       await openPendingTransferModal();
       await loadStockNew();
-      loadPendingTransferCount();
     } else {
       alert('❌ ' + result.message);
     }
@@ -192,7 +167,7 @@ async function rejectTransfer(id) {
   if (!confirm('ปฏิเสธรายการโอน ' + id + '? ทองจะถูกคืนกลับ Stock (OLD)')) return;
   try {
     showLoading();
-    const result = await executeGoogleScript('REJECT_TRANSFER', { id: id });
+    const result = await callAppsScript('REJECT_TRANSFER', { id: id });
     hideLoading();
     if (result.success) {
       alert('✅ ' + result.message);
@@ -244,7 +219,7 @@ async function confirmStockInNew() {
     const note = document.getElementById('stockInNewNote').value.trim();
     if (!confirm('ยืนยัน Stock In (NEW) ' + items.length + ' รายการ?')) return;
     showLoading();
-    const result = await executeGoogleScript('STOCK_IN_NEW', { items: JSON.stringify(items), note: note });
+    const result = await callAppsScript('STOCK_IN_NEW', { items: JSON.stringify(items), note: note });
     hideLoading();
     if (result.success) {
       alert('✅ ' + result.message);
@@ -267,7 +242,7 @@ async function confirmStockOutNew() {
     const note = document.getElementById('stockOutNewNote').value.trim();
     if (!confirm('ยืนยัน Stock Out (NEW) ' + items.length + ' รายการ?')) return;
     showLoading();
-    const result = await executeGoogleScript('STOCK_OUT_NEW', { items: JSON.stringify(items), note: note });
+    const result = await callAppsScript('STOCK_OUT_NEW', { items: JSON.stringify(items), note: note });
     hideLoading();
     if (result.success) {
       alert('✅ ' + result.message);

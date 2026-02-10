@@ -2,11 +2,11 @@ async function loadWAC() {
   try {
     showLoading();
 
-    const [stockOldData, stockNewData, moveOldData, moveNewData] = await Promise.all([
+    const [stockOldData, stockNewData, moveOldResult, moveNewResult] = await Promise.all([
       safeFetch('Stock_Old!A:D'),
       safeFetch('Stock_New!A:D'),
-      safeFetch('StockMove_Old!A:J'),
-      safeFetch('StockMove_New!A:J')
+      callAppsScript('GET_STOCK_MOVES', { sheet: 'StockMove_Old' }),
+      callAppsScript('GET_STOCK_MOVES', { sheet: 'StockMove_New' })
     ]);
 
     let oldCarry = {};
@@ -23,34 +23,34 @@ async function loadWAC() {
     let newCarryW = 0;
     FIXED_PRODUCTS.forEach(p => { newCarryW += (newCarry[p.id] || 0) * getGoldWeight(p.id); });
 
-    const accumulate = (data, startW) => {
-      let w = startW, c = 0;
-      if (data.length > 1) {
-        data.slice(1).forEach(row => {
-          const g = parseFloat(row[4]) || 0;
-          const p = parseFloat(row[6]) || 0;
-          if (String(row[5]) === 'IN') { w += g; c += p; }
-          else { w -= g; c -= p; }
-        });
-      }
-      return { weight: w, cost: c };
-    };
+    var oData = moveOldResult.data || { prevW: 0, prevC: 0, moves: [] };
+    var nData = moveNewResult.data || { prevW: 0, prevC: 0, moves: [] };
 
-    const old = accumulate(moveOldData, oldCarryW);
-    const nw = accumulate(moveNewData, newCarryW);
+    var oldCumW = oData.prevW, oldCumC = oData.prevC;
+    (oData.moves || []).forEach(function(m) {
+      if (m.dir === 'IN') { oldCumW += m.goldG; oldCumC += m.price; }
+      else { oldCumW -= m.goldG; oldCumC -= m.price; }
+    });
 
-    const absNewW = Math.abs(nw.weight);
-    const absNewC = Math.abs(nw.cost);
-    const totalGoldG = old.weight + absNewW;
-    const totalCost = Math.round(old.cost / 1000) * 1000 + Math.round(absNewC / 1000) * 1000;
+    var newCumW = nData.prevW, newCumC = nData.prevC;
+    (nData.moves || []).forEach(function(m) {
+      if (m.dir === 'IN') { newCumW += m.goldG; newCumC += m.price; }
+      else { newCumW -= m.goldG; newCumC -= m.price; }
+    });
+
+    var totalOldW = oldCarryW + oldCumW;
+    var absNewW = Math.abs(newCarryW + newCumW);
+    var absNewC = Math.abs(newCumC);
+    var totalGoldG = totalOldW + absNewW;
+    var totalCost = Math.round(oldCumC / 1000) * 1000 + Math.round(absNewC / 1000) * 1000;
 
     document.getElementById('wacSummaryTable').innerHTML =
-      '<tr><td>Stock (NEW)</td><td>' + formatNumber(absNewW.toFixed(2)) + ' g</td><td>' + formatNumber(Math.round(absNewC / 1000) * 1000) + ' LAK</td></tr>' +
-      '<tr><td>Stock (OLD)</td><td>' + formatNumber(old.weight.toFixed(2)) + ' g</td><td>' + formatNumber(Math.round(old.cost / 1000) * 1000) + ' LAK</td></tr>' +
-      '<tr style="font-weight:bold;background:rgba(212,175,55,0.1);"><td>ผลรวม</td><td>' + formatNumber(totalGoldG.toFixed(2)) + ' g</td><td>' + formatNumber(totalCost) + ' LAK</td></tr>';
+      '<tr><td>Stock (NEW)</td><td>' + formatWeight(absNewW) + ' g</td><td>' + formatNumber(Math.round(absNewC / 1000) * 1000) + ' LAK</td></tr>' +
+      '<tr><td>Stock (OLD)</td><td>' + formatWeight(totalOldW) + ' g</td><td>' + formatNumber(Math.round(oldCumC / 1000) * 1000) + ' LAK</td></tr>' +
+      '<tr style="font-weight:bold;background:rgba(212,175,55,0.1);"><td>ผลรวม</td><td>' + formatWeight(totalGoldG) + ' g</td><td>' + formatNumber(totalCost) + ' LAK</td></tr>';
 
-    const wacPerG = totalGoldG > 0 ? totalCost / totalGoldG : 0;
-    const wacPerBaht = wacPerG * 15;
+    var wacPerG = totalGoldG > 0 ? totalCost / totalGoldG : 0;
+    var wacPerBaht = wacPerG * 15;
 
     document.getElementById('wacCalcTable').innerHTML =
       '<tr><td>ราคา /g</td><td style="font-weight:bold;color:var(--gold-primary);">' + formatNumber(Math.round(wacPerG / 1000) * 1000) + ' LAK</td></tr>' +
