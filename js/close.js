@@ -8,6 +8,18 @@ async function openCloseWorkModal() {
     const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate());
     const todayEnd = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 23, 59, 59);
     const userName = currentUser.nickname;
+
+    const closeHistory = await fetchSheetData('Close!A:K');
+    const alreadyClosed = closeHistory.slice(1).find(row => {
+      const d = parseSheetDate(row[2]);
+      const isToday = d && d >= todayStart && d <= todayEnd;
+      return isToday && row[1] === userName && (row[8] === 'PENDING' || row[8] === 'APPROVED');
+    });
+    if (alreadyClosed) {
+      hideLoading();
+      alert('❌ คุณได้ปิดงานวันนี้แล้ว (' + alreadyClosed[0] + ' - ' + alreadyClosed[8] + ')');
+      return;
+    }
     
     const [sellData, tradeinData, exchangeData, buybackData, withdrawData, switchData, freeExData] = await Promise.all([
       fetchSheetData('Sells!A:L'),
@@ -378,6 +390,31 @@ async function approveClose() {
     });
     if (result.success) {
       alert('✅ อนุมัติ Close สำเร็จ!');
+      closeModal('closeDetailModal');
+      currentCloseId = null;
+      checkPendingClose();
+    } else {
+      alert('❌ Error: ' + result.message);
+    }
+    hideLoading();
+  } catch (error) {
+    alert('❌ Error: ' + error.message);
+    hideLoading();
+  }
+}
+
+async function rejectClose() {
+  if (!currentCloseId) return;
+  if (!confirm('ปฏิเสธการปิดงาน ' + currentCloseId + '?')) return;
+
+  try {
+    showLoading();
+    const result = await callAppsScript('REJECT_CLOSE', {
+      closeId: currentCloseId,
+      approvedBy: currentUser.nickname
+    });
+    if (result.success) {
+      alert('✅ ปฏิเสธ Close สำเร็จ');
       closeModal('closeDetailModal');
       currentCloseId = null;
       checkPendingClose();

@@ -34,7 +34,7 @@ function showSection(sectionId) {
   const tabName = sectionToTabMap[sectionId];
   if (tabName) {
     document.querySelectorAll('.nav-btn').forEach(btn => {
-      if (btn.textContent.toLowerCase().includes(tabName)) {
+      if (btn.textContent.trim().toLowerCase() === tabName) {
         btn.classList.add('active');
       }
     });

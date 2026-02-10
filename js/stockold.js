@@ -32,8 +32,8 @@ async function loadStockOld() {
       const i = qtyIn[p.id] || 0;
       const o = qtyOut[p.id] || 0;
       return '<tr><td>' + p.id + '</td><td>' + p.name + '</td><td>' + c + '</td>' +
-        '<td style="color:#4caf50;">' + (i > 0 ? '+' + i : '0') + '</td>' +
-        '<td style="color:#f44336;">' + (o > 0 ? '-' + o : '0') + '</td>' +
+        '<td style="color:#4caf50;">' + i + '</td>' +
+        '<td style="color:#f44336;">' + o + '</td>' +
         '<td style="font-weight:bold;">' + (c + i - o) + '</td></tr>';
     }).join('');
 
@@ -215,4 +215,57 @@ function showBillModal(id, type, contentHtml) {
   }
   modal.innerHTML = '<div class="modal-content" style="max-width:520px;"><div class="modal-header"><h3>' + type + ' - ' + id + '</h3><span class="close" onclick="closeModal(\'billDetailModal\')">&times;</span></div><div class="modal-body" style="max-height:70vh;overflow-y:auto;">' + contentHtml + '</div><div class="modal-footer"><button class="btn-secondary" onclick="closeModal(\'billDetailModal\')">ปิด</button></div></div>';
   openModal('billDetailModal');
+}
+
+async function loadStockOldFiltered() {
+  var from = document.getElementById('stockOldDateFrom').value;
+  var to = document.getElementById('stockOldDateTo').value;
+  if (!from || !to) { alert('กรุณาเลือกวันที่'); return; }
+  try {
+    showLoading();
+    var result = await callAppsScript('GET_STOCK_MOVES_RANGE', { sheet: 'StockMove_Old', dateFrom: from, dateTo: to });
+    var moves = result.data ? result.data.moves || [] : [];
+    renderFilteredMoves('stockOldMovementTable', moves, from, to);
+    hideLoading();
+  } catch(e) { hideLoading(); alert('❌ ' + e.message); }
+}
+
+function resetStockOldFilter() {
+  document.getElementById('stockOldDateFrom').value = '';
+  document.getElementById('stockOldDateTo').value = '';
+  loadStockOld();
+}
+
+function renderFilteredMoves(tableId, moves, from, to) {
+  var movBody = document.getElementById(tableId);
+  if (moves.length === 0) {
+    movBody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:40px;">ไม่มีรายการในช่วง ' + from + ' ถึง ' + to + '</td></tr>';
+    return;
+  }
+  var rows = '';
+  var w = 0, c = 0;
+  moves.forEach(function(m) {
+    var gIn = m.dir === 'IN' ? m.goldG : 0;
+    var gOut = m.dir === 'OUT' ? m.goldG : 0;
+    var pIn = m.dir === 'IN' ? m.price : 0;
+    var pOut = m.dir === 'OUT' ? m.price : 0;
+    w += gIn - gOut;
+    c += pIn - pOut;
+    rows += '<tr>' +
+      '<td>' + m.id + '</td>' +
+      '<td><span class="status-badge">' + m.type + '</span></td>' +
+      '<td style="color:#4caf50;">' + (gIn > 0 ? formatWeight(gIn) : '-') + '</td>' +
+      '<td style="color:#f44336;">' + (gOut > 0 ? formatWeight(gOut) : '-') + '</td>' +
+      '<td style="font-weight:bold;">' + formatWeight(w) + '</td>' +
+      '<td style="color:#4caf50;">' + (pIn > 0 ? formatNumber(pIn) : '-') + '</td>' +
+      '<td style="color:#f44336;">' + (pOut > 0 ? formatNumber(pOut) : '-') + '</td>' +
+      '<td style="font-weight:bold;">' + formatNumber(Math.round(c / 1000) * 1000) + '</td>' +
+      '<td><button class="btn-action" onclick="viewBillDetail(\'' + m.id + '\',\'' + m.type + '\')">📋</button></td>' +
+      '</tr>';
+  });
+  rows += '<tr style="background:rgba(212,175,55,0.1);font-weight:bold;">' +
+    '<td colspan="4" style="text-align:right;">รวมทั้งหมด</td>' +
+    '<td>' + formatWeight(w) + '</td><td colspan="2"></td>' +
+    '<td>' + formatNumber(Math.round(c / 1000) * 1000) + '</td><td></td></tr>';
+  movBody.innerHTML = rows;
 }

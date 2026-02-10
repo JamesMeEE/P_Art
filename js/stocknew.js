@@ -24,8 +24,8 @@ async function loadStockNew() {
       const i = qtyIn[p.id] || 0;
       const o = qtyOut[p.id] || 0;
       return '<tr><td>' + p.id + '</td><td>' + p.name + '</td><td>' + c + '</td>' +
-        '<td style="color:#4caf50;">' + (i > 0 ? '+' + i : '0') + '</td>' +
-        '<td style="color:#f44336;">' + (o > 0 ? '-' + o : '0') + '</td>' +
+        '<td style="color:#4caf50;">' + i + '</td>' +
+        '<td style="color:#f44336;">' + o + '</td>' +
         '<td style="font-weight:bold;">' + (c + i - o) + '</td></tr>';
     }).join('');
 
@@ -307,4 +307,23 @@ async function confirmStockOutNew() {
       await loadStockNew();
     } else { alert('❌ ' + result.message); }
   } catch(e) { hideLoading(); alert('❌ ' + e.message); }
+}
+
+async function loadStockNewFiltered() {
+  var from = document.getElementById('stockNewDateFrom').value;
+  var to = document.getElementById('stockNewDateTo').value;
+  if (!from || !to) { alert('กรุณาเลือกวันที่'); return; }
+  try {
+    showLoading();
+    var result = await callAppsScript('GET_STOCK_MOVES_RANGE', { sheet: 'StockMove_New', dateFrom: from, dateTo: to });
+    var moves = result.data ? result.data.moves || [] : [];
+    renderFilteredMoves('stockNewMovementTable', moves, from, to);
+    hideLoading();
+  } catch(e) { hideLoading(); alert('❌ ' + e.message); }
+}
+
+function resetStockNewFilter() {
+  document.getElementById('stockNewDateFrom').value = '';
+  document.getElementById('stockNewDateTo').value = '';
+  loadStockNew();
 }
