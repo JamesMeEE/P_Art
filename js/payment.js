@@ -1,218 +1,335 @@
-async function openPaymentModal(sellId) {
+let currentPaymentData = null;
+let paymentItems = { cash: [], bank: [] };
+
+function openMultiPaymentModal(type, id, total, phone, details) {
+  currentPaymentData = { type, id, total, phone, details };
+  paymentItems = { cash: [], bank: [] };
+  
+  const title = type === 'BUYBACK' ? 'Payment Confirmation' : 'Receive Confirmation';
+  
+  document.getElementById('multiPaymentTitle').textContent = title;
+  document.getElementById('multiPaymentId').textContent = id;
+  document.getElementById('multiPaymentPhone').textContent = phone;
+  document.getElementById('multiPaymentDetails').innerHTML = details;
+  document.getElementById('multiPaymentTotal').textContent = formatNumber(total) + ' LAK';
+  
+  document.getElementById('cashPaymentsList').innerHTML = '';
+  document.getElementById('bankPaymentsList').innerHTML = '';
+  
+  updatePaymentSummary();
+  
+  openModal('multiPaymentModal');
+}
+
+function addCashPayment() {
+  const id = Date.now();
+  paymentItems.cash.push({ id, currency: 'LAK', amount: 0, rate: 1 });
+  renderCashPayments();
+}
+
+function addBankPayment() {
+  const id = Date.now();
+  paymentItems.bank.push({ id, bank: 'BCEL', currency: 'LAK', amount: 0, rate: 1 });
+  renderBankPayments();
+}
+
+function renderCashPayments() {
+  const container = document.getElementById('cashPaymentsList');
+  container.innerHTML = paymentItems.cash.map((item, idx) => `
+    <div class="payment-item" style="display: flex; gap: 10px; margin-bottom: 10px; padding: 10px; background: var(--bg-light); border-radius: 8px; align-items: center;">
+      <select class="form-select" style="width: 100px;" onchange="updateCashCurrency(${item.id}, this.value)">
+        <option value="LAK" ${item.currency === 'LAK' ? 'selected' : ''}>LAK</option>
+        <option value="THB" ${item.currency === 'THB' ? 'selected' : ''}>THB</option>
+        <option value="USD" ${item.currency === 'USD' ? 'selected' : ''}>USD</option>
+      </select>
+      <input type="number" class="form-input" placeholder="Amount" value="${item.amount || ''}" 
+             style="flex: 1;" oninput="updateCashAmount(${item.id}, this.value)">
+      ${item.currency !== 'LAK' ? `
+        <div style="display: flex; align-items: center; gap: 5px;">
+          <span style="color: var(--text-secondary); font-size: 12px;">Rate:</span>
+          <input type="number" class="form-input" placeholder="Rate" value="${item.rate}" 
+                 style="width: 100px;" oninput="updateCashRate(${item.id}, this.value)">
+        </div>
+      ` : ''}
+      <button class="btn-secondary" style="padding: 8px 12px; background: #f44336; color: white;" onclick="removeCashPayment(${item.id})">✕</button>
+    </div>
+  `).join('');
+  updatePaymentSummary();
+}
+
+function renderBankPayments() {
+  const container = document.getElementById('bankPaymentsList');
+  container.innerHTML = paymentItems.bank.map((item, idx) => `
+    <div class="payment-item" style="display: flex; gap: 10px; margin-bottom: 10px; padding: 10px; background: var(--bg-light); border-radius: 8px; align-items: center;">
+      <select class="form-select" style="width: 90px;" onchange="updateBankName(${item.id}, this.value)">
+        <option value="BCEL" ${item.bank === 'BCEL' ? 'selected' : ''}>BCEL</option>
+        <option value="LDB" ${item.bank === 'LDB' ? 'selected' : ''}>LDB</option>
+      </select>
+      <select class="form-select" style="width: 80px;" onchange="updateBankCurrency(${item.id}, this.value)">
+        <option value="LAK" ${item.currency === 'LAK' ? 'selected' : ''}>LAK</option>
+        <option value="THB" ${item.currency === 'THB' ? 'selected' : ''}>THB</option>
+        <option value="USD" ${item.currency === 'USD' ? 'selected' : ''}>USD</option>
+      </select>
+      <input type="number" class="form-input" placeholder="Amount" value="${item.amount || ''}" 
+             style="flex: 1;" oninput="updateBankAmount(${item.id}, this.value)">
+      ${item.currency !== 'LAK' ? `
+        <div style="display: flex; align-items: center; gap: 5px;">
+          <span style="color: var(--text-secondary); font-size: 12px;">Rate:</span>
+          <input type="number" class="form-input" placeholder="Rate" value="${item.rate}" 
+                 style="width: 100px;" oninput="updateBankRate(${item.id}, this.value)">
+        </div>
+      ` : ''}
+      <button class="btn-secondary" style="padding: 8px 12px; background: #f44336; color: white;" onclick="removeBankPayment(${item.id})">✕</button>
+    </div>
+  `).join('');
+  updatePaymentSummary();
+}
+
+function updateCashCurrency(id, value) {
+  const item = paymentItems.cash.find(i => i.id === id);
+  if (item) {
+    item.currency = value;
+    item.rate = value === 'LAK' ? 1 : (value === 'THB' ? (currentExchangeRates?.THB || 580) : (currentExchangeRates?.USD || 21500));
+    renderCashPayments();
+  }
+}
+
+function updateCashAmount(id, value) {
+  const item = paymentItems.cash.find(i => i.id === id);
+  if (item) {
+    item.amount = parseFloat(value) || 0;
+    updatePaymentSummary();
+  }
+}
+
+function updateCashRate(id, value) {
+  const item = paymentItems.cash.find(i => i.id === id);
+  if (item) {
+    item.rate = parseFloat(value) || 1;
+    updatePaymentSummary();
+  }
+}
+
+function removeCashPayment(id) {
+  paymentItems.cash = paymentItems.cash.filter(i => i.id !== id);
+  renderCashPayments();
+}
+
+function updateBankName(id, value) {
+  const item = paymentItems.bank.find(i => i.id === id);
+  if (item) item.bank = value;
+}
+
+function updateBankCurrency(id, value) {
+  const item = paymentItems.bank.find(i => i.id === id);
+  if (item) {
+    item.currency = value;
+    item.rate = value === 'LAK' ? 1 : (value === 'THB' ? (currentExchangeRates?.THB || 580) : (currentExchangeRates?.USD || 21500));
+    renderBankPayments();
+  }
+}
+
+function updateBankAmount(id, value) {
+  const item = paymentItems.bank.find(i => i.id === id);
+  if (item) {
+    item.amount = parseFloat(value) || 0;
+    updatePaymentSummary();
+  }
+}
+
+function updateBankRate(id, value) {
+  const item = paymentItems.bank.find(i => i.id === id);
+  if (item) {
+    item.rate = parseFloat(value) || 1;
+    updatePaymentSummary();
+  }
+}
+
+function removeBankPayment(id) {
+  paymentItems.bank = paymentItems.bank.filter(i => i.id !== id);
+  renderBankPayments();
+}
+
+function updatePaymentSummary() {
+  let totalPaid = 0;
+  
+  paymentItems.cash.forEach(item => {
+    totalPaid += item.amount * item.rate;
+  });
+  
+  paymentItems.bank.forEach(item => {
+    totalPaid += item.amount * item.rate;
+  });
+  
+  const total = currentPaymentData?.total || 0;
+  const remaining = total - totalPaid;
+  const change = totalPaid - total;
+  
+  document.getElementById('multiPaymentPaidTotal').textContent = formatNumber(totalPaid) + ' LAK';
+  
+  if (remaining > 0) {
+    document.getElementById('multiPaymentRemaining').textContent = formatNumber(remaining) + ' LAK';
+    document.getElementById('multiPaymentRemaining').style.color = '#f44336';
+    document.getElementById('multiPaymentChange').textContent = '0 LAK';
+  } else {
+    document.getElementById('multiPaymentRemaining').textContent = '0 LAK';
+    document.getElementById('multiPaymentRemaining').style.color = '#4caf50';
+    document.getElementById('multiPaymentChange').textContent = formatNumber(Math.max(0, change)) + ' LAK';
+  }
+}
+
+async function confirmMultiPayment() {
+  if (!currentPaymentData) return;
+  
+  let totalPaid = 0;
+  paymentItems.cash.forEach(item => { totalPaid += item.amount * item.rate; });
+  paymentItems.bank.forEach(item => { totalPaid += item.amount * item.rate; });
+  
+  const total = currentPaymentData.total;
+  
+  if (totalPaid < total) {
+    alert('❌ ยอดชำระยังไม่ครบ! ขาดอีก ' + formatNumber(total - totalPaid) + ' LAK');
+    return;
+  }
+  
+  const change = totalPaid - total;
+  
   try {
     showLoading();
     
-    // โหลดอัตราแลกเปลี่ยนก่อน
-    if (currentPriceRates.thbSell === 0 || currentPriceRates.usdSell === 0) {
-      const rateData = await fetchSheetData('PriceRate!A:F');
-      if (rateData.length > 1) {
-        const latestRate = rateData[rateData.length - 1];
-        currentPriceRates = {
-          thbSell: parseFloat(latestRate[1]) || 0,
-          usdSell: parseFloat(latestRate[2]) || 0,
-          thbBuy: parseFloat(latestRate[3]) || 0,
-          usdBuy: parseFloat(latestRate[4]) || 0
-        };
-      }
-    }
-    
-    const data = await fetchSheetData('Sells!A:L');
-    const sell = data.slice(1).find(row => row[0] === sellId);
-    
-    if (!sell) {
-      alert('Transaction not found');
-      hideLoading();
-      return;
-    }
-    
-    currentPaymentData = {
-      id: sell[0],
-      customer: sell[1],
-      items: sell[2],
-      total: parseFloat(sell[3]) || 0
+    const actionMap = {
+      'SELL': 'CONFIRM_SELL_PAYMENT',
+      'TRADEIN': 'CONFIRM_TRADEIN_PAYMENT',
+      'EXCHANGE': 'CONFIRM_EXCHANGE_PAYMENT',
+      'WITHDRAW': 'CONFIRM_WITHDRAW_PAYMENT',
+      'BUYBACK': 'CONFIRM_BUYBACK_PAYMENT'
     };
     
-    const items = formatItemsForDisplay(sell[2]);
+    const action = actionMap[currentPaymentData.type];
     
-    document.getElementById('paymentDetails').innerHTML = `
-      <div style="background: rgba(212, 175, 55, 0.1); border: 1px solid var(--gold-primary); border-radius: 8px; padding: 15px;">
-        <div style="margin-bottom: 10px;">
-          <strong>Transaction ID:</strong> ${sell[0]}
-        </div>
-        <div style="margin-bottom: 10px;">
-          <strong>Phone:</strong> ${sell[1]}
-        </div>
-        <div style="margin-bottom: 10px;">
-          <strong>Items:</strong><br>${items.replace(/\n/g, '<br>')}
-        </div>
-        <div>
-          <strong>Total (LAK):</strong> ${formatNumber(sell[3])}
-        </div>
-      </div>
-    `;
+    const idParamMap = {
+      'SELL': 'sellId',
+      'TRADEIN': 'tradeinId',
+      'EXCHANGE': 'exchangeId',
+      'WITHDRAW': 'id',
+      'BUYBACK': 'buybackId'
+    };
     
-    document.getElementById('paymentMethod').value = 'CASH';
-    document.getElementById('paymentCurrency').value = 'LAK';
-    document.getElementById('paymentReceived').value = '';
-    document.getElementById('paymentChange').value = '';
-    
-    updatePaymentMethod();
-    calculatePayment();
-    
-    hideLoading();
-    openModal('paymentModal');
-  } catch (error) {
-    alert('❌ Error: ' + error.message);
-    hideLoading();
-  }
-}
-
-function updatePaymentMethod() {
-  const method = document.getElementById('paymentMethod').value;
-  const bankGroup = document.getElementById('bankSelectionGroup');
-  const receivedGroup = document.getElementById('receivedGroup');
-  const changeGroup = document.getElementById('changeGroup');
-  
-  if (method === 'BANK') {
-    bankGroup.style.display = 'block';
-    receivedGroup.style.display = 'none';
-    changeGroup.style.display = 'none';
-  } else {
-    bankGroup.style.display = 'none';
-    receivedGroup.style.display = 'block';
-    changeGroup.style.display = 'block';
-  }
-}
-
-function calculatePayment() {
-  if (!currentPaymentData) return;
-  
-  const currency = document.getElementById('paymentCurrency').value;
-  const totalLAK = currentPaymentData.total;
-  let amountToPay = totalLAK;
-  let rate = 1;
-  
-  const rateGroup = document.getElementById('exchangeRateGroup');
-  const receivedLabel = document.getElementById('receivedAmountLabel');
-  
-  if (currency === 'THB') {
-    rate = currentPriceRates.thbSell || 270;
-    amountToPay = Math.ceil((totalLAK / rate) * 100) / 100;
-    rateGroup.style.display = 'block';
-    document.getElementById('paymentExchangeRate').value = `1 THB = ${formatNumber(rate)} LAK`;
-    if (receivedLabel) receivedLabel.textContent = 'Received Amount (THB)';
-  } else if (currency === 'USD') {
-    rate = currentPriceRates.usdSell || 21500;
-    amountToPay = Math.ceil((totalLAK / rate) * 100) / 100;
-    rateGroup.style.display = 'block';
-    document.getElementById('paymentExchangeRate').value = `1 USD = ${formatNumber(rate)} LAK`;
-    if (receivedLabel) receivedLabel.textContent = 'Received Amount (USD)';
-  } else {
-    rateGroup.style.display = 'none';
-    if (receivedLabel) receivedLabel.textContent = 'Received Amount (LAK)';
-  }
-  
-  if (currency === 'LAK') {
-    document.getElementById('paymentAmount').value = `${formatNumber(amountToPay)} ${currency}`;
-  } else {
-    document.getElementById('paymentAmount').value = `${amountToPay.toFixed(2)} ${currency}`;
-  }
-  document.getElementById('paymentAmountLAK').value = formatNumber(totalLAK) + ' LAK';
-}
-
-function calculateChange() {
-  if (!currentPaymentData) return;
-  
-  const received = parseFloat(document.getElementById('paymentReceived').value) || 0;
-  const currency = document.getElementById('paymentCurrency').value;
-  const totalLAK = currentPaymentData.total;
-  
-  let receivedInLAK = received;
-  if (currency === 'THB') {
-    receivedInLAK = received * currentPriceRates.thbSell;
-  } else if (currency === 'USD') {
-    receivedInLAK = received * currentPriceRates.usdSell;
-  }
-  
-  const change = receivedInLAK - totalLAK;
-  document.getElementById('paymentChange').value = formatNumber(Math.max(0, change)) + ' LAK';
-}
-
-async function confirmPayment() {
-  if (!currentPaymentData) return;
-  
-  const method = document.getElementById('paymentMethod').value;
-  const currency = document.getElementById('paymentCurrency').value;
-  const received = parseFloat(document.getElementById('paymentReceived').value) || 0;
-  
-  let customerPaid = 0;
-  let exchangeRate = 1;
-  
-  if (method === 'CASH') {
-    if (received <= 0) {
-      alert('Please enter received amount');
-      return;
-    }
-    
-    const totalLAK = currentPaymentData.total;
-    let receivedInLAK = received;
-    
-    if (currency === 'THB') {
-      exchangeRate = currentPriceRates.thbSell || 270;
-      receivedInLAK = received * exchangeRate;
-      customerPaid = received;
-    } else if (currency === 'USD') {
-      exchangeRate = currentPriceRates.usdSell || 21500;
-      receivedInLAK = received * exchangeRate;
-      customerPaid = received;
-    } else {
-      customerPaid = received;
-      exchangeRate = 1;
-    }
-    
-    if (receivedInLAK < totalLAK) {
-      alert('Received amount is less than total');
-      return;
-    }
-  } else {
-    // BANK - ใช้ total เป็น customerPaid
-    customerPaid = currentPaymentData.total;
-    if (currency === 'THB') {
-      exchangeRate = currentPriceRates.thbSell || 270;
-      customerPaid = currentPaymentData.total / exchangeRate;
-    } else if (currency === 'USD') {
-      exchangeRate = currentPriceRates.usdSell || 21500;
-      customerPaid = currentPaymentData.total / exchangeRate;
-    }
-  }
-  
-  try {
-    showLoading();
-    
-    const bank = method === 'BANK' ? document.getElementById('bankSelection').value : '';
-    
-    const result = await callAppsScript('CONFIRM_SELL_PAYMENT', {
-      sellId: currentPaymentData.id,
-      method,
-      currency,
-      bank,
-      customerPaid: customerPaid,
-      customerCurrency: currency,
-      exchangeRate: exchangeRate
+    const result = await callAppsScript(action, {
+      [idParamMap[currentPaymentData.type]]: currentPaymentData.id,
+      payments: JSON.stringify({ cash: paymentItems.cash, bank: paymentItems.bank }),
+      totalPaid: totalPaid,
+      change: change,
+      user: currentUser.nickname
     });
     
     if (result.success) {
-      alert('✅ Payment confirmed successfully!');
-      closeModal('paymentModal');
+      alert('✅ ยืนยันการชำระเงินสำเร็จ!');
+      closeModal('multiPaymentModal');
       currentPaymentData = null;
-      loadSells();
+      paymentItems = { cash: [], bank: [] };
+      
       loadDashboard();
+      if (typeof loadSells === 'function') loadSells();
+      if (typeof loadTradeins === 'function') loadTradeins();
+      if (typeof loadExchanges === 'function') loadExchanges();
+      if (typeof loadWithdraws === 'function') loadWithdraws();
+      if (typeof loadBuybacks === 'function') loadBuybacks();
     } else {
-      alert('❌ Error: ' + result.message);
+      alert('❌ เกิดข้อผิดพลาด: ' + result.message);
     }
+    
     hideLoading();
   } catch (error) {
-    alert('❌ Error: ' + error.message);
+    alert('❌ เกิดข้อผิดพลาด: ' + error.message);
     hideLoading();
   }
+}
+
+async function openSellPayment(sellId) {
+  const data = await fetchSheetData('Sells!A:L');
+  const sell = data.slice(1).find(row => row[0] === sellId);
+  if (!sell) return;
+  
+  const items = formatItemsForPayment(sell[2]);
+  const total = parseFloat(sell[3]) || 0;
+  
+  openMultiPaymentModal('SELL', sellId, total, sell[1], `<strong>Items:</strong> ${items}`);
+}
+
+async function openTradeinPaymentModal(tradeinId) {
+  const data = await fetchSheetData('Tradeins!A:N');
+  const tradein = data.slice(1).find(row => row[0] === tradeinId);
+  if (!tradein) return;
+  
+  const oldGold = formatItemsForPayment(tradein[2]);
+  const newGold = formatItemsForPayment(tradein[3]);
+  const total = parseFloat(tradein[6]) || 0;
+  
+  openMultiPaymentModal('TRADEIN', tradeinId, total, tradein[1], 
+    `<strong>Old Gold:</strong> ${oldGold}<br><strong>New Gold:</strong> ${newGold}`);
+}
+
+async function openExchangePaymentModal(exchangeId) {
+  const data = await fetchSheetData('Exchanges!A:N');
+  const exchange = data.slice(1).find(row => row[0] === exchangeId);
+  if (!exchange) return;
+  
+  const oldGold = formatItemsForPayment(exchange[2]);
+  const newGold = formatItemsForPayment(exchange[3]);
+  const total = parseFloat(exchange[6]) || 0;
+  
+  openMultiPaymentModal('EXCHANGE', exchangeId, total, exchange[1], 
+    `<strong>Old Gold:</strong> ${oldGold}<br><strong>New Gold:</strong> ${newGold}`);
+}
+
+async function openWithdrawPaymentModal(withdrawId) {
+  const data = await fetchSheetData('Withdraws!A:J');
+  const withdraw = data.slice(1).find(row => row[0] === withdrawId);
+  if (!withdraw) return;
+  
+  const items = formatItemsForPayment(withdraw[2]);
+  const total = parseFloat(withdraw[4]) || 0;
+  
+  openMultiPaymentModal('WITHDRAW', withdrawId, total, withdraw[1], `<strong>Items:</strong> ${items}`);
+}
+
+function formatItemsForPayment(itemsJson) {
+  try {
+    const items = typeof itemsJson === 'string' ? JSON.parse(itemsJson) : itemsJson;
+    return items.map(item => {
+      const product = FIXED_PRODUCTS.find(p => p.id === item.productId);
+      return `${product?.name || item.productId} x${item.qty}`;
+    }).join(', ');
+  } catch (e) {
+    return '-';
+  }
+}
+
+async function openBuybackPaymentModalFromList(buybackId) {
+  const data = await fetchSheetData('Buybacks!A:J');
+  const buyback = data.slice(1).find(row => row[0] === buybackId);
+  if (!buyback) return;
+  
+  currentPaymentData = { 
+    type: 'BUYBACK', 
+    id: buybackId, 
+    total: parseFloat(buyback[6]) || 0, 
+    phone: buyback[1], 
+    details: `<strong>Items:</strong> ${formatItemsForPayment(buyback[2])}`
+  };
+  paymentItems = { cash: [], bank: [] };
+  
+  document.getElementById('multiPaymentTitle').textContent = 'Payment Confirmation';
+  document.getElementById('multiPaymentId').textContent = buybackId;
+  document.getElementById('multiPaymentPhone').textContent = buyback[1];
+  document.getElementById('multiPaymentDetails').innerHTML = currentPaymentData.details;
+  document.getElementById('multiPaymentTotal').textContent = formatNumber(currentPaymentData.total) + ' LAK';
+  
+  document.getElementById('cashPaymentsList').innerHTML = '';
+  document.getElementById('bankPaymentsList').innerHTML = '';
+  
+  updatePaymentSummary();
+  
+  openModal('multiPaymentModal');
 }

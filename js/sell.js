@@ -118,19 +118,6 @@ async function submitSell() {
     return;
   }
 
-  showLoading();
-  for (const item of items) {
-    const hasStock = await checkStock(item.productId, item.qty);
-    if (!hasStock) {
-      const currentStock = await getCurrentStock(item.productId);
-      const productName = FIXED_PRODUCTS.find(p => p.id === item.productId).name;
-      hideLoading();
-      alert(`❌ สินค้าไม่พอสำหรับ ${productName}!\nต้องการ: ${item.qty}, มีอยู่: ${currentStock}`);
-      return;
-    }
-  }
-  hideLoading();
-
   let totalPrice = 0;
   let totalPremium = 0;
 
