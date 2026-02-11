@@ -229,6 +229,22 @@ async function loadDashboard() {
       '<p style="font-size:16px;margin:3px 0;">' + formatNumber(bank.THB) + ' <span style="font-size:12px;">THB</span></p>' +
       '<p style="font-size:16px;margin:3px 0;">' + formatNumber(bank.USD) + ' <span style="font-size:12px;">USD</span></p>';
 
+    var totalGoldG = newStock.goldG + oldStock.goldG;
+    var totalCashLAK = cash.LAK + bank.LAK;
+    var totalCashTHB = cash.THB + bank.THB;
+    var totalCashUSD = cash.USD + bank.USD;
+
+    document.getElementById('dashTotalGoldBox').innerHTML =
+      '<h3 style="color:var(--gold-primary);margin-bottom:10px;">TOTAL GOLD</h3>' +
+      '<p style="font-size:28px;margin:5px 0;font-weight:bold;">' + totalGoldG.toFixed(2) + ' g</p>' +
+      '<p style="font-size:13px;color:var(--text-secondary);">NEW: ' + newStock.goldG.toFixed(2) + ' g | OLD: ' + oldStock.goldG.toFixed(2) + ' g</p>';
+
+    document.getElementById('dashTotalCashBox').innerHTML =
+      '<h3 style="color:var(--gold-primary);margin-bottom:10px;">TOTAL CASH + BANK</h3>' +
+      '<p style="font-size:18px;margin:5px 0;">' + formatNumber(totalCashLAK) + ' <span style="font-size:12px;">LAK</span></p>' +
+      '<p style="font-size:18px;margin:3px 0;">' + formatNumber(totalCashTHB) + ' <span style="font-size:12px;">THB</span></p>' +
+      '<p style="font-size:18px;margin:3px 0;">' + formatNumber(totalCashUSD) + ' <span style="font-size:12px;">USD</span></p>';
+
     startDashReportRefresh();
     hideLoading();
   } catch(error) {
