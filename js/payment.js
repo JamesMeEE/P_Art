@@ -273,7 +273,7 @@ async function confirmMultiPayment() {
       user: currentUser.nickname
     };
     if (currentPaymentData.type === 'BUYBACK') {
-      params.fee = currentPaymentData.fee || 0;
+      params.fee = parseFloat(document.getElementById('multiPaymentFeeInput').value) || 0;
       params.items = currentPaymentData.items || '';
       params.total = currentPaymentData.total || 0;
     }
