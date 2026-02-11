@@ -92,6 +92,6 @@ let buybackDateTo = null;
 let withdrawDateFrom = null;
 let withdrawDateTo = null;
 
-let currentExchangeRates = { LAK: 1, THB: 270, USD: 21500 };
+let currentExchangeRates = { LAK: 1, THB: 0, USD: 0, THB_Sell: 0, USD_Sell: 0, THB_Buy: 0, USD_Buy: 0 };
 let currentReconcileType = null;
 let currentReconcileData = {};

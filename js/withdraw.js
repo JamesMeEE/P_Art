@@ -201,8 +201,8 @@ async function openWithdrawPaymentModal(withdrawId) {
     document.getElementById('withdrawPaymentMethod').value = 'Cash';
     document.getElementById('withdrawPaymentBankGroup').style.display = 'none';
     
-    document.getElementById('withdrawPaymentRateTHB').value = currentExchangeRates.THB || 270;
-    document.getElementById('withdrawPaymentRateUSD').value = currentExchangeRates.USD || 21500;
+    document.getElementById('withdrawPaymentRateTHB').value = currentExchangeRates.THB_Sell || 0;
+    document.getElementById('withdrawPaymentRateUSD').value = currentExchangeRates.USD_Sell || 0;
     
     calculateWithdrawPayment();
     

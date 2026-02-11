@@ -36,20 +36,27 @@ async function loadReports() {
     const tbody = document.getElementById('reportsTable');
     
     if (updatedData.length <= 1) {
-      tbody.innerHTML = '<tr><td colspan="3" style="text-align: center; padding: 40px;">No reports yet</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 40px;">No reports yet</td></tr>';
       hideLoading();
       return;
     }
     
     const reports = updatedData.slice(1).reverse();
     
-    tbody.innerHTML = reports.map(row => `
+    tbody.innerHTML = reports.map(row => {
+      var carry = parseFloat(row[1] || 0);
+      var net = parseFloat(row[2] || 0);
+      var diff = net - carry;
+      var diffColor = diff >= 0 ? '#4caf50' : '#f44336';
+      var diffSign = diff >= 0 ? '+' : '';
+      return `
       <tr>
         <td style="text-align: center;">${formatDateOnly(row[0])}</td>
-        <td style="text-align: center;">${parseFloat(row[1] || 0).toFixed(2)}</td>
-        <td style="text-align: center;">${parseFloat(row[2] || 0).toFixed(2)}</td>
+        <td style="text-align: center;">${carry.toFixed(2)}</td>
+        <td style="text-align: center;">${net.toFixed(2)}</td>
+        <td style="text-align: center; color: ${diffColor}; font-weight: bold;">${diffSign}${diff.toFixed(2)}</td>
       </tr>
-    `).join('');
+    `}).join('');
     
     hideLoading();
   } catch (error) {

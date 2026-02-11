@@ -128,7 +128,7 @@ function updateCashCurrency(id, value) {
   const item = paymentItems.cash.find(i => i.id === id);
   if (item) {
     item.currency = value;
-    item.rate = value === 'LAK' ? 1 : (value === 'THB' ? (currentExchangeRates?.THB || 580) : (currentExchangeRates?.USD || 21500));
+    item.rate = value === 'LAK' ? 1 : (value === 'THB' ? (currentPaymentData?.type === 'BUYBACK' ? (currentExchangeRates?.THB_Buy || 0) : (currentExchangeRates?.THB_Sell || 0)) : (currentPaymentData?.type === 'BUYBACK' ? (currentExchangeRates?.USD_Buy || 0) : (currentExchangeRates?.USD_Sell || 0)));
     renderCashPayments();
   }
 }
@@ -155,7 +155,7 @@ function updateBankCurrency(id, value) {
   const item = paymentItems.bank.find(i => i.id === id);
   if (item) {
     item.currency = value;
-    item.rate = value === 'LAK' ? 1 : (value === 'THB' ? (currentExchangeRates?.THB || 580) : (currentExchangeRates?.USD || 21500));
+    item.rate = value === 'LAK' ? 1 : (value === 'THB' ? (currentPaymentData?.type === 'BUYBACK' ? (currentExchangeRates?.THB_Buy || 0) : (currentExchangeRates?.THB_Sell || 0)) : (currentPaymentData?.type === 'BUYBACK' ? (currentExchangeRates?.USD_Buy || 0) : (currentExchangeRates?.USD_Sell || 0)));
     renderBankPayments();
   }
 }
@@ -227,7 +227,19 @@ async function confirmMultiPayment() {
   }
   
   const change = Math.max(0, totalPaid - total);
-  
+
+  if (change > 0) {
+    try {
+      var dbData = await fetchSheetData('_database!A1:G23');
+      var cashLAK = dbData.length >= 17 ? (parseFloat(dbData[16][0]) || 0) : 0;
+      if (cashLAK < change) {
+        alert('❌ เงินสด LAK ไม่พอทอน! มี ' + formatNumber(cashLAK) + ' LAK แต่ต้องทอน ' + formatNumber(change) + ' LAK');
+        hideLoading();
+        return;
+      }
+    } catch(e) {}
+  }
+
   try {
     showLoading();
     

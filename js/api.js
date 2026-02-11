@@ -26,6 +26,22 @@ async function callAppsScript(action, params = {}) {
 const executeGoogleScript = callAppsScript;
 
 async function fetchExchangeRates() {
-  currentExchangeRates = { LAK: 1, THB: 270, USD: 21500 };
+  try {
+    var prData = await fetchSheetData('PriceRate!A:E');
+    if (prData.length > 1) {
+      var last = prData[prData.length - 1];
+      currentExchangeRates = {
+        LAK: 1,
+        THB_Sell: parseFloat(last[1]) || 0,
+        USD_Sell: parseFloat(last[2]) || 0,
+        THB_Buy: parseFloat(last[3]) || 0,
+        USD_Buy: parseFloat(last[4]) || 0,
+        THB: parseFloat(last[1]) || 0,
+        USD: parseFloat(last[2]) || 0
+      };
+    }
+  } catch(e) {
+    console.error('Error fetching exchange rates:', e);
+  }
   return currentExchangeRates;
 }

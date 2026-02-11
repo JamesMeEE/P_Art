@@ -1,8 +1,8 @@
 async function loadDiff() {
   try {
     showLoading();
-    var data = await fetchSheetData('Diff!A:I');
-    renderDiffTable(data);
+    _diffData = await fetchSheetData('Diff!A:I');
+    renderDiffTable(_diffData);
     hideLoading();
   } catch(e) {
     console.error('Error loading diff:', e);
@@ -14,8 +14,8 @@ function renderDiffTable(data, startDate, endDate) {
   var tbody = document.getElementById('diffTable');
 
   if (!data || data.length <= 1) {
-    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:40px;">No records</td></tr>';
-    document.getElementById('diffTotalRow').innerHTML = '<td colspan="7" style="text-align:right;font-weight:bold;">Total Diff:</td><td style="font-weight:bold;">0 LAK</td>';
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:40px;">No records</td></tr>';
+    document.getElementById('diffTotalRow').innerHTML = '<td colspan="6" style="text-align:right;font-weight:bold;">Total Diff:</td><td style="font-weight:bold;">0 LAK</td>';
     return;
   }
 
@@ -41,8 +41,8 @@ function renderDiffTable(data, startDate, endDate) {
   var totalDiff = 0;
 
   if (rows.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:40px;">No records in this date range</td></tr>';
-    document.getElementById('diffTotalRow').innerHTML = '<td colspan="7" style="text-align:right;font-weight:bold;">Total Diff:</td><td style="font-weight:bold;">0 LAK</td>';
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:40px;">No records in this date range</td></tr>';
+    document.getElementById('diffTotalRow').innerHTML = '<td colspan="6" style="text-align:right;font-weight:bold;">Total Diff:</td><td style="font-weight:bold;">0 LAK</td>';
     return;
   }
 
@@ -50,9 +50,6 @@ function renderDiffTable(data, startDate, endDate) {
     var diff = parseFloat(row[7]) || 0;
     totalDiff += diff;
     var diffColor = diff >= 0 ? '#4caf50' : '#f44336';
-    var dateStr = '';
-    var d = parseSheetDate(row[8]);
-    if (d) dateStr = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
 
     return '<tr>' +
       '<td>' + (row[0] || '') + '</td>' +
@@ -62,15 +59,13 @@ function renderDiffTable(data, startDate, endDate) {
       '<td>' + formatNumber(Math.round(parseFloat(row[5]) || 0)) + '</td>' +
       '<td>' + formatNumber(Math.round(parseFloat(row[6]) || 0)) + '</td>' +
       '<td style="color:' + diffColor + ';font-weight:bold;">' + formatNumber(Math.round(diff)) + '</td>' +
-      '<td>' + dateStr + '</td>' +
     '</tr>';
   }).join('');
 
   var totalColor = totalDiff >= 0 ? '#4caf50' : '#f44336';
   document.getElementById('diffTotalRow').innerHTML =
     '<td colspan="6" style="text-align:right;font-weight:bold;font-size:16px;">Total Diff:</td>' +
-    '<td style="font-weight:bold;font-size:18px;color:' + totalColor + ';">' + formatNumber(Math.round(totalDiff)) + ' LAK</td>' +
-    '<td></td>';
+    '<td style="font-weight:bold;font-size:18px;color:' + totalColor + ';">' + formatNumber(Math.round(totalDiff)) + ' LAK</td>';
 }
 
 var _diffData = null;
