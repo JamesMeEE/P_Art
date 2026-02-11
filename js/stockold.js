@@ -305,3 +305,105 @@ function renderFilteredMoves(tableId, moves, from, to) {
     '<td>' + formatNumber(Math.round(c / 1000) * 1000) + '</td><td></td></tr>';
   movBody.innerHTML = rows;
 }
+
+async function openTransferModal() {
+  document.getElementById('transferOldProducts').innerHTML = '';
+  addTransferProduct();
+  await loadStockInModal();
+  openModal('transferModal');
+}
+
+async function loadStockInModal() {
+  try {
+    var data = await fetchSheetData('_database!A10:G10');
+    if (data.length === 0) {
+      document.getElementById('stockSummaryInModal').innerHTML = '<tr><td colspan="3" style="text-align: center; padding: 20px;">No stock data</td></tr>';
+      return;
+    }
+    var oldGoldRow = data[0];
+    var products = ['G01','G02','G03','G04','G05','G06','G07'];
+    var rows = products.map(function(pid, idx) {
+      var qty = parseFloat(oldGoldRow[idx]) || 0;
+      if (qty <= 0) return null;
+      var p = FIXED_PRODUCTS.find(function(x) { return x.id === pid; });
+      return '<tr><td>' + pid + '</td><td>' + (p ? p.name : 'Unknown') + '</td><td>' + qty + '</td></tr>';
+    }).filter(function(r) { return r !== null; }).join('');
+    document.getElementById('stockSummaryInModal').innerHTML = rows || '<tr><td colspan="3" style="text-align: center; padding: 20px;">No OLD stock</td></tr>';
+  } catch(e) { console.error('Error loading stock in modal:', e); }
+}
+
+function addTransferProduct() {
+  var container = document.getElementById('transferOldProducts');
+  var row = document.createElement('div');
+  row.className = 'product-row';
+  row.style.cssText = 'display: flex; gap: 10px; margin-bottom: 10px; align-items: center;';
+  row.innerHTML = '<select class="form-input" style="flex: 1;">' +
+    FIXED_PRODUCTS.map(function(p) { return '<option value="' + p.id + '">' + p.name + '</option>'; }).join('') +
+    '</select><input type="number" class="form-input" placeholder="Quantity" min="1" style="width: 150px;">' +
+    '<button class="btn-danger" onclick="this.parentElement.remove()" style="padding: 8px 15px;">Remove</button>';
+  container.appendChild(row);
+}
+
+async function confirmTransfer() {
+  try {
+    var rows = document.querySelectorAll('#transferOldProducts .product-row');
+    var items = [];
+    for (var i = 0; i < rows.length; i++) {
+      var qty = parseInt(rows[i].querySelector('input').value);
+      if (!qty || qty <= 0) { alert('กรุณากรอกจำนวนให้ถูกต้อง'); return; }
+      items.push({ productId: rows[i].querySelector('select').value, qty: qty });
+    }
+    if (items.length === 0) { alert('กรุณาเพิ่มสินค้าอย่างน้อย 1 รายการ'); return; }
+    if (!confirm('ยืนยันการโอนทองเก่าไปทองใหม่ ' + items.length + ' รายการ?')) return;
+    showLoading();
+    var result = await callAppsScript('TRANSFER_OLD_TO_NEW', { items: JSON.stringify(items) });
+    if (result.success) {
+      alert('✅ ' + result.message);
+      closeModal('transferModal');
+      await loadStockOld();
+    } else { alert('❌ ' + result.message); }
+    hideLoading();
+  } catch(e) { alert('❌ ' + e.message); hideLoading(); }
+}
+
+function openStockOutModal() {
+  document.getElementById('stockOutProducts').innerHTML = '';
+  document.getElementById('stockOutNote').value = '';
+  addStockOutProduct();
+  openModal('stockOutModal');
+}
+
+function addStockOutProduct() {
+  var container = document.getElementById('stockOutProducts');
+  var row = document.createElement('div');
+  row.className = 'product-row';
+  row.style.cssText = 'display: flex; gap: 10px; margin-bottom: 10px; align-items: center;';
+  row.innerHTML = '<select class="form-input" style="flex: 1;">' +
+    FIXED_PRODUCTS.map(function(p) { return '<option value="' + p.id + '">' + p.name + '</option>'; }).join('') +
+    '</select><input type="number" class="form-input" placeholder="Quantity" min="1" style="width: 150px;">' +
+    '<button class="btn-danger" onclick="this.parentElement.remove()" style="padding: 8px 15px;">Remove</button>';
+  container.appendChild(row);
+}
+
+async function confirmStockOut() {
+  try {
+    var rows = document.querySelectorAll('#stockOutProducts .product-row');
+    var items = [];
+    for (var i = 0; i < rows.length; i++) {
+      var qty = parseInt(rows[i].querySelector('input').value);
+      if (!qty || qty <= 0) { alert('กรุณากรอกจำนวนให้ถูกต้อง'); return; }
+      items.push({ productId: rows[i].querySelector('select').value, qty: qty });
+    }
+    if (items.length === 0) { alert('กรุณาเพิ่มสินค้าอย่างน้อย 1 รายการ'); return; }
+    var note = document.getElementById('stockOutNote').value.trim();
+    if (!confirm('ยืนยันการ Stock Out (OLD) ' + items.length + ' รายการ?')) return;
+    showLoading();
+    var result = await callAppsScript('STOCK_OUT_OLD', { items: JSON.stringify(items), note: note });
+    if (result.success) {
+      alert('✅ ' + result.message);
+      closeModal('stockOutModal');
+      await loadStockOld();
+    } else { alert('❌ ' + result.message); }
+    hideLoading();
+  } catch(e) { alert('❌ ' + e.message); hideLoading(); }
+}
