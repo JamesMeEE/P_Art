@@ -1,3 +1,5 @@
+let reportsChartInstance = null;
+
 async function loadReports() {
   try {
     showLoading();
@@ -58,12 +60,65 @@ async function loadReports() {
       </tr>
     `}).join('');
     
+    renderReportsChart(updatedData);
     hideLoading();
   } catch (error) {
     console.error('Error loading reports:', error);
     document.getElementById('reportsTable').innerHTML = '<tr><td colspan="3" style="text-align: center; padding: 40px; color: #f44336;">Error loading reports</td></tr>';
     hideLoading();
   }
+}
+
+function renderReportsChart(data) {
+  if (data.length <= 1) return;
+
+  var chartData = data.slice(1).slice(-30);
+
+  var labels = chartData.map(function(row) {
+    var d = parseSheetDate(row[0]);
+    if (d && !isNaN(d.getTime())) return d.toLocaleDateString('th-TH', { day: '2-digit', month: 'short' });
+    return String(row[0]).substring(0, 10);
+  });
+
+  var firstD = parseSheetDate(chartData[0][0]);
+  var lastD = parseSheetDate(chartData[chartData.length - 1][0]);
+  var rangeEl = document.getElementById('reportsDateRange');
+  if (rangeEl) {
+    var fmt = function(d) { return d ? d.toLocaleDateString('th-TH', { day: '2-digit', month: 'short', year: 'numeric' }) : ''; };
+    rangeEl.textContent = fmt(firstD) + ' — ' + fmt(lastD);
+  }
+
+  var carryValues = chartData.map(function(row) { return parseFloat(row[1]) || 0; });
+  var netValues = chartData.map(function(row) { return parseFloat(row[2]) || 0; });
+  var diffValues = chartData.map(function(row) { return (parseFloat(row[2]) || 0) - (parseFloat(row[1]) || 0); });
+
+  if (reportsChartInstance) reportsChartInstance.destroy();
+
+  var ctx = document.getElementById('reportsChart').getContext('2d');
+  reportsChartInstance = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: labels,
+      datasets: [
+        { label: 'ยอดทองสุทธิ', data: netValues, borderColor: '#d4af37', backgroundColor: 'rgba(212,175,55,0.1)', tension: 0.3, fill: false, pointRadius: 4, pointBackgroundColor: '#d4af37', borderWidth: 2 },
+        { label: 'ยอดทองยกมา', data: carryValues, borderColor: '#888', backgroundColor: 'rgba(136,136,136,0.1)', tension: 0.3, fill: false, pointRadius: 3, borderDash: [5, 5], borderWidth: 1.5 },
+        { label: 'ส่วนต่าง', data: diffValues, type: 'bar', backgroundColor: diffValues.map(function(v) { return v >= 0 ? 'rgba(76,175,80,0.6)' : 'rgba(244,67,54,0.6)'; }), borderRadius: 3, barPercentage: 0.5, yAxisID: 'y1' }
+      ]
+    },
+    options: {
+      responsive: true,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { labels: { color: '#ccc', font: { size: 12 } } },
+        tooltip: { callbacks: { label: function(ctx) { return ctx.dataset.label + ': ' + ctx.parsed.y.toFixed(2) + ' g'; } } }
+      },
+      scales: {
+        x: { display: false },
+        y: { position: 'left', title: { display: true, text: 'Gold (g)', color: '#ccc' }, ticks: { color: '#999' }, grid: { color: 'rgba(255,255,255,0.1)' } },
+        y1: { position: 'right', title: { display: true, text: 'ส่วนต่าง (g)', color: '#ccc' }, ticks: { color: '#999' }, grid: { drawOnChartArea: false } }
+      }
+    }
+  });
 }
 
 async function checkAndCalculateMissingReports() {

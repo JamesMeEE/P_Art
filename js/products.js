@@ -1,3 +1,5 @@
+let pricingChartInstance = null;
+
 async function loadProducts() {
   try {
     showLoading();
@@ -45,12 +47,67 @@ async function loadProducts() {
       `;
     }).join('');
     
+    renderPricingChart(pricingData);
     await loadPriceHistory();
     
     hideLoading();
   } catch (error) {
     hideLoading();
   }
+}
+
+function renderPricingChart(data) {
+  if (data.length <= 1) return;
+
+  var chartData = data.slice(1).slice(-30);
+
+  var labels = chartData.map(function(row) {
+    var d = parseSheetDate(row[0]);
+    if (d && !isNaN(d.getTime())) return d.toLocaleDateString('th-TH', { day: '2-digit', month: 'short' });
+    return String(row[0]).substring(0, 10);
+  });
+
+  var firstD = parseSheetDate(chartData[0][0]);
+  var lastD = parseSheetDate(chartData[chartData.length - 1][0]);
+  var rangeEl = document.getElementById('pricingDateRange');
+  if (rangeEl) {
+    var fmt = function(d) { return d ? d.toLocaleDateString('th-TH', { day: '2-digit', month: 'short', year: 'numeric' }) : ''; };
+    rangeEl.textContent = fmt(firstD) + ' — ' + fmt(lastD);
+  }
+
+  var values = chartData.map(function(row) { return parseFloat(row[1]) || 0; });
+
+  if (pricingChartInstance) pricingChartInstance.destroy();
+
+  var ctx = document.getElementById('pricingChart').getContext('2d');
+  pricingChartInstance = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: labels,
+      datasets: [{
+        label: 'Sell 1 Baht',
+        data: values,
+        borderColor: '#d4af37',
+        backgroundColor: 'rgba(212,175,55,0.15)',
+        tension: 0.3,
+        fill: true,
+        pointRadius: 4,
+        pointBackgroundColor: '#d4af37'
+      }]
+    },
+    options: {
+      responsive: true,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { labels: { color: '#ccc', font: { size: 12 } } },
+        tooltip: { callbacks: { label: function(ctx) { return 'Sell 1 Baht: ' + formatNumber(ctx.parsed.y) + ' LAK'; } } }
+      },
+      scales: {
+        x: { display: false },
+        y: { title: { display: true, text: 'LAK', color: '#ccc' }, ticks: { color: '#999', callback: function(v) { return formatNumber(v); } }, grid: { color: 'rgba(255,255,255,0.1)' } }
+      }
+    }
+  });
 }
 
 async function loadPriceHistory() {

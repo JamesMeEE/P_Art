@@ -1,3 +1,6 @@
+var accLAKChartInstance = null;
+var accGoldChartInstance = null;
+
 async function loadAccounting() {
   try {
     showLoading();
@@ -496,6 +499,8 @@ async function loadAccountingHistory() {
         '<td>' + parseFloat(row[12] || 0).toFixed(2) + ' g</td>' +
       '</tr>';
     }).join('');
+
+    renderAccountingCharts(data.slice(1));
   } catch (error) {
     console.error('Error loading accounting history:', error);
   }
@@ -568,4 +573,78 @@ function calcGold(itemsStr) {
     });
   } catch(e) {}
   return total;
+}
+
+function renderAccountingCharts(rows) {
+  if (!rows || rows.length === 0) return;
+
+  var chartData = rows.slice(-30);
+
+  var labels = chartData.map(function(row) {
+    var d = parseSheetDate(row[0]);
+    if (d && !isNaN(d.getTime())) return d.toLocaleDateString('th-TH', { day: '2-digit', month: 'short' });
+    return String(row[0]).substring(0, 10);
+  });
+
+  var sellLAK = chartData.map(function(r) { return parseFloat(r[1]) || 0; });
+  var tradeLAK = chartData.map(function(r) { return parseFloat(r[3]) || 0; });
+  var exchLAK = chartData.map(function(r) { return parseFloat(r[5]) || 0; });
+  var bbLAK = chartData.map(function(r) { return parseFloat(r[7]) || 0; });
+  var wdLAK = chartData.map(function(r) { return parseFloat(r[9]) || 0; });
+
+  var sellG = chartData.map(function(r) { return parseFloat(r[2]) || 0; });
+  var tradeG = chartData.map(function(r) { return parseFloat(r[4]) || 0; });
+  var exchG = chartData.map(function(r) { return parseFloat(r[6]) || 0; });
+  var bbG = chartData.map(function(r) { return parseFloat(r[8]) || 0; });
+  var wdG = chartData.map(function(r) { return parseFloat(r[10]) || 0; });
+
+  var makeOpts = function(yTitle, isMoney) {
+    return {
+      responsive: true,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { position: 'bottom', labels: { color: '#ccc', font: { size: 11 }, boxWidth: 12, padding: 10 } },
+        tooltip: { callbacks: { label: function(ctx) { return ctx.dataset.label + ': ' + (isMoney ? formatNumber(Math.round(ctx.parsed.y)) + ' LAK' : ctx.parsed.y.toFixed(2) + ' g'); } } }
+      },
+      scales: {
+        x: { display: false },
+        y: { stacked: true, title: { display: true, text: yTitle, color: '#ccc', font: { size: 12 } }, ticks: { color: '#999', callback: function(v) { return isMoney ? formatNumber(v) : v; } }, grid: { color: 'rgba(255,255,255,0.1)' } }
+      }
+    };
+  };
+
+  if (accLAKChartInstance) accLAKChartInstance.destroy();
+  if (accGoldChartInstance) accGoldChartInstance.destroy();
+
+  var ctx1 = document.getElementById('accountingLAKChart').getContext('2d');
+  accLAKChartInstance = new Chart(ctx1, {
+    type: 'bar',
+    data: {
+      labels: labels,
+      datasets: [
+        { label: 'Sell', data: sellLAK, backgroundColor: 'rgba(76,175,80,0.7)', borderRadius: 2 },
+        { label: 'Trade-In', data: tradeLAK, backgroundColor: 'rgba(33,150,243,0.7)', borderRadius: 2 },
+        { label: 'Exchange', data: exchLAK, backgroundColor: 'rgba(156,39,176,0.7)', borderRadius: 2 },
+        { label: 'Buyback', data: bbLAK, backgroundColor: 'rgba(255,152,0,0.7)', borderRadius: 2 },
+        { label: 'Withdraw', data: wdLAK, backgroundColor: 'rgba(244,67,54,0.7)', borderRadius: 2 }
+      ]
+    },
+    options: makeOpts('LAK', true)
+  });
+
+  var ctx2 = document.getElementById('accountingGoldChart').getContext('2d');
+  accGoldChartInstance = new Chart(ctx2, {
+    type: 'bar',
+    data: {
+      labels: labels,
+      datasets: [
+        { label: 'Sell', data: sellG, backgroundColor: 'rgba(76,175,80,0.7)', borderRadius: 2 },
+        { label: 'Trade-In', data: tradeG, backgroundColor: 'rgba(33,150,243,0.7)', borderRadius: 2 },
+        { label: 'Exchange', data: exchG, backgroundColor: 'rgba(156,39,176,0.7)', borderRadius: 2 },
+        { label: 'Buyback', data: bbG, backgroundColor: 'rgba(255,152,0,0.7)', borderRadius: 2 },
+        { label: 'Withdraw', data: wdG, backgroundColor: 'rgba(244,67,54,0.7)', borderRadius: 2 }
+      ]
+    },
+    options: makeOpts('Gold (g)', false)
+  });
 }
