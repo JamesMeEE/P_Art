@@ -4,7 +4,7 @@ async function loadCashBank() {
     
     const [cashbankData, dbData] = await Promise.all([
       fetchSheetData('CashBank!A:I'),
-      fetchSheetData('_database!A1:G20')
+      fetchSheetData('_database!A1:G23')
     ]);
     
     let balances = {
@@ -13,22 +13,22 @@ async function loadCashBank() {
       ldb: { LAK: 0, THB: 0, USD: 0 }
     };
     
-    if (dbData.length >= 14) {
-      balances.cash.LAK = parseFloat(dbData[13][0]) || 0;
-      balances.cash.THB = parseFloat(dbData[13][1]) || 0;
-      balances.cash.USD = parseFloat(dbData[13][2]) || 0;
-    }
-    
     if (dbData.length >= 17) {
-      balances.bcel.LAK = parseFloat(dbData[16][0]) || 0;
-      balances.bcel.THB = parseFloat(dbData[16][1]) || 0;
-      balances.bcel.USD = parseFloat(dbData[16][2]) || 0;
+      balances.cash.LAK = parseFloat(dbData[16][0]) || 0;
+      balances.cash.THB = parseFloat(dbData[16][1]) || 0;
+      balances.cash.USD = parseFloat(dbData[16][2]) || 0;
     }
     
     if (dbData.length >= 20) {
-      balances.ldb.LAK = parseFloat(dbData[19][0]) || 0;
-      balances.ldb.THB = parseFloat(dbData[19][1]) || 0;
-      balances.ldb.USD = parseFloat(dbData[19][2]) || 0;
+      balances.bcel.LAK = parseFloat(dbData[19][0]) || 0;
+      balances.bcel.THB = parseFloat(dbData[19][1]) || 0;
+      balances.bcel.USD = parseFloat(dbData[19][2]) || 0;
+    }
+    
+    if (dbData.length >= 23) {
+      balances.ldb.LAK = parseFloat(dbData[22][0]) || 0;
+      balances.ldb.THB = parseFloat(dbData[22][1]) || 0;
+      balances.ldb.USD = parseFloat(dbData[22][2]) || 0;
     }
     
     document.getElementById('cashLAK').textContent = formatNumber(balances.cash.LAK);

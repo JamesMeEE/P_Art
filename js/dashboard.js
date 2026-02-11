@@ -19,7 +19,7 @@ async function loadDashboard() {
       fetchSheetData('Withdraws!A:J'),
       fetchSheetData('Switches!A:N'),
       fetchSheetData('FreeExchanges!A:J'),
-      fetchSheetData('_database!A1:G20'),
+      fetchSheetData('_database!A1:G23'),
       callAppsScript('GET_WAC'),
       fetchSheetData('Diff!A:I'),
       fetchSheetData('CashBank!A:I')
@@ -196,15 +196,15 @@ async function loadDashboard() {
         oldStock.goldG += qty * getGoldWeight(p);
       });
     }
-    if (dbData.length >= 14) {
-      cash.LAK = parseFloat(dbData[13][0]) || 0;
-      cash.THB = parseFloat(dbData[13][1]) || 0;
-      cash.USD = parseFloat(dbData[13][2]) || 0;
+    if (dbData.length >= 17) {
+      cash.LAK = parseFloat(dbData[16][0]) || 0;
+      cash.THB = parseFloat(dbData[16][1]) || 0;
+      cash.USD = parseFloat(dbData[16][2]) || 0;
     }
-    if (dbData.length >= 20) {
-      bank.LAK = (parseFloat(dbData[16][0]) || 0) + (parseFloat(dbData[19][0]) || 0);
-      bank.THB = (parseFloat(dbData[16][1]) || 0) + (parseFloat(dbData[19][1]) || 0);
-      bank.USD = (parseFloat(dbData[16][2]) || 0) + (parseFloat(dbData[19][2]) || 0);
+    if (dbData.length >= 23) {
+      bank.LAK = (parseFloat(dbData[19][0]) || 0) + (parseFloat(dbData[22][0]) || 0);
+      bank.THB = (parseFloat(dbData[19][1]) || 0) + (parseFloat(dbData[22][1]) || 0);
+      bank.USD = (parseFloat(dbData[19][2]) || 0) + (parseFloat(dbData[22][2]) || 0);
     }
 
     document.getElementById('dashNewStockBox').innerHTML =
