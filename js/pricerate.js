@@ -50,17 +50,27 @@ function renderPriceRateCharts(data) {
   if (data.length <= 1) return;
   
   const chartData = data.slice(1).slice(-30);
-  const labels = chartData.map(function(row) {
-    var d = parseSheetDate(row[0]);
-    if (d) return d.toLocaleDateString('th-TH', { day: '2-digit', month: 'short' });
-    return String(row[0]);
-  });
 
-  var firstDate = '', lastDate = '';
-  var fd = parseSheetDate(chartData[0][0]);
-  var ld = parseSheetDate(chartData[chartData.length - 1][0]);
-  if (fd) firstDate = fd.toLocaleDateString('th-TH', { day: '2-digit', month: 'short', year: 'numeric' });
-  if (ld) lastDate = ld.toLocaleDateString('th-TH', { day: '2-digit', month: 'short', year: 'numeric' });
+  function safeParseDateLabel(val) {
+    var d = parseSheetDate(val);
+    if (d && !isNaN(d.getTime())) return d.toLocaleDateString('th-TH', { day: '2-digit', month: 'short' });
+    if (typeof val === 'string' && val.includes('/')) {
+      var p = val.split(' ')[0].split('/');
+      return p[0] + '/' + p[1];
+    }
+    return String(val).substring(0, 10);
+  }
+
+  function safeParseDateFull(val) {
+    var d = parseSheetDate(val);
+    if (d && !isNaN(d.getTime())) return d.toLocaleDateString('th-TH', { day: '2-digit', month: 'short', year: 'numeric' });
+    if (typeof val === 'string' && val.includes('/')) return val.split(' ')[0];
+    return String(val).substring(0, 10);
+  }
+
+  const labels = chartData.map(function(row) { return safeParseDateLabel(row[0]); });
+  var firstDate = safeParseDateFull(chartData[0][0]);
+  var lastDate = safeParseDateFull(chartData[chartData.length - 1][0]);
   var rangeEl = document.getElementById('priceRateDateRange');
   if (rangeEl) rangeEl.textContent = firstDate + ' — ' + lastDate;
   
@@ -152,4 +162,12 @@ async function submitPriceRate() {
     alert('❌ Error: ' + error.message);
     hideLoading();
   }
+}
+
+function openPriceRateModal() {
+  document.getElementById('rateTHBSellInput').placeholder = currentPriceRates.thbSell || 0;
+  document.getElementById('rateUSDSellInput').placeholder = currentPriceRates.usdSell || 0;
+  document.getElementById('rateTHBBuyInput').placeholder = currentPriceRates.thbBuy || 0;
+  document.getElementById('rateUSDBuyInput').placeholder = currentPriceRates.usdBuy || 0;
+  openModal('priceRateModal');
 }

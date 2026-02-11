@@ -22,32 +22,21 @@ async function loadAccounting() {
       });
     }
 
-    var yesterdayKey = yesterday.getFullYear() + '-' + String(yesterday.getMonth()+1).padStart(2,'0') + '-' + String(yesterday.getDate()).padStart(2,'0');
-
-    if (!existingDates.has(yesterdayKey)) {
-      if (accountingData.length > 1) {
-        var lastRecord = accountingData[accountingData.length - 1];
-        var lastDateObj = parseSheetDate(lastRecord[0]);
-
-        if (lastDateObj) {
-          lastDateObj.setHours(0, 0, 0, 0);
-          var diffTime = yesterday.getTime() - lastDateObj.getTime();
-          var diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-
-          if (diffDays > 0) {
-            for (var i = 1; i <= diffDays; i++) {
-              var targetDate = new Date(lastDateObj);
-              targetDate.setDate(targetDate.getDate() + i);
-              var targetKey = targetDate.getFullYear() + '-' + String(targetDate.getMonth()+1).padStart(2,'0') + '-' + String(targetDate.getDate()).padStart(2,'0');
-              if (!existingDates.has(targetKey)) {
-                await saveAccountingForDate(targetDate);
-                existingDates.add(targetKey);
-              }
-            }
+    if (accountingData.length > 1) {
+      var lastRecord = accountingData[accountingData.length - 1];
+      var lastDateObj = parseSheetDate(lastRecord[0]);
+      if (lastDateObj) {
+        lastDateObj.setHours(0, 0, 0, 0);
+        var nextDay = new Date(lastDateObj);
+        nextDay.setDate(nextDay.getDate() + 1);
+        while (nextDay <= yesterday) {
+          var key = nextDay.getFullYear() + '-' + String(nextDay.getMonth()+1).padStart(2,'0') + '-' + String(nextDay.getDate()).padStart(2,'0');
+          if (!existingDates.has(key)) {
+            await saveAccountingForDate(new Date(nextDay));
+            existingDates.add(key);
           }
+          nextDay.setDate(nextDay.getDate() + 1);
         }
-      } else {
-        await saveAccountingForDate(yesterday);
       }
     }
 

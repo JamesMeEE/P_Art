@@ -33,7 +33,6 @@ function showSection(sectionId) {
     'freeexchange': 'loadFreeExchanges',
     'buyback': 'loadBuybacks',
     'withdraw': 'loadWithdraws',
-    'inventory': 'loadInventory',
     'cashbank': 'loadCashBank',
     'accounting': 'loadAccounting',
     'diff': 'loadDiff',

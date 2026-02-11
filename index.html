@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600;700&family=Montserrat:wght@200;300;400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-  <link rel="stylesheet" href="style.css?v=68">
+  <link rel="stylesheet" href="style.css?v=70">
   <script>
     (function() {
       const cb = localStorage.getItem('cacheBuster') || Date.now();
@@ -83,7 +83,6 @@
       <button class="nav-btn" onclick="showSection('freeexchange')">◇ Free Exchange</button>
       <button class="nav-btn" onclick="showSection('buyback')">◑ Buyback</button>
       <button class="nav-btn" onclick="showSection('withdraw')">◌ Withdraw</button>
-      <button class="nav-btn" onclick="showSection('inventory')">◒ Inventory</button>
       <button class="nav-btn" onclick="showSection('cashbank')">◔ Cash/Bank</button>
       <button class="nav-btn" onclick="showSection('accounting')">◕ Accounting</button>
       <button class="nav-btn" onclick="showSection('diff')">◈ Diff</button>
@@ -182,7 +181,7 @@
     <section id="pricerate" class="section">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
         <h2 style="font-family: 'Cormorant Garamond', serif; font-size: 36px; color: var(--gold-primary);">Price Rate Management</h2>
-        <button class="btn-primary manager-only" onclick="openModal('priceRateModal')">Update Price Rate</button>
+        <button class="btn-primary manager-only" onclick="openPriceRateModal()">Update Price Rate</button>
       </div>
       <div class="dashboard-stats" style="margin-bottom: 30px;">
         <div class="stat-card">
@@ -496,51 +495,6 @@
           <tbody id="buybackTable">
             <tr>
               <td colspan="10" style="text-align: center; padding: 40px;">Loading...</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </section>
-
-    <section id="inventory" class="section">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
-        <h2 style="font-family: 'Cormorant Garamond', serif; font-size: 36px; color: var(--gold-primary);">Inventory Management</h2>
-        <div style="display: flex; gap: 10px;">
-          <button class="btn-primary manager-only" onclick="openTransferModal()">Transfer OLD → NEW</button>
-          <button class="btn-primary manager-only" onclick="openStockInModal()">Stock In</button>
-          <button class="btn-primary manager-only" onclick="openStockOutModal()">Stock Out</button>
-        </div>
-      </div>
-      
-      <div class="table-container">
-        <table id="inventoryTableWrapper">
-          <thead>
-            <tr style="background: #2d2d2d !important; border-bottom: 2px solid #d4af37 !important;">
-              <th rowspan="2" style="background: #2d2d2d !important; color: #d4af37 !important; border: 1px solid rgba(212, 175, 55, 0.5) !important; text-transform: uppercase !important; font-weight: 700 !important; padding: 14px 8px !important; font-size: 13px !important; text-align: center !important;">ID</th>
-              <th rowspan="2" style="background: #2d2d2d !important; color: #d4af37 !important; border: 1px solid rgba(212, 175, 55, 0.5) !important; text-transform: uppercase !important; font-weight: 700 !important; padding: 14px 8px !important; font-size: 13px !important; text-align: center !important;">PRODUCT</th>
-              <th rowspan="2" style="background: #2d2d2d !important; color: #d4af37 !important; border: 1px solid rgba(212, 175, 55, 0.5) !important; text-transform: uppercase !important; font-weight: 700 !important; padding: 14px 8px !important; font-size: 13px !important; text-align: center !important;">ยอดยกมา(G)</th>
-              <th colspan="2" style="background: #2d2d2d !important; color: #d4af37 !important; border: 1px solid rgba(212, 175, 55, 0.5) !important; text-transform: uppercase !important; font-weight: 700 !important; padding: 14px 8px !important; font-size: 13px !important; text-align: center !important;">GOLD</th>
-              <th colspan="2" style="background: #2d2d2d !important; color: #d4af37 !important; border: 1px solid rgba(212, 175, 55, 0.5) !important; text-transform: uppercase !important; font-weight: 700 !important; padding: 14px 8px !important; font-size: 13px !important; text-align: center !important;">QTY</th>
-              <th rowspan="2" style="background: #2d2d2d !important; color: #d4af37 !important; border: 1px solid rgba(212, 175, 55, 0.5) !important; text-transform: uppercase !important; font-weight: 700 !important; padding: 14px 8px !important; font-size: 13px !important; text-align: center !important;">WEIGHT(G)</th>
-              <th rowspan="2" style="background: #2d2d2d !important; color: #d4af37 !important; border: 1px solid rgba(212, 175, 55, 0.5) !important; text-transform: uppercase !important; font-weight: 700 !important; padding: 14px 8px !important; font-size: 13px !important; text-align: center !important;">COST(LAK)</th>
-              <th colspan="2" style="background: #2d2d2d !important; color: #d4af37 !important; border: 1px solid rgba(212, 175, 55, 0.5) !important; text-transform: uppercase !important; font-weight: 700 !important; padding: 14px 8px !important; font-size: 13px !important; text-align: center !important;">PRICE</th>
-              <th rowspan="2" style="background: #2d2d2d !important; color: #d4af37 !important; border: 1px solid rgba(212, 175, 55, 0.5) !important; text-transform: uppercase !important; font-weight: 700 !important; padding: 14px 8px !important; font-size: 13px !important; text-align: center !important;">ต้นทุน(LAK)</th>
-              <th colspan="2" style="background: #2d2d2d !important; color: #d4af37 !important; border: 1px solid rgba(212, 175, 55, 0.5) !important; text-transform: uppercase !important; font-weight: 700 !important; padding: 14px 8px !important; font-size: 13px !important; text-align: center !important;">WAC</th>
-            </tr>
-            <tr style="background: #252525 !important;">
-              <th style="background: #252525 !important; color: #d4af37 !important; border: 1px solid rgba(212, 175, 55, 0.4) !important; font-weight: 600 !important; padding: 10px 8px !important; font-size: 12px !important; text-align: center !important;">IN</th>
-              <th style="background: #252525 !important; color: #d4af37 !important; border: 1px solid rgba(212, 175, 55, 0.4) !important; font-weight: 600 !important; padding: 10px 8px !important; font-size: 12px !important; text-align: center !important;">OUT</th>
-              <th style="background: #252525 !important; color: #d4af37 !important; border: 1px solid rgba(212, 175, 55, 0.4) !important; font-weight: 600 !important; padding: 10px 8px !important; font-size: 12px !important; text-align: center !important;">IN</th>
-              <th style="background: #252525 !important; color: #d4af37 !important; border: 1px solid rgba(212, 175, 55, 0.4) !important; font-weight: 600 !important; padding: 10px 8px !important; font-size: 12px !important; text-align: center !important;">OUT</th>
-              <th style="background: #252525 !important; color: #d4af37 !important; border: 1px solid rgba(212, 175, 55, 0.4) !important; font-weight: 600 !important; padding: 10px 8px !important; font-size: 12px !important; text-align: center !important;">IN</th>
-              <th style="background: #252525 !important; color: #d4af37 !important; border: 1px solid rgba(212, 175, 55, 0.4) !important; font-weight: 600 !important; padding: 10px 8px !important; font-size: 12px !important; text-align: center !important;">OUT</th>
-              <th style="background: #252525 !important; color: #d4af37 !important; border: 1px solid rgba(212, 175, 55, 0.4) !important; font-weight: 600 !important; padding: 10px 8px !important; font-size: 12px !important; text-align: center !important;">ราคา/G</th>
-              <th style="background: #252525 !important; color: #d4af37 !important; border: 1px solid rgba(212, 175, 55, 0.4) !important; font-weight: 600 !important; padding: 10px 8px !important; font-size: 12px !important; text-align: center !important;">ราคา/บาท</th>
-            </tr>
-          </thead>
-          <tbody id="inventoryTable">
-            <tr>
-              <td colspan="14" style="text-align: center; padding: 40px;">Loading...</td>
             </tr>
           </tbody>
         </table>
@@ -1735,12 +1689,12 @@
       <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid #10b981; border-radius: 8px; padding: 15px; margin-bottom: 20px;">
         <h3 style="color: #10b981; margin: 0 0 15px 0; font-size: 16px;">📈 Sell Rates (ขาย)</h3>
         <div class="form-group">
-          <label class="form-label">THB → LAK</label>
-          <input type="number" class="form-input" id="rateTHBSellInput" placeholder="270" step="0.01">
+          <label class="form-label">THB/LAK</label>
+          <input type="number" class="form-input" id="rateTHBSellInput" placeholder="0" step="0.01">
         </div>
         <div class="form-group">
-          <label class="form-label">USD → LAK</label>
-          <input type="number" class="form-input" id="rateUSDSellInput" placeholder="21500" step="0.01">
+          <label class="form-label">USD/LAK</label>
+          <input type="number" class="form-input" id="rateUSDSellInput" placeholder="0" step="0.01">
         </div>
       </div>
       
@@ -1748,12 +1702,12 @@
       <div style="background: rgba(245, 158, 11, 0.1); border: 1px solid #f59e0b; border-radius: 8px; padding: 15px; margin-bottom: 20px;">
         <h3 style="color: #f59e0b; margin: 0 0 15px 0; font-size: 16px;">📉 Buyback Rates (รับซื้อคืน)</h3>
         <div class="form-group">
-          <label class="form-label">THB → LAK</label>
-          <input type="number" class="form-input" id="rateTHBBuyInput" placeholder="268" step="0.01">
+          <label class="form-label">LAK/THB</label>
+          <input type="number" class="form-input" id="rateTHBBuyInput" placeholder="0" step="0.01">
         </div>
         <div class="form-group">
-          <label class="form-label">USD → LAK</label>
-          <input type="number" class="form-input" id="rateUSDBuyInput" placeholder="21300" step="0.01">
+          <label class="form-label">LAK/USD</label>
+          <input type="number" class="form-input" id="rateUSDBuyInput" placeholder="0" step="0.01">
         </div>
       </div>
       
@@ -1994,32 +1948,31 @@
   </style>
   
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="js/config.js?v=68"></script>
-  <script src="js/utils.js?v=68"></script>
-  <script src="js/api.js?v=68"></script>
-  <script src="js/ui.js?v=68"></script>
-  <script src="js/dashboard.js?v=68"></script>
-  <script src="js/products.js?v=68"></script>
-  <script src="js/pricerate.js?v=68"></script>
-  <script src="js/sell.js?v=68"></script>
-  <script src="js/payment.js?v=68"></script>
-  <script src="js/tradein.js?v=68"></script>
-  <script src="js/buyback.js?v=68"></script>
-  <script src="js/exchange.js?v=68"></script>
-  <script src="js/switch.js?v=68"></script>
-  <script src="js/freeexchange.js?v=68"></script>
-  <script src="js/withdraw.js?v=68"></script>
-  <script src="js/inventory.js?v=68"></script>
-  <script src="js/cashbank.js?v=68"></script>
-  <script src="js/accounting.js?v=68"></script>
-  <script src="js/diff.js?v=68"></script>
-  <script src="js/reports.js?v=68"></script>
-  <script src="js/stockold.js?v=68"></script>
-  <script src="js/stocknew.js?v=68"></script>
-  <script src="js/wac.js?v=68"></script>
-  <script src="js/close.js?v=68"></script>
-  <script src="js/review.js?v=68"></script>
-  <script src="js/auth.js?v=68"></script>
+  <script src="js/config.js?v=70"></script>
+  <script src="js/utils.js?v=70"></script>
+  <script src="js/api.js?v=70"></script>
+  <script src="js/ui.js?v=70"></script>
+  <script src="js/dashboard.js?v=70"></script>
+  <script src="js/products.js?v=70"></script>
+  <script src="js/pricerate.js?v=70"></script>
+  <script src="js/sell.js?v=70"></script>
+  <script src="js/payment.js?v=70"></script>
+  <script src="js/tradein.js?v=70"></script>
+  <script src="js/buyback.js?v=70"></script>
+  <script src="js/exchange.js?v=70"></script>
+  <script src="js/switch.js?v=70"></script>
+  <script src="js/freeexchange.js?v=70"></script>
+  <script src="js/withdraw.js?v=70"></script>
+  <script src="js/cashbank.js?v=70"></script>
+  <script src="js/accounting.js?v=70"></script>
+  <script src="js/diff.js?v=70"></script>
+  <script src="js/reports.js?v=70"></script>
+  <script src="js/stockold.js?v=70"></script>
+  <script src="js/stocknew.js?v=70"></script>
+  <script src="js/wac.js?v=70"></script>
+  <script src="js/close.js?v=70"></script>
+  <script src="js/review.js?v=70"></script>
+  <script src="js/auth.js?v=70"></script>
   
   <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
   <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/th.js"></script>
@@ -2092,6 +2045,10 @@
         <label class="form-label">Products</label>
         <div id="stockInNewProducts"></div>
         <button class="btn-secondary" onclick="addStockNewProduct('stockInNewProducts')" style="margin-top:10px;">+ Add Product</button>
+      </div>
+      <div class="form-group">
+        <label class="form-label">ต้นทุน (LAK)</label>
+        <input type="number" class="form-input" id="stockInNewCost" placeholder="กรอกราคาซื้อรวม LAK" step="1000">
       </div>
       <div class="form-group">
         <label class="form-label">Note</label>

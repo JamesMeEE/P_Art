@@ -306,6 +306,7 @@ function addStockNewProduct(containerId) {
 function openStockInNewModal() {
   document.getElementById('stockInNewProducts').innerHTML = '';
   document.getElementById('stockInNewNote').value = '';
+  document.getElementById('stockInNewCost').value = '';
   addStockNewProduct('stockInNewProducts');
   openModal('stockInNewModal');
 }
@@ -327,10 +328,12 @@ async function confirmStockInNew() {
       items.push({ productId: row.querySelector('select').value, qty: qty });
     }
     if (items.length === 0) { alert('กรุณาเพิ่มสินค้า'); return; }
+    const cost = document.getElementById('stockInNewCost').value;
+    if (!cost || parseFloat(cost) <= 0) { alert('กรุณากรอกต้นทุน'); return; }
     const note = document.getElementById('stockInNewNote').value.trim();
-    if (!confirm('ยืนยัน Stock In (NEW) ' + items.length + ' รายการ?')) return;
+    if (!confirm('ยืนยัน Stock In (NEW) ' + items.length + ' รายการ ต้นทุน ' + formatNumber(parseFloat(cost)) + ' LAK?')) return;
     showLoading();
-    const result = await callAppsScript('STOCK_IN_NEW', { items: JSON.stringify(items), note: note });
+    const result = await callAppsScript('STOCK_IN_NEW', { items: JSON.stringify(items), note: note, cost: cost });
     hideLoading();
     if (result.success) {
       alert('✅ ' + result.message);
