@@ -27,9 +27,9 @@ async function loadBuybacks() {
     
     if (currentUser.role === 'User' || currentUser.role === 'Manager') {
       if (buybackDateFrom || buybackDateTo) {
-        filteredData = filterByDateRange(filteredData, cDate, cStatus, buybackDateFrom, buybackDateTo);
+        filteredData = filterByDateRange(filteredData, cDate, cCreatedBy, buybackDateFrom, buybackDateTo);
       } else {
-        filteredData = filterTodayData(filteredData, cDate, cStatus);
+        filteredData = filterTodayData(filteredData, cDate, cCreatedBy);
       }
     }
     
