@@ -33,9 +33,7 @@ async function loadStockOld() {
       renderStockOldSummary(carry, qtyIn, qtyOut);
 
       var moveResult = await callAppsScript('GET_STOCK_MOVES', { sheet: 'StockMove_Old' });
-      var carryWeightG = 0;
-      FIXED_PRODUCTS.forEach(function(p) { carryWeightG += (carry[p.id] || 0) * getGoldWeight(p.id); });
-      var prevW = carryWeightG + (moveResult.data ? moveResult.data.prevW || 0 : 0);
+      var prevW = moveResult.data ? moveResult.data.prevW || 0 : 0;
       var prevC = moveResult.data ? moveResult.data.prevC || 0 : 0;
       var moves = moveResult.data ? moveResult.data.moves || [] : [];
       renderStockOldMovements(moves, prevW, prevC, true);
