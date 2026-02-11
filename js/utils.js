@@ -10,39 +10,49 @@ function parseSheetDate(dateValue) {
   if (!dateValue) return null;
   
   try {
+    var result = null;
+
     if (dateValue instanceof Date) {
-      return dateValue;
-    }
-    
-    if (typeof dateValue === 'number') {
-      return new Date((dateValue - 25569) * 86400 * 1000);
-    }
-    
-    if (typeof dateValue === 'string') {
+      result = dateValue;
+    } else if (typeof dateValue === 'number') {
+      result = new Date((dateValue - 25569) * 86400 * 1000);
+    } else if (typeof dateValue === 'string') {
       if (dateValue.includes('/')) {
-        const parts = dateValue.split(' ');
-        const dateParts = parts[0].split('/');
-        const day = parseInt(dateParts[0]);
-        const month = parseInt(dateParts[1]) - 1;
-        const year = parseInt(dateParts[2]);
+        var parts = dateValue.split(' ');
+        var dateParts = parts[0].split('/');
+        var day = parseInt(dateParts[0]);
+        var month = parseInt(dateParts[1]) - 1;
+        var year = parseInt(dateParts[2]);
         
-        if (parts.length > 1 && parts[1].includes(':')) {
-          const timeParts = parts[1].split(':');
-          const hour = parseInt(timeParts[0]) || 0;
-          const minute = parseInt(timeParts[1]) || 0;
-          const second = parseInt(timeParts[2]) || 0;
-          return new Date(year, month, day, hour, minute, second);
+        if (parts.length > 1 && parts[1] && parts[1].includes(':')) {
+          var timeParts = parts[1].split(':');
+          var hour = parseInt(timeParts[0]) || 0;
+          var minute = parseInt(timeParts[1]) || 0;
+          var second = parseInt(timeParts[2]) || 0;
+          result = new Date(year, month, day, hour, minute, second);
+        } else {
+          result = new Date(year, month, day);
         }
-        
-        return new Date(year, month, day);
+      } else {
+        var isoMatch = dateValue.match(/^(\d{4})-(\d{2})-(\d{2})/);
+        if (isoMatch) {
+          var tMatch = dateValue.match(/(\d{2}):(\d{2}):?(\d{2})?/);
+          if (tMatch) {
+            result = new Date(parseInt(isoMatch[1]), parseInt(isoMatch[2]) - 1, parseInt(isoMatch[3]), parseInt(tMatch[1]) || 0, parseInt(tMatch[2]) || 0, parseInt(tMatch[3]) || 0);
+          } else {
+            result = new Date(parseInt(isoMatch[1]), parseInt(isoMatch[2]) - 1, parseInt(isoMatch[3]));
+          }
+        } else {
+          result = new Date(dateValue);
+        }
       }
-      
-      return new Date(dateValue);
+    } else {
+      result = new Date(dateValue);
     }
-    
-    return new Date(dateValue);
+
+    if (result && !isNaN(result.getTime())) return result;
+    return null;
   } catch (error) {
-    console.error('Error parsing date:', dateValue, error);
     return null;
   }
 }
@@ -170,7 +180,6 @@ function calculatePremiumFromItems(itemsJson) {
 function filterTodayData(data, dateColumnIndex, createdByIndex) {
   const today = new Date();
   const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-  const todayEnd = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 23, 59, 59);
   
   return data.filter(row => {
     const dateValue = row[dateColumnIndex];
@@ -188,7 +197,12 @@ function filterTodayData(data, dateColumnIndex, createdByIndex) {
         const year = parseInt(dateParts[2]);
         rowDate = new Date(year, month, day);
       } else {
-        rowDate = new Date(dateValue);
+        var isoMatch = dateValue.match(/^(\d{4})-(\d{2})-(\d{2})/);
+        if (isoMatch) {
+          rowDate = new Date(parseInt(isoMatch[1]), parseInt(isoMatch[2]) - 1, parseInt(isoMatch[3]));
+        } else {
+          rowDate = new Date(dateValue);
+        }
       }
     } else {
       rowDate = new Date(dateValue);
@@ -257,11 +271,16 @@ function calculateBuybackPrice(productId, sell1Baht) {
 }
 
 function filterByDateRange(data, dateColumnIndex, createdByIndex, dateFrom, dateTo) {
-  const from = dateFrom ? new Date(dateFrom) : null;
-  const to = dateTo ? new Date(dateTo) : null;
-  
-  if (to) {
-    to.setHours(23, 59, 59, 999);
+  var from = null;
+  var to = null;
+
+  if (dateFrom) {
+    var fParts = dateFrom.split('-');
+    from = new Date(parseInt(fParts[0]), parseInt(fParts[1]) - 1, parseInt(fParts[2]), 0, 0, 0, 0);
+  }
+  if (dateTo) {
+    var tParts = dateTo.split('-');
+    to = new Date(parseInt(tParts[0]), parseInt(tParts[1]) - 1, parseInt(tParts[2]), 23, 59, 59, 999);
   }
   
   return data.filter(row => {
@@ -278,9 +297,24 @@ function filterByDateRange(data, dateColumnIndex, createdByIndex, dateFrom, date
         const day = parseInt(dateParts[0]);
         const month = parseInt(dateParts[1]) - 1;
         const year = parseInt(dateParts[2]);
-        rowDate = new Date(year, month, day);
+        if (parts.length > 1 && parts[1]) {
+          const timeParts = parts[1].split(':');
+          rowDate = new Date(year, month, day, parseInt(timeParts[0]) || 0, parseInt(timeParts[1]) || 0, parseInt(timeParts[2]) || 0);
+        } else {
+          rowDate = new Date(year, month, day);
+        }
       } else {
-        rowDate = new Date(dateValue);
+        var isoMatch = dateValue.match(/^(\d{4})-(\d{2})-(\d{2})/);
+        if (isoMatch) {
+          var tMatch = dateValue.match(/(\d{2}):(\d{2}):?(\d{2})?/);
+          if (tMatch) {
+            rowDate = new Date(parseInt(isoMatch[1]), parseInt(isoMatch[2]) - 1, parseInt(isoMatch[3]), parseInt(tMatch[1]) || 0, parseInt(tMatch[2]) || 0, parseInt(tMatch[3]) || 0);
+          } else {
+            rowDate = new Date(parseInt(isoMatch[1]), parseInt(isoMatch[2]) - 1, parseInt(isoMatch[3]));
+          }
+        } else {
+          rowDate = new Date(dateValue);
+        }
       }
     } else {
       rowDate = new Date(dateValue);
