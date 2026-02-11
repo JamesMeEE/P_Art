@@ -215,10 +215,6 @@ async function confirmMultiPayment() {
       alert('❌ กรุณากรอกจำนวนเงินที่จ่าย');
       return;
     }
-    if (totalPaid > total) {
-      alert('❌ จำนวนเงินที่จ่ายมากกว่ายอดคงค้าง!');
-      return;
-    }
   } else {
     if (totalPaid < total) {
       alert('❌ ยอดชำระยังไม่ครบ! ขาดอีก ' + formatNumber(total - totalPaid) + ' LAK');
