@@ -180,16 +180,25 @@ async function loadTodayStats() {
       fetchSheetData('Switches!A:N'),
       fetchSheetData('FreeExchanges!A:J'),
       fetchSheetData('CashBank!A:I'),
-      callAppsScript('GET_WAC'),
+      fetchSheetData('_database!A1:G31'),
       fetchSheetData('Diff!A:I')
     ]);
 
     var sells = results[0], tradeins = results[1], exchanges = results[2];
     var buybacks = results[3], withdraws = results[4], switchData = results[5];
-    var freeExData = results[6], cashbankData = results[7], wacResult = results[8];
+    var freeExData = results[6], cashbankData = results[7], dbData = results[8];
     var diffData = results[9];
 
-    var wacPerG = wacResult.data ? wacResult.data.wacPerG || 0 : 0;
+    var wacPerG = 0;
+    if (dbData.length >= 31) {
+      var _nG = parseFloat(dbData[30][0]) || 0;
+      var _nV = parseFloat(dbData[30][1]) || 0;
+      var _oG = parseFloat(dbData[30][2]) || 0;
+      var _oV = parseFloat(dbData[30][3]) || 0;
+      var _tG = _nG + _oG;
+      var _tC = Math.round(_oV / 1000) * 1000 + Math.round(_nV / 1000) * 1000;
+      if (_tG > 0) wacPerG = Math.round(_tC / _tG / 1000) * 1000;
+    }
 
     var today = new Date();
     var todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate());

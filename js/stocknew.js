@@ -218,8 +218,16 @@ async function openTransferDetail(idx) {
 
   var wacPerG = 0;
   try {
-    var wacResult = await callAppsScript('GET_WAC');
-    if (wacResult.data) wacPerG = wacResult.data.wacPerG || 0;
+    var wacData = await fetchSheetData('_database!A31:D31');
+    if (wacData.length > 0) {
+      var _nG = parseFloat(wacData[0][0]) || 0;
+      var _nV = parseFloat(wacData[0][1]) || 0;
+      var _oG = parseFloat(wacData[0][2]) || 0;
+      var _oV = parseFloat(wacData[0][3]) || 0;
+      var _tG = _nG + _oG;
+      var _tC = Math.round(_oV / 1000) * 1000 + Math.round(_nV / 1000) * 1000;
+      if (_tG > 0) wacPerG = Math.round(_tC / _tG / 1000) * 1000;
+    }
   } catch(e) {}
 
   var tableRows = '';
