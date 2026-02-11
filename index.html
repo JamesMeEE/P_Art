@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600;700&family=Montserrat:wght@200;300;400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-  <link rel="stylesheet" href="style.css?v=87">
+  <link rel="stylesheet" href="style.css?v=88">
   <script>
     (function() {
       const cb = localStorage.getItem('cacheBuster') || Date.now();
@@ -160,9 +160,9 @@
       </div>
       
       <h3 style="margin: 30px 0 15px 0; color: var(--gold-primary); font-size: 20px; font-weight: 600;">📊 Price History (Sell 1 Baht)</h3>
-      <div style="background: var(--bg-card); border-radius: 12px; padding: 20px; border: 1px solid var(--border-color); margin-bottom: 20px;">
-        <div style="text-align:center;margin-bottom:10px;"><span id="pricingDateRange" style="font-size:14px;color:var(--text-secondary);"></span></div>
-        <canvas id="pricingChart" height="200"></canvas>
+      <div style="background: var(--bg-card); border-radius: 12px; padding: 15px 20px; border: 1px solid var(--border-color); margin-bottom: 20px;">
+        <div style="text-align:center;margin-bottom:8px;"><span id="pricingDateRange" style="font-size:13px;color:var(--text-secondary);"></span></div>
+        <div style="max-height:180px;"><canvas id="pricingChart"></canvas></div>
       </div>
       <div class="table-container">
         <table>
@@ -732,10 +732,10 @@
         <h2 style="font-family: 'Cormorant Garamond', serif; font-size: 36px; color: var(--gold-primary);">Daily Gold Summary</h2>
       </div>
       
-      <div style="background: var(--bg-card); border-radius: 12px; padding: 20px; border: 1px solid var(--border-color); margin-bottom: 20px;">
-        <h3 style="color: var(--gold-primary); margin-bottom: 10px; font-size: 16px;">📈 Net Gold Trend</h3>
-        <div style="text-align:center;margin-bottom:10px;"><span id="reportsDateRange" style="font-size:14px;color:var(--text-secondary);"></span></div>
-        <canvas id="reportsChart" height="200"></canvas>
+      <div style="background: var(--bg-card); border-radius: 12px; padding: 15px 20px; border: 1px solid var(--border-color); margin-bottom: 20px;">
+        <h3 style="color: var(--gold-primary); margin-bottom: 8px; font-size: 16px;">📈 Net Gold Trend</h3>
+        <div style="text-align:center;margin-bottom:8px;"><span id="reportsDateRange" style="font-size:13px;color:var(--text-secondary);"></span></div>
+        <div style="max-height:200px;"><canvas id="reportsChart"></canvas></div>
       </div>
       
       <div class="table-container">
@@ -1968,31 +1968,31 @@
   </style>
   
   <script defer src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="js/config.js?v=87"></script>
-  <script src="js/utils.js?v=87"></script>
-  <script src="js/api.js?v=87"></script>
-  <script src="js/ui.js?v=87"></script>
-  <script src="js/dashboard.js?v=87"></script>
-  <script src="js/products.js?v=87"></script>
-  <script src="js/pricerate.js?v=87"></script>
-  <script src="js/sell.js?v=87"></script>
-  <script src="js/payment.js?v=87"></script>
-  <script src="js/tradein.js?v=87"></script>
-  <script src="js/buyback.js?v=87"></script>
-  <script src="js/exchange.js?v=87"></script>
-  <script src="js/switch.js?v=87"></script>
-  <script src="js/freeexchange.js?v=87"></script>
-  <script src="js/withdraw.js?v=87"></script>
-  <script src="js/cashbank.js?v=87"></script>
-  <script src="js/accounting.js?v=87"></script>
-  <script src="js/diff.js?v=87"></script>
-  <script src="js/reports.js?v=87"></script>
-  <script src="js/stockold.js?v=87"></script>
-  <script src="js/stocknew.js?v=87"></script>
-  <script src="js/wac.js?v=87"></script>
-  <script src="js/close.js?v=87"></script>
-  <script src="js/review.js?v=87"></script>
-  <script src="js/auth.js?v=87"></script>
+  <script src="js/config.js?v=88"></script>
+  <script src="js/utils.js?v=88"></script>
+  <script src="js/api.js?v=88"></script>
+  <script src="js/ui.js?v=88"></script>
+  <script src="js/dashboard.js?v=88"></script>
+  <script src="js/products.js?v=88"></script>
+  <script src="js/pricerate.js?v=88"></script>
+  <script src="js/sell.js?v=88"></script>
+  <script src="js/payment.js?v=88"></script>
+  <script src="js/tradein.js?v=88"></script>
+  <script src="js/buyback.js?v=88"></script>
+  <script src="js/exchange.js?v=88"></script>
+  <script src="js/switch.js?v=88"></script>
+  <script src="js/freeexchange.js?v=88"></script>
+  <script src="js/withdraw.js?v=88"></script>
+  <script src="js/cashbank.js?v=88"></script>
+  <script src="js/accounting.js?v=88"></script>
+  <script src="js/diff.js?v=88"></script>
+  <script src="js/reports.js?v=88"></script>
+  <script src="js/stockold.js?v=88"></script>
+  <script src="js/stocknew.js?v=88"></script>
+  <script src="js/wac.js?v=88"></script>
+  <script src="js/close.js?v=88"></script>
+  <script src="js/review.js?v=88"></script>
+  <script src="js/auth.js?v=88"></script>
   
   <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
   <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/th.js"></script>

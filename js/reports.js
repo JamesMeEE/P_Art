@@ -88,7 +88,6 @@ function renderReportsChart(data) {
     rangeEl.textContent = fmt(firstD) + ' — ' + fmt(lastD);
   }
 
-  var carryValues = chartData.map(function(row) { return parseFloat(row[1]) || 0; });
   var netValues = chartData.map(function(row) { return parseFloat(row[2]) || 0; });
   var diffValues = chartData.map(function(row) { return (parseFloat(row[2]) || 0) - (parseFloat(row[1]) || 0); });
 
@@ -100,13 +99,13 @@ function renderReportsChart(data) {
     data: {
       labels: labels,
       datasets: [
-        { label: 'ยอดทองสุทธิ', data: netValues, borderColor: '#d4af37', backgroundColor: 'rgba(212,175,55,0.1)', tension: 0.3, fill: false, pointRadius: 4, pointBackgroundColor: '#d4af37', borderWidth: 2 },
-        { label: 'ยอดทองยกมา', data: carryValues, borderColor: '#888', backgroundColor: 'rgba(136,136,136,0.1)', tension: 0.3, fill: false, pointRadius: 3, borderDash: [5, 5], borderWidth: 1.5 },
-        { label: 'ส่วนต่าง', data: diffValues, type: 'bar', backgroundColor: diffValues.map(function(v) { return v >= 0 ? 'rgba(76,175,80,0.6)' : 'rgba(244,67,54,0.6)'; }), borderRadius: 3, barPercentage: 0.5, yAxisID: 'y1' }
+        { label: 'ยอดทองสุทธิ', data: netValues, borderColor: '#d4af37', backgroundColor: 'rgba(212,175,55,0.15)', tension: 0.3, fill: true, pointRadius: 3, pointBackgroundColor: '#d4af37', borderWidth: 2 },
+        { label: 'ส่วนต่าง', data: diffValues, borderColor: '#4caf50', backgroundColor: 'rgba(76,175,80,0.1)', tension: 0.3, fill: true, pointRadius: 3, pointBackgroundColor: '#4caf50', borderWidth: 2 }
       ]
     },
     options: {
       responsive: true,
+      maintainAspectRatio: false,
       interaction: { mode: 'index', intersect: false },
       plugins: {
         legend: { labels: { color: '#ccc', font: { size: 12 } } },
@@ -114,8 +113,7 @@ function renderReportsChart(data) {
       },
       scales: {
         x: { display: false },
-        y: { position: 'left', title: { display: true, text: 'Gold (g)', color: '#ccc' }, ticks: { color: '#999' }, grid: { color: 'rgba(255,255,255,0.1)' } },
-        y1: { position: 'right', title: { display: true, text: 'ส่วนต่าง (g)', color: '#ccc' }, ticks: { color: '#999' }, grid: { drawOnChartArea: false } }
+        y: { title: { display: true, text: 'Gold (g)', color: '#ccc' }, ticks: { color: '#999' }, grid: { color: 'rgba(255,255,255,0.1)' } }
       }
     }
   });

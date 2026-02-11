@@ -97,6 +97,7 @@ function renderPricingChart(data) {
     },
     options: {
       responsive: true,
+      maintainAspectRatio: false,
       interaction: { mode: 'index', intersect: false },
       plugins: {
         legend: { labels: { color: '#ccc', font: { size: 12 } } },
