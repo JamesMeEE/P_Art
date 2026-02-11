@@ -25,22 +25,18 @@ async function loadAccounting() {
     if (accountingData.length > 1) {
       var lastRecord = accountingData[accountingData.length - 1];
       var lastDateObj = parseSheetDate(lastRecord[0]);
-      console.log('[Accounting] lastRecord date raw:', lastRecord[0], 'parsed:', lastDateObj, 'yesterday:', yesterday);
       if (lastDateObj) {
         lastDateObj.setHours(0, 0, 0, 0);
         var nextDay = new Date(lastDateObj);
         nextDay.setDate(nextDay.getDate() + 1);
         while (nextDay <= yesterday) {
           var key = nextDay.getFullYear() + '-' + String(nextDay.getMonth()+1).padStart(2,'0') + '-' + String(nextDay.getDate()).padStart(2,'0');
-          console.log('[Accounting] backfill:', key, 'exists:', existingDates.has(key));
           if (!existingDates.has(key)) {
             await saveAccountingForDate(new Date(nextDay));
             existingDates.add(key);
           }
           nextDay.setDate(nextDay.getDate() + 1);
         }
-      } else {
-        console.log('[Accounting] WARNING: could not parse last date!');
       }
     }
 
@@ -147,7 +143,7 @@ async function saveAccountingForDate(targetDate) {
       }
     });
 
-    var dateStr = targetDate.toISOString().split('T')[0];
+    var dateStr = targetDate.getFullYear() + '-' + String(targetDate.getMonth()+1).padStart(2,'0') + '-' + String(targetDate.getDate()).padStart(2,'0');
 
     await callAppsScript('SAVE_ACCOUNTING', {
       date: dateStr,
