@@ -3,41 +3,62 @@ async function loadBuybacks() {
     showLoading();
     const data = await fetchSheetData('Buybacks!A:L');
     
+    if (!data || data.length < 2) {
+      document.getElementById('buybackTable').innerHTML = '<tr><td colspan="10" style="text-align: center; padding: 40px;">No records</td></tr>';
+      hideLoading();
+      return;
+    }
+    
+    var headers = data[0];
+    var col = {};
+    headers.forEach(function(h, i) { col[h] = i; });
+    
+    var cPrice = col['Price'] !== undefined ? col['Price'] : 3;
+    var cCurrency = col['Currency'] !== undefined ? col['Currency'] : 4;
+    var cFee = col['Fee'] !== undefined ? col['Fee'] : 5;
+    var cTotal = col['Total'] !== undefined ? col['Total'] : 6;
+    var cPaid = col['Paid'] !== undefined ? col['Paid'] : 7;
+    var cBalance = col['Balance'] !== undefined ? col['Balance'] : 8;
+    var cDate = col['Date'] !== undefined ? col['Date'] : 9;
+    var cStatus = col['Status'] !== undefined ? col['Status'] : 10;
+    var cCreatedBy = col['Created_By'] !== undefined ? col['Created_By'] : 11;
+    
     let filteredData = data.slice(1);
     
     if (currentUser.role === 'User' || currentUser.role === 'Manager') {
       if (buybackDateFrom || buybackDateTo) {
-        filteredData = filterByDateRange(filteredData, 9, 11, buybackDateFrom, buybackDateTo);
+        filteredData = filterByDateRange(filteredData, cDate, cStatus, buybackDateFrom, buybackDateTo);
       } else {
-        filteredData = filterTodayData(filteredData, 9, 11);
+        filteredData = filterTodayData(filteredData, cDate, cStatus);
       }
     }
     
     if (buybackSortOrder === 'asc') {
-      filteredData.sort((a, b) => new Date(a[9]) - new Date(b[9]));
+      filteredData.sort(function(a, b) { return new Date(a[cDate]) - new Date(b[cDate]); });
     } else {
-      filteredData.sort((a, b) => new Date(b[9]) - new Date(a[9]));
+      filteredData.sort(function(a, b) { return new Date(b[cDate]) - new Date(a[cDate]); });
     }
     
     const tbody = document.getElementById('buybackTable');
     if (filteredData.length === 0) {
       tbody.innerHTML = '<tr><td colspan="10" style="text-align: center; padding: 40px;">No records</td></tr>';
     } else {
-      tbody.innerHTML = filteredData.map(row => {
-        const items = formatItemsForTable(row[2]);
-        const price = parseFloat(row[3]) || 0;
-        const fee = parseFloat(row[5]) || 0;
-        const total = parseFloat(row[6]) || 0;
-        const paid = parseFloat(row[7]) || 0;
-        const balance = parseFloat(row[8]) || 0;
-        const saleName = row[11];
-        const status = row[10];
+      tbody.innerHTML = filteredData.map(function(row) {
+        var items = formatItemsForTable(row[2]);
+        var price = parseFloat(row[cPrice]) || 0;
+        var fee = parseFloat(row[cFee]) || 0;
+        var total = parseFloat(row[cTotal]) || 0;
+        var paid = parseFloat(row[cPaid]) || 0;
+        var balance = parseFloat(row[cBalance]) || 0;
+        if (total === 0 && price > 0) { total = price; balance = total - paid; }
+        var saleName = row[cCreatedBy] || '';
+        var status = row[cStatus] || '';
         
-        let actions = '';
+        var actions = '';
         
         if (status === 'PENDING' || status === 'PARTIAL') {
           if (currentUser.role === 'Manager') {
-            actions = `<button class="btn-action" onclick="openBuybackPaymentModalFromList('${row[0]}')">Payment</button>`;
+            actions = '<button class="btn-action" onclick="openBuybackPaymentModalFromList(\'' + row[0] + '\')">Payment</button>';
           } else {
             actions = '<span style="color: var(--text-secondary);">Waiting for payment</span>';
           }
@@ -45,20 +66,18 @@ async function loadBuybacks() {
           actions = '-';
         }
         
-        return `
-          <tr>
-            <td>${row[0]}</td>
-            <td>${row[1]}</td>
-            <td>${items}</td>
-            <td>${formatNumber(price)}</td>
-            <td>${formatNumber(fee)}</td>
-            <td>${formatNumber(total)}</td>
-            <td style="color: ${balance > 0 ? '#f44336' : '#4caf50'}; font-weight: bold;">${formatNumber(balance)}</td>
-            <td><span class="status-badge status-${status.toLowerCase()}">${status}</span></td>
-            <td>${saleName}</td>
-            <td>${actions}</td>
-          </tr>
-        `;
+        return '<tr>' +
+            '<td>' + row[0] + '</td>' +
+            '<td>' + row[1] + '</td>' +
+            '<td>' + items + '</td>' +
+            '<td>' + formatNumber(price) + '</td>' +
+            '<td>' + formatNumber(fee) + '</td>' +
+            '<td>' + formatNumber(total) + '</td>' +
+            '<td style="color: ' + (balance > 0 ? '#f44336' : '#4caf50') + '; font-weight: bold;">' + formatNumber(balance) + '</td>' +
+            '<td><span class="status-badge status-' + status.toLowerCase() + '">' + status + '</span></td>' +
+            '<td>' + saleName + '</td>' +
+            '<td>' + actions + '</td>' +
+          '</tr>';
       }).join('');
     }
     
