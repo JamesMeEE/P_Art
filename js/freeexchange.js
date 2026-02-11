@@ -283,6 +283,12 @@ async function confirmFreeExchangeNoPay(freeExId) {
   }
 }
 
-function reviewFreeExchange(freeExId) {
-  openReviewDecisionModal('FREE_EXCHANGE', freeExId);
+async function reviewFreeExchange(freeExId) {
+  try {
+    var data = await fetchSheetData('FreeExchanges!A:L');
+    var fe = data.slice(1).find(function(row) { return row[0] === freeExId; });
+    if (fe) {
+      openReviewDecisionModal('FREE_EXCHANGE', freeExId, fe[3]);
+    }
+  } catch(e) { alert('❌ Error loading data'); }
 }

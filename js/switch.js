@@ -250,6 +250,12 @@ async function openSwitchPaymentModal(switchId) {
     `<strong>Old Gold:</strong> ${oldGold}<br><strong>New Gold:</strong> ${newGold}`);
 }
 
-function reviewSwitch(switchId) {
-  openReviewDecisionModal('SWITCH', switchId);
+async function reviewSwitch(switchId) {
+  try {
+    var data = await fetchSheetData('Switches!A:N');
+    var sw = data.slice(1).find(function(row) { return row[0] === switchId; });
+    if (sw) {
+      openReviewDecisionModal('SWITCH', switchId, sw[3]);
+    }
+  } catch(e) { alert('❌ Error loading data'); }
 }

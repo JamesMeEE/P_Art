@@ -369,20 +369,21 @@ async function openBuybackPaymentModalFromList(buybackId) {
   const buyback = data.slice(1).find(row => row[0] === buybackId);
   if (!buyback) return;
   
-  const price = parseFloat(buyback[3]) || 0;
+  const price = parseFloat(buyback[6]) || 0;
   const paid = parseFloat(buyback[7]) || 0;
+  const balance = price - paid;
   
   currentPaymentData = { 
     type: 'BUYBACK', 
     id: buybackId, 
-    total: price,
+    total: balance,
     basePrice: price,
     paid: paid,
     phone: buyback[1],
     items: buyback[2],
     details: `<strong>Items:</strong> ${formatItemsForPayment(buyback[2])}<br>
               <strong>Buyback Price:</strong> ${formatNumber(price)} LAK<br>
-              <strong>Paid:</strong> ${formatNumber(paid)} LAK`,
+              <strong>ยอดคงค้าง:</strong> ${formatNumber(balance)} LAK`,
     allowPartial: true
   };
   paymentItems = { cash: [], bank: [] };
@@ -391,13 +392,11 @@ async function openBuybackPaymentModalFromList(buybackId) {
   document.getElementById('multiPaymentId').textContent = buybackId;
   document.getElementById('multiPaymentPhone').textContent = buyback[1];
   document.getElementById('multiPaymentDetails').innerHTML = currentPaymentData.details;
-  document.getElementById('multiPaymentTotal').textContent = formatNumber(price) + ' LAK';
+  document.getElementById('multiPaymentTotal').textContent = formatNumber(balance) + ' LAK';
   
   document.getElementById('multiPaymentFeeGroup').style.display = 'block';
-  document.getElementById('multiPaymentFeeInput').value = '0';
-  
-  const balance = price - paid;
-  currentPaymentData.total = balance;
+  document.getElementById('multiPaymentFeeInput').value = '';
+  document.getElementById('multiPaymentFeeInput').placeholder = '0';
   
   document.getElementById('cashPaymentsList').innerHTML = '';
   document.getElementById('bankPaymentsList').innerHTML = '';
@@ -408,11 +407,4 @@ async function openBuybackPaymentModalFromList(buybackId) {
 }
 
 function onBuybackFeeChange() {
-  if (!currentPaymentData || currentPaymentData.type !== 'BUYBACK') return;
-  const fee = parseFloat(document.getElementById('multiPaymentFeeInput').value) || 0;
-  const balance = currentPaymentData.basePrice - currentPaymentData.paid - fee;
-  currentPaymentData.total = Math.max(0, balance);
-  currentPaymentData.fee = fee;
-  document.getElementById('multiPaymentTotal').textContent = formatNumber(Math.max(0, balance)) + ' LAK';
-  updatePaymentSummary();
 }
