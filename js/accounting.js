@@ -52,11 +52,15 @@ async function loadAccounting() {
 
 async function saveAccountingForDate(targetDate) {
   try {
-    var sells = await fetchSheetData('Sells!A:L');
-    var tradeins = await fetchSheetData('Tradeins!A:N');
-    var exchanges = await fetchSheetData('Exchanges!A:N');
-    var buybacks = await fetchSheetData('Buybacks!A:L');
-    var withdraws = await fetchSheetData('Withdraws!A:J');
+    var results = await Promise.all([
+      fetchSheetData('Sells!A:L'),
+      fetchSheetData('Tradeins!A:N'),
+      fetchSheetData('Exchanges!A:N'),
+      fetchSheetData('Buybacks!A:L'),
+      fetchSheetData('Withdraws!A:J')
+    ]);
+    var sells = results[0], tradeins = results[1], exchanges = results[2];
+    var buybacks = results[3], withdraws = results[4];
 
     var dayStart = new Date(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate());
     var dayEnd = new Date(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate(), 23, 59, 59);

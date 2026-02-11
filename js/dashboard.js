@@ -267,7 +267,7 @@ async function refreshDashReport() {
 
 function startDashReportRefresh() {
   stopDashReportRefresh();
-  _dashReportInterval = setInterval(refreshDashReport, 5000);
+  _dashReportInterval = setInterval(refreshDashReport, 10000);
 }
 
 function stopDashReportRefresh() {

@@ -1,11 +1,25 @@
+var _sheetCache = {};
+var _cacheTTL = 15000;
+
 async function fetchSheetData(range) {
+  var now = Date.now();
+  if (_sheetCache[range] && (now - _sheetCache[range].time) < _cacheTTL) {
+    return _sheetCache[range].data;
+  }
   const url = `https://sheets.googleapis.com/v4/spreadsheets/${CONFIG.SHEET_ID}/values/${range}?key=${CONFIG.API_KEY}`;
   const response = await fetch(url);
   const data = await response.json();
-  return data.values || [];
+  var result = data.values || [];
+  _sheetCache[range] = { data: result, time: now };
+  return result;
+}
+
+function invalidateCache() {
+  _sheetCache = {};
 }
 
 async function callAppsScript(action, params = {}) {
+  invalidateCache();
   const queryParams = new URLSearchParams({
     action,
     ...params,
