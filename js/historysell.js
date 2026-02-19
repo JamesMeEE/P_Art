@@ -125,8 +125,8 @@ async function loadHistorySell() {
           '<td style="white-space:nowrap;">' + r.id + '</td>' +
           '<td>' + r.phone + '</td>' +
           '<td><span style="background:' + color + ';color:#fff;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:bold;white-space:nowrap;">' + r.type + '</span></td>' +
-          '<td>' + (r.oldGold === '-' ? '<span ' + dim + '>-</span>' : r.oldGold) + '</td>' +
-          '<td>' + (r.newGold === '-' ? '<span ' + dim + '>-</span>' : r.newGold) + '</td>' +
+          '<td class="wrap-cell">' + (r.oldGold === '-' ? '<span ' + dim + '>-</span>' : r.oldGold) + '</td>' +
+          '<td class="wrap-cell">' + (r.newGold === '-' ? '<span ' + dim + '>-</span>' : r.newGold) + '</td>' +
           '<td>' + (r.difference === '-' ? '<span ' + dim + '>-</span>' : r.difference) + '</td>' +
           '<td>' + (r.exchangeFee === '-' ? '<span ' + dim + '>-</span>' : r.exchangeFee) + '</td>' +
           '<td>' + (r.switchFee === '-' ? '<span ' + dim + '>-</span>' : r.switchFee) + '</td>' +
