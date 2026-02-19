@@ -220,12 +220,34 @@ function filterTodayData(data, dateColumnIndex, createdByIndex) {
   });
 }
 
+var _isSubmitting = false;
+var _submitTimeout = null;
+
 function showLoading() {
   document.getElementById('loading').classList.add('active');
+  if (_isSubmitting && !_submitTimeout) {
+    _submitTimeout = setTimeout(function() { _isSubmitting = false; hideLoading(); }, 30000);
+  }
 }
 
 function hideLoading() {
   document.getElementById('loading').classList.remove('active');
+  _isSubmitting = false;
+  if (_submitTimeout) { clearTimeout(_submitTimeout); _submitTimeout = null; }
+}
+
+function startSubmit() {
+  if (_isSubmitting) return false;
+  _isSubmitting = true;
+  showLoading();
+  _submitTimeout = setTimeout(function() { _isSubmitting = false; }, 30000);
+  return true;
+}
+
+function endSubmit() {
+  _isSubmitting = false;
+  if (_submitTimeout) { clearTimeout(_submitTimeout); _submitTimeout = null; }
+  hideLoading();
 }
 
 function openModal(modalId) {

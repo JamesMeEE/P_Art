@@ -117,6 +117,7 @@ function removeTradeinNewGold(id) {
 }
 
 async function calculateTradein() {
+  if (_isSubmitting) return;
   const phone = document.getElementById('tradeinPhone').value;
   if (!phone) {
     alert('กรุณากรอกเบอร์โทร');
@@ -189,6 +190,7 @@ async function calculateTradein() {
   console.log('===========================');
 
   try {
+    _isSubmitting = true;
     showLoading();
     const result = await callAppsScript('ADD_TRADEIN', {
       phone,
@@ -215,10 +217,10 @@ async function calculateTradein() {
     } else {
       alert('❌ เกิดข้อผิดพลาด: ' + result.message);
     }
-    hideLoading();
+    endSubmit();
   } catch (error) {
     alert('❌ เกิดข้อผิดพลาด: ' + error.message);
-    hideLoading();
+    endSubmit();
   }
 }
 

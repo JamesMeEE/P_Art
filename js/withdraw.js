@@ -112,6 +112,7 @@ function calculateWithdrawPremium() {
 }
 
 async function calculateWithdraw() {
+  if (_isSubmitting) return;
   const phone = document.getElementById('withdrawPhone').value;
   if (!phone) {
     alert('กรุณากรอกเบอร์โทร');
@@ -142,6 +143,7 @@ async function calculateWithdraw() {
   const total = roundTo1000(premium);
 
   try {
+    _isSubmitting = true;
     showLoading();
     const result = await callAppsScript('ADD_WITHDRAW', {
       phone,
@@ -165,10 +167,10 @@ async function calculateWithdraw() {
     } else {
       alert('❌ เกิดข้อผิดพลาด: ' + result.message);
     }
-    hideLoading();
+    endSubmit();
   } catch (error) {
     alert('❌ เกิดข้อผิดพลาด: ' + error.message);
-    hideLoading();
+    endSubmit();
   }
 }
 

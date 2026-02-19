@@ -99,18 +99,19 @@ function removeSellProduct(id) {
 }
 
 async function submitSell() {
-  const phone = document.getElementById('sellPhone').value;
+  if (_isSubmitting) return;
+  var phone = document.getElementById('sellPhone').value;
   if (!phone) {
     alert('กรุณากรอกเบอร์โทร');
     return;
   }
 
-  const items = [];
-  document.querySelectorAll('#sellProducts .product-row').forEach(row => {
-    const productId = row.querySelector('select').value;
-    const qty = parseInt(row.querySelector('input').value) || 0;
+  var items = [];
+  document.querySelectorAll('#sellProducts .product-row').forEach(function(row) {
+    var productId = row.querySelector('select').value;
+    var qty = parseInt(row.querySelector('input').value) || 0;
     if (productId && qty > 0) {
-      items.push({ productId, qty });
+      items.push({ productId: productId, qty: qty });
     }
   });
 
@@ -119,13 +120,15 @@ async function submitSell() {
     return;
   }
 
-  let totalPrice = 0;
-  let totalPremium = 0;
+  _isSubmitting = true;
+  showLoading();
 
-  items.forEach(item => {
-    const pricePerPiece = calculateSellPrice(item.productId, currentPricing.sell1Baht);
+  var totalPrice = 0;
+  var totalPremium = 0;
+
+  items.forEach(function(item) {
+    var pricePerPiece = calculateSellPrice(item.productId, currentPricing.sell1Baht);
     totalPrice += pricePerPiece * item.qty;
-    
     if (PREMIUM_PRODUCTS.includes(item.productId)) {
       totalPremium += PREMIUM_PER_PIECE * item.qty;
     }
@@ -134,9 +137,8 @@ async function submitSell() {
   totalPrice = roundTo1000(totalPrice + totalPremium);
 
   try {
-    showLoading();
-    const result = await callAppsScript('ADD_SELL', {
-      phone,
+    var result = await callAppsScript('ADD_SELL', {
+      phone: phone,
       items: JSON.stringify(items),
       total: totalPrice
     });
@@ -153,10 +155,10 @@ async function submitSell() {
     } else {
       alert('❌ เกิดข้อผิดพลาด: ' + result.message);
     }
-    hideLoading();
+    endSubmit();
   } catch (error) {
     alert('❌ เกิดข้อผิดพลาด: ' + error.message);
-    hideLoading();
+    endSubmit();
   }
 }
 

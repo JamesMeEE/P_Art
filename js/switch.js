@@ -125,6 +125,7 @@ function addSwitchNewGold() {
 }
 
 async function calculateSwitch() {
+  if (_isSubmitting) return;
   const phone = document.getElementById('switchPhone').value;
   if (!phone) {
     alert('กรุณากรอกเบอร์โทร');
@@ -185,6 +186,7 @@ async function calculateSwitch() {
   const total = roundTo1000(switchFee + premium);
 
   try {
+    _isSubmitting = true;
     showLoading();
     const result = await callAppsScript('ADD_SWITCH', {
       phone,
@@ -211,10 +213,10 @@ async function calculateSwitch() {
     } else {
       alert('❌ เกิดข้อผิดพลาด: ' + result.message);
     }
-    hideLoading();
+    endSubmit();
   } catch (error) {
     alert('❌ เกิดข้อผิดพลาด: ' + error.message);
-    hideLoading();
+    endSubmit();
   }
 }
 

@@ -127,6 +127,7 @@ function addFreeExNewGold() {
 }
 
 async function calculateFreeExchange() {
+  if (_isSubmitting) return;
   const phone = document.getElementById('freeExPhone').value;
   if (!phone) {
     alert('กรุณากรอกเบอร์โทร');
@@ -192,6 +193,7 @@ async function calculateFreeExchange() {
   const total = roundTo1000(premium);
 
   try {
+    _isSubmitting = true;
     showLoading();
     const result = await callAppsScript('ADD_FREE_EXCHANGE', {
       phone,
@@ -217,10 +219,10 @@ async function calculateFreeExchange() {
     } else {
       alert('❌ เกิดข้อผิดพลาด: ' + result.message);
     }
-    hideLoading();
+    endSubmit();
   } catch (error) {
     alert('❌ เกิดข้อผิดพลาด: ' + error.message);
-    hideLoading();
+    endSubmit();
   }
 }
 
@@ -258,9 +260,11 @@ async function openFreeExchangePaymentModal(freeExId) {
 }
 
 async function confirmFreeExchangeNoPay(freeExId) {
+  if (_isSubmitting) return;
   if (!confirm('ยืนยันการแลกเปลี่ยน (ไม่มีค่าใช้จ่าย)?')) return;
   
   try {
+    _isSubmitting = true;
     showLoading();
     const result = await callAppsScript('CONFIRM_FREE_EXCHANGE_PAYMENT', {
       freeExId,
@@ -277,10 +281,10 @@ async function confirmFreeExchangeNoPay(freeExId) {
     } else {
       alert('❌ เกิดข้อผิดพลาด: ' + result.message);
     }
-    hideLoading();
+    endSubmit();
   } catch (error) {
     alert('❌ เกิดข้อผิดพลาด: ' + error.message);
-    hideLoading();
+    endSubmit();
   }
 }
 

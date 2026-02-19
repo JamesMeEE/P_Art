@@ -139,6 +139,7 @@ function calculateBuybackTotal() {
 }
 
 async function calculateBuyback() {
+  if (_isSubmitting) return;
   const phone = document.getElementById('buybackPhone').value;
   if (!phone) {
     alert('กรุณากรอกเบอร์โทร');
@@ -163,6 +164,7 @@ async function calculateBuyback() {
   const fee = 0;
 
   try {
+    _isSubmitting = true;
     showLoading();
     const result = await callAppsScript('ADD_BUYBACK', {
       phone,
@@ -188,10 +190,10 @@ async function calculateBuyback() {
     } else {
       alert('❌ เกิดข้อผิดพลาด: ' + result.message);
     }
-    hideLoading();
+    endSubmit();
   } catch (error) {
     alert('❌ เกิดข้อผิดพลาด: ' + error.message);
-    hideLoading();
+    endSubmit();
   }
 }
 

@@ -202,6 +202,7 @@ function updatePaymentSummary() {
 }
 
 async function confirmMultiPayment() {
+  if (_isSubmitting) return;
   if (!currentPaymentData) return;
   
   let totalPaid = 0;
@@ -237,6 +238,7 @@ async function confirmMultiPayment() {
   }
 
   try {
+    _isSubmitting = true;
     showLoading();
     
     const actionMap = {
@@ -293,10 +295,10 @@ async function confirmMultiPayment() {
       alert('❌ เกิดข้อผิดพลาด: ' + result.message);
     }
     
-    hideLoading();
+    endSubmit();
   } catch (error) {
     alert('❌ เกิดข้อผิดพลาด: ' + error.message);
-    hideLoading();
+    endSubmit();
   }
 }
 
