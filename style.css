@@ -602,11 +602,23 @@ body.role-m .manager-only {
   display: block;
 }
 
+body.role-a .manager-only {
+  display: block;
+}
+
 body.role-m td.manager-only {
   display: table-cell;
 }
 
+body.role-a td.manager-only {
+  display: table-cell;
+}
+
 body.role-m button.manager-only {
+  display: inline-block;
+}
+
+body.role-a button.manager-only {
   display: inline-block;
 }
 
