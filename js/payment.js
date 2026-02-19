@@ -351,9 +351,9 @@ async function confirmMultiPayment() {
           return;
         }
       } else {
-        var sheetName = currentUser.username;
-        console.log('Fetching user sheet:', sheetName + '!A:I');
-        var userSheetData = await fetchSheetData(sheetName + '!A:I');
+        var sheetName = currentUser.nickname;
+        console.log('Fetching user sheet:', sheetName);
+        var userSheetData = await fetchSheetData("'" + sheetName + "'!A:I");
         console.log('User sheet rows:', userSheetData ? userSheetData.length : 'null');
         var userCashLAK = 0;
         if (userSheetData && userSheetData.length > 1) {
@@ -410,8 +410,7 @@ async function confirmMultiPayment() {
       payments: JSON.stringify({ cash: paymentItems.cash, bank: paymentItems.bank }),
       totalPaid: totalPaid,
       change: change,
-      user: currentUser.nickname,
-      username: currentUser.username
+      user: currentUser.nickname
     };
     if (currentPaymentData.type === 'BUYBACK') {
       var totalFee = 0;
