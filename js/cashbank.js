@@ -111,10 +111,15 @@ function filterCashBankByDate() {
   renderCashBankTable(filtered);
 }
 
-function clearCashBankDateFilter() {
-  document.getElementById('cbStartDate').value = '';
-  document.getElementById('cbEndDate').value = '';
-  renderCashBankTable(_cashbankAllRows);
+function showTodayCashBank() {
+  var today = new Date();
+  var yyyy = today.getFullYear();
+  var mm = String(today.getMonth() + 1).padStart(2, '0');
+  var dd = String(today.getDate()).padStart(2, '0');
+  var todayStr = yyyy + '-' + mm + '-' + dd;
+  document.getElementById('cbStartDate').value = todayStr;
+  document.getElementById('cbEndDate').value = todayStr;
+  filterCashBankByDate();
 }
 
 function toggleOtherIncomeBank() {
