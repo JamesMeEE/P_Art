@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600;700&family=Montserrat:wght@200;300;400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-  <link rel="stylesheet" href="style.css?v=113">
+  <link rel="stylesheet" href="style.css?v=114">
   <script>
     (function() {
       const cb = localStorage.getItem('cacheBuster') || Date.now();
@@ -897,9 +897,7 @@
           <span>to</span>
           <input type="date" id="stockNewDateTo" class="form-input" style="width:150px;">
           <button class="btn-secondary" onclick="resetStockNewFilter()">Today</button>
-          <button class="btn-primary manager-only" id="btnPendingTransfer" onclick="openPendingTransferModal()" style="position:relative;">📦 รับทอง <span id="pendingTransferBadge" style="display:none;position:absolute;top:-8px;right:-8px;background:#f44336;color:#fff;border-radius:50%;width:22px;height:22px;font-size:12px;line-height:22px;text-align:center;">0</span></button>
           <button class="btn-primary manager-only" onclick="openStockInNewModal()">Stock In</button>
-          <button class="btn-primary manager-only" onclick="openStockOutNewModal()">Stock Out</button>
         </div>
       </div>
       <div class="table-container">
@@ -2077,32 +2075,32 @@
   </style>
   
   <script defer src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="js/config.js?v=113"></script>
-  <script src="js/utils.js?v=113"></script>
-  <script src="js/api.js?v=113"></script>
-  <script src="js/ui.js?v=113"></script>
-  <script src="js/dashboard.js?v=113"></script>
-  <script src="js/products.js?v=113"></script>
-  <script src="js/pricerate.js?v=113"></script>
-  <script src="js/sell.js?v=113"></script>
-  <script src="js/payment.js?v=113"></script>
-  <script src="js/tradein.js?v=113"></script>
-  <script src="js/buyback.js?v=113"></script>
-  <script src="js/exchange.js?v=113"></script>
-  <script src="js/switch.js?v=113"></script>
-  <script src="js/freeexchange.js?v=113"></script>
-  <script src="js/withdraw.js?v=113"></script>
-  <script src="js/historysell.js?v=113"></script>
-  <script src="js/cashbank.js?v=113"></script>
-  <script src="js/accounting.js?v=113"></script>
-  <script src="js/diff.js?v=113"></script>
-  <script src="js/reports.js?v=113"></script>
-  <script src="js/stockold.js?v=113"></script>
-  <script src="js/stocknew.js?v=113"></script>
-  <script src="js/wac.js?v=113"></script>
-  <script src="js/close.js?v=113"></script>
-  <script src="js/review.js?v=113"></script>
-  <script src="js/auth.js?v=113"></script>
+  <script src="js/config.js?v=114"></script>
+  <script src="js/utils.js?v=114"></script>
+  <script src="js/api.js?v=114"></script>
+  <script src="js/ui.js?v=114"></script>
+  <script src="js/dashboard.js?v=114"></script>
+  <script src="js/products.js?v=114"></script>
+  <script src="js/pricerate.js?v=114"></script>
+  <script src="js/sell.js?v=114"></script>
+  <script src="js/payment.js?v=114"></script>
+  <script src="js/tradein.js?v=114"></script>
+  <script src="js/buyback.js?v=114"></script>
+  <script src="js/exchange.js?v=114"></script>
+  <script src="js/switch.js?v=114"></script>
+  <script src="js/freeexchange.js?v=114"></script>
+  <script src="js/withdraw.js?v=114"></script>
+  <script src="js/historysell.js?v=114"></script>
+  <script src="js/cashbank.js?v=114"></script>
+  <script src="js/accounting.js?v=114"></script>
+  <script src="js/diff.js?v=114"></script>
+  <script src="js/reports.js?v=114"></script>
+  <script src="js/stockold.js?v=114"></script>
+  <script src="js/stocknew.js?v=114"></script>
+  <script src="js/wac.js?v=114"></script>
+  <script src="js/close.js?v=114"></script>
+  <script src="js/review.js?v=114"></script>
+  <script src="js/auth.js?v=114"></script>
   
   <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
   <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/th.js"></script>
@@ -2139,34 +2137,9 @@
     });
   });
   </script>
-  <div id="pendingTransferModal" class="modal">
-    <div class="modal-content" style="max-width:600px;">
-      <div class="modal-header">
-        <h2>📦 รายการรอรับทอง</h2>
-        <span class="close" onclick="closeModal('pendingTransferModal')">&times;</span>
-      </div>
-      <div class="modal-body" id="pendingTransferBody" style="max-height:60vh;overflow-y:auto;">
-        <p style="text-align:center;padding:20px;">Loading...</p>
-      </div>
-      <div class="modal-footer">
-        <button class="btn-secondary" onclick="closeModal('pendingTransferModal')">ปิด</button>
-      </div>
-    </div>
-  </div>
-
-  <div id="transferDetailModal" class="modal">
-    <div class="modal-content" style="max-width:560px;">
-      <div class="modal-header">
-        <h2 id="transferDetailTitle">รายละเอียดการโอน</h2>
-        <span class="close" onclick="closeModal('transferDetailModal')">&times;</span>
-      </div>
-      <div class="modal-body" id="transferDetailBody" style="max-height:65vh;overflow-y:auto;"></div>
-      <div class="modal-footer" id="transferDetailFooter"></div>
-    </div>
-  </div>
 
   <div id="stockInNewModal" class="modal">
-    <div class="modal-content">
+    <div class="modal-content" style="max-width:600px;">
       <div class="modal-header">
         <h2>Stock In (NEW)</h2>
         <span class="close" onclick="closeModal('stockInNewModal')">&times;</span>
@@ -2177,38 +2150,25 @@
         <button class="btn-secondary" onclick="addStockNewProduct('stockInNewProducts')" style="margin-top:10px;">+ Add Product</button>
       </div>
       <div class="form-group">
-        <label class="form-label">ต้นทุน (LAK)</label>
-        <input type="number" class="form-input" id="stockInNewCost" placeholder="กรอกราคาซื้อรวม LAK" step="1000">
+        <label class="form-label">💵 Cash</label>
+        <div id="stockInCashList"></div>
+        <button class="btn-secondary" onclick="addStockInCash()" style="margin-top:8px;">+ Add Cash</button>
+      </div>
+      <div class="form-group">
+        <label class="form-label">🏦 Bank</label>
+        <div id="stockInBankList"></div>
+        <button class="btn-secondary" onclick="addStockInBank()" style="margin-top:8px;">+ Add Bank</button>
+      </div>
+      <div style="margin:15px 0;padding:12px;background:var(--bg-light);border-radius:8px;">
+        <div style="display:flex;justify-content:space-between;"><span>รวมต้นทุน</span><span id="stockInTotalCost" style="font-weight:bold;color:var(--gold-primary);">0 LAK</span></div>
       </div>
       <div class="form-group">
         <label class="form-label">Note</label>
-        <textarea class="form-input" id="stockInNewNote" rows="3" placeholder="เช่น: รับทองจากซัพพลายเออร์"></textarea>
+        <textarea class="form-input" id="stockInNewNote" rows="2" placeholder="เช่น: รับทองจากซัพพลายเออร์"></textarea>
       </div>
       <div class="modal-footer">
         <button class="btn-secondary" onclick="closeModal('stockInNewModal')">Cancel</button>
         <button class="btn-primary" onclick="confirmStockInNew()">Confirm</button>
-      </div>
-    </div>
-  </div>
-
-  <div id="stockOutNewModal" class="modal">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h2>Stock Out (NEW)</h2>
-        <span class="close" onclick="closeModal('stockOutNewModal')">&times;</span>
-      </div>
-      <div class="form-group">
-        <label class="form-label">Products</label>
-        <div id="stockOutNewProducts"></div>
-        <button class="btn-secondary" onclick="addStockNewProduct('stockOutNewProducts')" style="margin-top:10px;">+ Add Product</button>
-      </div>
-      <div class="form-group">
-        <label class="form-label">Note</label>
-        <textarea class="form-input" id="stockOutNewNote" rows="3" placeholder="เช่น: สูญหาย, เสียหาย"></textarea>
-      </div>
-      <div class="modal-footer">
-        <button class="btn-secondary" onclick="closeModal('stockOutNewModal')">Cancel</button>
-        <button class="btn-primary" onclick="confirmStockOutNew()">Confirm</button>
       </div>
     </div>
   </div>

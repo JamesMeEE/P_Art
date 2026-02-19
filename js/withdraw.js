@@ -5,7 +5,7 @@ async function loadWithdraws() {
     
     let filteredData = data.slice(1);
     
-    if (currentUser.role === 'User' || currentUser.role === 'Manager') {
+    if (currentUser.role === 'User' || isManager()) {
       if (withdrawDateFrom || withdrawDateTo) {
         filteredData = filterByDateRange(filteredData, 6, 8, withdrawDateFrom, withdrawDateTo);
       } else {
@@ -33,7 +33,7 @@ async function loadWithdraws() {
         let actions = '';
         
         if (status === 'PENDING') {
-          if (currentUser.role === 'Manager') {
+          if (isManager()) {
             actions = `<button class="btn-action" onclick="reviewWithdraw('${row[0]}')">Review</button>`;
           } else {
             actions = '<span style="color: var(--text-secondary);">Waiting for review</span>';

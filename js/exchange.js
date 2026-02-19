@@ -5,7 +5,7 @@ async function loadExchanges() {
     
     let filteredData = data.slice(1);
     
-    if (currentUser.role === 'User' || currentUser.role === 'Manager') {
+    if (currentUser.role === 'User' || isManager()) {
       if (exchangeDateFrom || exchangeDateTo) {
         filteredData = filterByDateRange(filteredData, 11, 13, exchangeDateFrom, exchangeDateTo);
       } else {
@@ -34,7 +34,7 @@ async function loadExchanges() {
         let actions = '';
         
         if (status === 'PENDING') {
-          if (currentUser.role === 'Manager') {
+          if (isManager()) {
             actions = `<button class="btn-action" onclick="reviewExchange('${row[0]}')">Review</button>`;
           } else {
             actions = '<span style="color: var(--text-secondary);">Waiting for review</span>';

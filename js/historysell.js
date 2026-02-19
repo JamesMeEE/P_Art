@@ -115,7 +115,7 @@ async function loadHistorySell() {
             ['Date', formatDateTime(r.date)], ['Status', r.status], ['Sale', r.sale]
           ]));
           actions = '<button class="btn-action" onclick="viewTransactionDetail(\'' + r.type + '\',\'' + detail + '\')" style="background:#555;">👁 View</button>';
-        } else if (r.status === 'PENDING' && currentUser.role === 'Manager') {
+        } else if (r.status === 'PENDING' && isManager()) {
           var reviewTypeMap = { 'SELL': 'reviewSell', 'TRADE-IN': 'reviewTradein', 'EXCHANGE': 'reviewExchange', 'SWITCH': 'reviewSwitch', 'FREE EX': 'reviewFreeExchange', 'WITHDRAW': 'reviewWithdraw' };
           var fn = reviewTypeMap[r.type];
           if (fn) {

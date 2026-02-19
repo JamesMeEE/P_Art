@@ -1,3 +1,7 @@
+function isManager() {
+  return currentUser && (currentUser.role === 'Manager' || currentUser.role === 'Admin');
+}
+
 function formatNumber(num) {
   return new Intl.NumberFormat('en-US').format(Math.round(num));
 }
@@ -211,7 +215,7 @@ function filterTodayData(data, dateColumnIndex, createdByIndex) {
     const rowDateStart = new Date(rowDate.getFullYear(), rowDate.getMonth(), rowDate.getDate());
     const isToday = rowDateStart.getTime() === todayStart.getTime();
     
-    if (currentUser.role === 'Manager') {
+    if (isManager()) {
       return isToday;
     } else if (currentUser.role === 'User') {
       return isToday && createdBy === currentUser.nickname;
@@ -350,7 +354,7 @@ function filterByDateRange(data, dateColumnIndex, createdByIndex, dateFrom, date
       inRange = inRange && rowDate <= to;
     }
     
-    if (currentUser.role === 'Manager') {
+    if (isManager()) {
       return inRange;
     } else if (currentUser.role === 'User') {
       return inRange && createdBy === currentUser.nickname;

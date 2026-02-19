@@ -5,7 +5,7 @@ async function loadTradeins() {
     
     let filteredData = data.slice(1);
     
-    if (currentUser.role === 'User' || currentUser.role === 'Manager') {
+    if (currentUser.role === 'User' || isManager()) {
       if (tradeinDateFrom || tradeinDateTo) {
         filteredData = filterByDateRange(filteredData, 11, 13, tradeinDateFrom, tradeinDateTo);
       } else {
@@ -33,7 +33,7 @@ async function loadTradeins() {
         let actions = '';
         
         if (status === 'PENDING') {
-          if (currentUser.role === 'Manager') {
+          if (isManager()) {
             actions = `<button class="btn-action" onclick="reviewTradein('${row[0]}')">Review</button>`;
           } else {
             actions = '<span style="color: var(--text-secondary);">Waiting for review</span>';

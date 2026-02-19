@@ -25,7 +25,7 @@ async function loadBuybacks() {
     
     let filteredData = data.slice(1);
     
-    if (currentUser.role === 'User' || currentUser.role === 'Manager') {
+    if (currentUser.role === 'User' || isManager()) {
       if (buybackDateFrom || buybackDateTo) {
         filteredData = filterByDateRange(filteredData, cDate, cCreatedBy, buybackDateFrom, buybackDateTo);
       } else {
@@ -57,7 +57,7 @@ async function loadBuybacks() {
         var actions = '';
         
         if (status === 'PENDING' || status === 'PARTIAL') {
-          if (currentUser.role === 'Manager') {
+          if (isManager()) {
             actions = '<button class="btn-action" onclick="openBuybackPaymentModalFromList(\'' + row[0] + '\')">Payment</button>';
           } else {
             actions = '<span style="color: var(--text-secondary);">Waiting for payment</span>';

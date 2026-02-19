@@ -94,7 +94,7 @@ function login() {
       });
     }
 
-    if (currentUser.role === 'Manager') { setupManagerUI(); }
+    if (isManager()) { setupManagerUI(); }
 
     fetchExchangeRates();
     checkPendingClose();
@@ -177,7 +177,7 @@ function logout() {
       });
     }
 
-    if (currentUser.role === 'Manager') { setupManagerUI(); }
+    if (isManager()) { setupManagerUI(); }
 
     fetchExchangeRates();
     checkPendingClose();

@@ -19,7 +19,7 @@ async function loadFreeExchanges() {
     
     let filteredData = data.slice(1);
     
-    if (currentUser.role === 'User' || currentUser.role === 'Manager') {
+    if (currentUser.role === 'User' || isManager()) {
       if (freeExchangeDateFrom || freeExchangeDateTo) {
         filteredData = filterByDateRange(filteredData, 7, 9, freeExchangeDateFrom, freeExchangeDateTo);
       } else {
@@ -47,7 +47,7 @@ async function loadFreeExchanges() {
         let actions = '';
         
         if (status === 'PENDING') {
-          if (currentUser.role === 'Manager') {
+          if (isManager()) {
             actions = `<button class="btn-action" onclick="reviewFreeExchange('${row[0]}')">Review</button>`;
           } else {
             actions = '<span style="color: var(--text-secondary);">Waiting for review</span>';

@@ -158,7 +158,7 @@ async function checkPendingClose() {
     return;
   }
   
-  if (currentUser.role === 'Manager') {
+  if (isManager()) {
     if (closeBtn) closeBtn.style.display = 'none';
     var tcBtn2 = document.getElementById('transferCashBtn');
     if (tcBtn2) tcBtn2.style.display = 'none';

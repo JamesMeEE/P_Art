@@ -5,7 +5,7 @@ async function loadSells() {
     
     let filteredData = data.slice(1);
     
-    if (currentUser.role === 'User' || currentUser.role === 'Manager') {
+    if (currentUser.role === 'User' || isManager()) {
       if (sellDateFrom || sellDateTo) {
         filteredData = filterByDateRange(filteredData, 9, 11, sellDateFrom, sellDateTo);
       } else {
@@ -32,7 +32,7 @@ async function loadSells() {
         let actions = '';
         
         if (status === 'PENDING') {
-          if (currentUser.role === 'Manager') {
+          if (isManager()) {
             actions = `<button class="btn-action" onclick="reviewSell('${row[0]}')">Review</button>`;
           } else {
             actions = '<span style="color: var(--text-secondary);">Waiting for review</span>';
