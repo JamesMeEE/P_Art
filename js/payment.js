@@ -351,23 +351,32 @@ async function confirmMultiPayment() {
           return;
         }
       } else {
-        var userSheetData = await fetchSheetData(currentUser.username + '!A:I');
+        var sheetName = currentUser.username;
+        console.log('Fetching user sheet:', sheetName + '!A:I');
+        var userSheetData = await fetchSheetData(sheetName + '!A:I');
+        console.log('User sheet rows:', userSheetData ? userSheetData.length : 'null');
         var userCashLAK = 0;
         if (userSheetData && userSheetData.length > 1) {
           for (var ui = 1; ui < userSheetData.length; ui++) {
             var r = userSheetData[ui];
-            if (r[4] === 'Cash' && r[3] === 'LAK') {
+            if (String(r[4]).trim() === 'Cash' && String(r[3]).trim() === 'LAK') {
               userCashLAK += parseFloat(r[2]) || 0;
             }
           }
         }
+        console.log('User Cash LAK balance:', userCashLAK);
         if (userCashLAK < change) {
           alert('❌ เงินสด LAK ของคุณไม่พอทอน! มี ' + formatNumber(userCashLAK) + ' LAK แต่ต้องทอน ' + formatNumber(change) + ' LAK');
           hideLoading();
           return;
         }
       }
-    } catch(e) {}
+    } catch(e) {
+      console.error('Error checking user cash balance:', e);
+      alert('❌ ไม่สามารถตรวจสอบยอดเงินได้: ' + e.message);
+      hideLoading();
+      return;
+    }
   }
 
   try {
