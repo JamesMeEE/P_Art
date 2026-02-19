@@ -119,7 +119,7 @@ async function loadHistorySell() {
           var reviewTypeMap = { 'SELL': 'reviewSell', 'TRADE-IN': 'reviewTradein', 'EXCHANGE': 'reviewExchange', 'SWITCH': 'reviewSwitch', 'FREE EX': 'reviewFreeExchange', 'WITHDRAW': 'reviewWithdraw' };
           var fn = reviewTypeMap[r.type];
           if (fn) {
-            actions = '<button class="btn-action" onclick="' + fn + '(\'' + r.id + '\')" style="background:#ff9800;">Review</button>';
+            actions = '<button class="btn-action" onclick="' + fn + '(\'' + r.id + '\')" style="background:#ff9800;color:#fff;border-color:#ff9800;">Review</button>';
           }
         } else if (r.status === 'PENDING') {
           actions = '<span style="color:var(--text-secondary);font-size:12px;">Pending</span>';

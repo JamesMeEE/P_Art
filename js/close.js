@@ -153,11 +153,15 @@ async function checkPendingClose() {
   if (!currentUser) {
     if (closeBtn) closeBtn.style.display = 'none';
     if (reviewBtn) reviewBtn.style.display = 'none';
+    var tcBtn = document.getElementById('transferCashBtn');
+    if (tcBtn) tcBtn.style.display = 'none';
     return;
   }
   
   if (currentUser.role === 'Manager') {
     if (closeBtn) closeBtn.style.display = 'none';
+    var tcBtn2 = document.getElementById('transferCashBtn');
+    if (tcBtn2) tcBtn2.style.display = 'none';
     
     try {
       const closeData = await fetchSheetData('Close!A:K');
@@ -176,6 +180,8 @@ async function checkPendingClose() {
   } else {
     if (closeBtn) closeBtn.style.display = 'inline-block';
     if (reviewBtn) reviewBtn.style.display = 'none';
+    var tcBtn3 = document.getElementById('transferCashBtn');
+    if (tcBtn3) tcBtn3.style.display = 'inline-block';
   }
 }
 
@@ -323,5 +329,86 @@ async function rejectClose() {
   } catch (error) {
     alert('❌ Error: ' + error.message);
     hideLoading();
+  }
+}
+
+var _transferCashBalances = { LAK: 0, THB: 0, USD: 0 };
+
+async function openTransferCashModal() {
+  try {
+    showLoading();
+    var userName = currentUser.nickname;
+    var userSheetData = await fetchSheetData("'" + userName + "'!A:I");
+    
+    _transferCashBalances = { LAK: 0, THB: 0, USD: 0 };
+    if (userSheetData && userSheetData.length > 1) {
+      for (var i = 1; i < userSheetData.length; i++) {
+        var r = userSheetData[i];
+        var method = String(r[4] || '').trim();
+        var currency = String(r[3] || '').trim();
+        var amount = parseFloat(r[2]) || 0;
+        if (method === 'Cash' && _transferCashBalances.hasOwnProperty(currency)) {
+          _transferCashBalances[currency] += amount;
+        }
+      }
+    }
+    
+    document.getElementById('transferCashCurrency').value = 'LAK';
+    document.getElementById('transferCashAmount').value = '';
+    updateTransferCashBalance();
+    
+    hideLoading();
+    openModal('transferCashModal');
+  } catch (e) {
+    hideLoading();
+    alert('❌ Error: ' + e.message);
+  }
+}
+
+function updateTransferCashBalance() {
+  var currency = document.getElementById('transferCashCurrency').value;
+  var bal = _transferCashBalances[currency] || 0;
+  document.getElementById('transferCashBalance').innerHTML =
+    '<div style="display:flex;justify-content:space-between;align-items:center;">' +
+    '<span style="color:var(--text-secondary);">ยอดเงินสด ' + currency + ' ของคุณ</span>' +
+    '<span style="font-size:20px;font-weight:bold;color:var(--gold-primary);">' + formatNumber(bal) + ' ' + currency + '</span>' +
+    '</div>';
+}
+
+async function confirmTransferCash() {
+  var currency = document.getElementById('transferCashCurrency').value;
+  var amount = parseFloat(document.getElementById('transferCashAmount').value) || 0;
+  
+  if (amount <= 0) {
+    alert('❌ กรุณากรอกจำนวนเงิน');
+    return;
+  }
+  
+  var bal = _transferCashBalances[currency] || 0;
+  if (amount > bal) {
+    alert('❌ ยอดเงินไม่พอ! มี ' + formatNumber(bal) + ' ' + currency + ' แต่ต้องการย้าย ' + formatNumber(amount) + ' ' + currency);
+    return;
+  }
+  
+  if (!confirm('ยืนยันย้ายเงิน ' + formatNumber(amount) + ' ' + currency + ' เข้าร้าน?')) return;
+  
+  try {
+    showLoading();
+    var result = await callAppsScript('TRANSFER_CASH_TO_SHOP', {
+      user: currentUser.nickname,
+      currency: currency,
+      amount: amount
+    });
+    
+    if (result.success) {
+      alert('✅ ย้ายเงินเข้าร้านสำเร็จ!');
+      closeModal('transferCashModal');
+    } else {
+      alert('❌ Error: ' + result.message);
+    }
+    hideLoading();
+  } catch (e) {
+    hideLoading();
+    alert('❌ Error: ' + e.message);
   }
 }
