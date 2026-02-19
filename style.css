@@ -794,13 +794,13 @@ body.role-m button.manager-only {
   border-radius: 8px;
 }
 
-#historysell table th,
-#historysell table td {
-  padding: 14px 12px;
-  white-space: nowrap;
+#historySellTableEl {
+  width: auto;
+  min-width: 100%;
 }
 
-#historysell table td.wrap-cell {
-  white-space: normal;
-  min-width: 180px;
+#historySellTableEl th,
+#historySellTableEl td {
+  padding: 14px 15px;
+  white-space: nowrap;
 }
