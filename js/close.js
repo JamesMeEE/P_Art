@@ -37,113 +37,21 @@ async function openCloseWorkModal() {
       }
     }
 
+    var userGoldData = await fetchSheetData("'" + userName + "_Gold'!A:F");
+    
     let oldGoldReceived = {};
-    let newGoldGiven = {};
-    
-    const addOldGold = (items) => {
-      try {
-        const parsed = JSON.parse(items);
-        parsed.forEach(item => {
-          if (!oldGoldReceived[item.productId]) oldGoldReceived[item.productId] = 0;
-          oldGoldReceived[item.productId] += item.qty;
-        });
-      } catch(e) {}
-    };
-    
-    const addNewGold = (items) => {
-      try {
-        const parsed = JSON.parse(items);
-        parsed.forEach(item => {
-          if (!newGoldGiven[item.productId]) newGoldGiven[item.productId] = 0;
-          newGoldGiven[item.productId] += item.qty;
-        });
-      } catch(e) {}
-    };
+    if (userGoldData && userGoldData.length > 1) {
+      for (var gi = 1; gi < userGoldData.length; gi++) {
+        var gr = userGoldData[gi];
+        var pid = String(gr[0] || '').trim();
+        var gqty = parseFloat(gr[1]) || 0;
+        if (pid && gqty > 0) {
+          if (!oldGoldReceived[pid]) oldGoldReceived[pid] = 0;
+          oldGoldReceived[pid] += gqty;
+        }
+      }
+    }
 
-    const [sellData, tradeinData, exchangeData, buybackData, withdrawData, switchData, freeExData] = await Promise.all([
-      fetchSheetData('Sells!A:L'),
-      fetchSheetData('Tradeins!A:N'),
-      fetchSheetData('Exchanges!A:N'),
-      fetchSheetData('Buybacks!A:L'),
-      fetchSheetData('Withdraws!A:J'),
-      fetchSheetData('Switches!A:N'),
-      fetchSheetData('FreeExchanges!A:J')
-    ]);
-    
-    sellData.slice(1).forEach(row => {
-      const date = parseSheetDate(row[9]);
-      const status = row[10];
-      const createdBy = row[11];
-      const isToday = date && date >= todayStart && date <= todayEnd;
-      if (isToday && status === 'COMPLETED' && createdBy === userName) {
-        addNewGold(row[2]);
-      }
-    });
-    
-    tradeinData.slice(1).forEach(row => {
-      const date = parseSheetDate(row[11]);
-      const status = row[12];
-      const createdBy = row[13];
-      const isToday = date && date >= todayStart && date <= todayEnd;
-      if (isToday && status === 'COMPLETED' && createdBy === userName) {
-        addOldGold(row[2]);
-        addNewGold(row[3]);
-      }
-    });
-    
-    exchangeData.slice(1).forEach(row => {
-      const date = parseSheetDate(row[11]);
-      const status = row[12];
-      const createdBy = row[13];
-      const isToday = date && date >= todayStart && date <= todayEnd;
-      if (isToday && status === 'COMPLETED' && createdBy === userName) {
-        addOldGold(row[2]);
-        addNewGold(row[3]);
-      }
-    });
-    
-    buybackData.slice(1).forEach(row => {
-      const date = parseSheetDate(row[9]);
-      const status = row[10];
-      const createdBy = row[11];
-      const isToday = date && date >= todayStart && date <= todayEnd;
-      if (isToday && status === 'COMPLETED' && createdBy === userName) {
-        addOldGold(row[2]);
-      }
-    });
-    
-    withdrawData.slice(1).forEach(row => {
-      const date = parseSheetDate(row[6]);
-      const status = row[7];
-      const createdBy = row[8];
-      const isToday = date && date >= todayStart && date <= todayEnd;
-      if (isToday && status === 'COMPLETED' && createdBy === userName) {
-        addNewGold(row[2]);
-      }
-    });
-    
-    switchData.slice(1).forEach(row => {
-      const date = parseSheetDate(row[11]);
-      const status = row[12];
-      const createdBy = row[13];
-      const isToday = date && date >= todayStart && date <= todayEnd;
-      if (isToday && status === 'COMPLETED' && createdBy === userName) {
-        addOldGold(row[2]);
-        addNewGold(row[3]);
-      }
-    });
-    
-    freeExData.slice(1).forEach(row => {
-      const date = parseSheetDate(row[7]);
-      const status = row[8];
-      const createdBy = row[9];
-      const isToday = date && date >= todayStart && date <= todayEnd;
-      if (isToday && status === 'COMPLETED' && createdBy === userName) {
-        addOldGold(row[2]);
-        addNewGold(row[3]);
-      }
-    });
-    
     const productNames = {
       'G01': '10 บาท', 'G02': '5 บาท', 'G03': '2 บาท', 'G04': '1 บาท',
       'G05': '2 สลึง', 'G06': '1 สลึง', 'G07': '1 กรัม'
@@ -167,9 +75,9 @@ async function openCloseWorkModal() {
         <p style="font-size:18px;color:var(--gold-primary);">สรุปยอดประจำวัน</p>
         <p style="color:var(--text-secondary);">${userName} - ${formatDateOnly(today)}</p>
       </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px;">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
         <div class="stat-card">
-          <h3 style="color:var(--gold-primary);margin-bottom:15px;">💵 เงินสดที่ได้รับ</h3>
+          <h3 style="color:var(--gold-primary);margin-bottom:15px;">💵 เงินสด</h3>
           <table style="width:100%;">
             <tr><td>LAK</td><td style="text-align:right;font-weight:bold;font-size:18px;">${formatNumber(cashReceived.LAK)}</td></tr>
             <tr><td>THB</td><td style="text-align:right;font-weight:bold;font-size:18px;">${formatNumber(cashReceived.THB)}</td></tr>
@@ -180,10 +88,6 @@ async function openCloseWorkModal() {
           <h3 style="color:#ff9800;margin-bottom:15px;">🥇 ทองเก่าที่ได้รับ (IN)</h3>
           <table style="width:100%;">${buildGoldHTML(oldGoldReceived)}</table>
         </div>
-        <div class="stat-card">
-          <h3 style="color:#2196f3;margin-bottom:15px;">💎 ทองใหม่ที่จ่ายออก (OUT)</h3>
-          <table style="width:100%;">${buildGoldHTML(newGoldGiven)}</table>
-        </div>
       </div>
     `;
     
@@ -193,8 +97,7 @@ async function openCloseWorkModal() {
       cashLAK: cashReceived.LAK,
       cashTHB: cashReceived.THB,
       cashUSD: cashReceived.USD,
-      oldGold: JSON.stringify(oldGoldReceived),
-      newGold: JSON.stringify(newGoldGiven)
+      oldGold: JSON.stringify(oldGoldReceived)
     };
     
     hideLoading();
@@ -348,7 +251,7 @@ async function openCloseDetail(closeId) {
         <p style="font-size:20px;color:var(--gold-primary);font-weight:bold;">${closeRecord[1]}</p>
         <p style="color:var(--text-secondary);">Close ID: ${closeRecord[0]} — ส่งเมื่อ: ${formatDateTime(closeRecord[7])}</p>
       </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px;">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
         <div class="stat-card" style="padding:20px;">
           <h3 style="color:var(--gold-primary);margin-bottom:15px;font-size:15px;white-space:nowrap;">💵 เงินสด</h3>
           <table style="width:100%;border-collapse:collapse;">
@@ -360,10 +263,6 @@ async function openCloseDetail(closeId) {
         <div class="stat-card" style="padding:20px;">
           <h3 style="color:#ff9800;margin-bottom:15px;font-size:15px;white-space:nowrap;">🥇 ทองเก่า (IN)</h3>
           <table style="width:100%;border-collapse:collapse;">${buildGoldTable(closeRecord[6])}</table>
-        </div>
-        <div class="stat-card" style="padding:20px;">
-          <h3 style="color:#2196f3;margin-bottom:15px;font-size:15px;white-space:nowrap;">💎 ทองใหม่ (OUT)</h3>
-          <table style="width:100%;border-collapse:collapse;">${buildGoldTable(closeRecord[10])}</table>
         </div>
       </div>
     `;
