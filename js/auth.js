@@ -77,13 +77,9 @@ function login() {
         const el = document.getElementById(id);
         if (el) el.style.display = 'none';
       });
-      var mergeTabs = ['sell', 'trade-in', 'exchange', 'switch', 'free exchange', 'withdraw'];
+      
       document.querySelectorAll('.nav-btn').forEach(function(btn) {
-        var txt = btn.textContent.toLowerCase();
-        mergeTabs.forEach(function(tab) {
-          if (txt.includes(tab) && !txt.includes('history')) btn.style.display = 'none';
-        });
-        if (txt.includes('buyback')) btn.textContent = '◑ History Buyback';
+        var txt = btn.textContent.toLowerCase(); if (txt.includes("buyback")) btn.textContent = '◑ History Buyback';
       });
       var hBtn = document.getElementById('navHistorySell');
       if (hBtn) hBtn.style.display = '';
@@ -178,13 +174,9 @@ function logout() {
         const el = document.getElementById(id);
         if (el) el.style.display = 'none';
       });
-      var mergeTabs = ['sell', 'trade-in', 'exchange', 'switch', 'free exchange', 'withdraw'];
+      
       document.querySelectorAll('.nav-btn').forEach(function(btn) {
-        var txt = btn.textContent.toLowerCase();
-        mergeTabs.forEach(function(tab) {
-          if (txt.includes(tab) && !txt.includes('history')) btn.style.display = 'none';
-        });
-        if (txt.includes('buyback')) btn.textContent = '◑ History Buyback';
+        var txt = btn.textContent.toLowerCase(); if (txt.includes("buyback")) btn.textContent = '◑ History Buyback';
       });
       var hBtn = document.getElementById('navHistorySell');
       if (hBtn) hBtn.style.display = '';
