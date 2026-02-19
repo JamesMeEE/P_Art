@@ -226,6 +226,30 @@ async function confirmMultiPayment() {
   const change = Math.max(0, totalPaid - total);
 
   if (change > 0) {
+    var allItems = paymentItems.cash.concat(paymentItems.bank);
+    var hasTHB = allItems.some(function(i) { return i.currency === 'THB' && i.amount > 0; });
+    var hasUSD = allItems.some(function(i) { return i.currency === 'USD' && i.amount > 0; });
+
+    if (hasTHB || hasUSD) {
+      var thbRate = currentExchangeRates.THB_Sell || 0;
+      var usdRate = currentExchangeRates.USD_Sell || 0;
+      var maxChangeLAK = 0;
+      var maxLabel = '';
+
+      if (hasUSD && !hasTHB) {
+        maxChangeLAK = 100 * usdRate;
+        maxLabel = '100 USD (' + formatNumber(maxChangeLAK) + ' LAK)';
+      } else {
+        maxChangeLAK = 1000 * thbRate;
+        maxLabel = '1,000 THB (' + formatNumber(maxChangeLAK) + ' LAK)';
+      }
+
+      if (maxChangeLAK > 0 && change > maxChangeLAK) {
+        alert('❌ เงินทอนเกินกำหนด!\n\nเงินทอน: ' + formatNumber(change) + ' LAK\nเกินกำหนดสูงสุด: ' + maxLabel + '\n\nกรุณาปรับยอดชำระให้เงินทอนไม่เกิน ' + maxLabel);
+        return;
+      }
+    }
+
     try {
       var dbData = await fetchSheetData('_database!A1:G23');
       var cashLAK = dbData.length >= 17 ? (parseFloat(dbData[16][0]) || 0) : 0;
