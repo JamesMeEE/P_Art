@@ -174,66 +174,124 @@ function openStockInNewModal() {
   openModal('stockInNewModal');
 }
 
+function getStockInRate(currency) {
+  if (currency === 'LAK') return 1;
+  if (currency === 'THB') return currentExchangeRates.THB || 1;
+  if (currency === 'USD') return currentExchangeRates.USD || 1;
+  return 1;
+}
+
 function addStockInCash() {
-  _stockInPayments.cash.push({ id: Date.now(), currency: 'LAK', amount: 0 });
+  _stockInPayments.cash.push({ id: Date.now(), currency: 'LAK', amount: 0, rate: 1 });
   renderStockInCash();
 }
 
 function addStockInBank() {
-  _stockInPayments.bank.push({ id: Date.now(), bank: 'BCEL', currency: 'LAK', amount: 0 });
+  _stockInPayments.bank.push({ id: Date.now(), bank: 'BCEL', currency: 'LAK', amount: 0, rate: 1 });
   renderStockInBank();
 }
 
 function renderStockInCash() {
   var container = document.getElementById('stockInCashList');
   container.innerHTML = _stockInPayments.cash.map(function(item) {
-    return '<div data-id="' + item.id + '" style="margin-bottom:8px;padding:10px;background:var(--bg-light);border-radius:8px;display:flex;gap:8px;align-items:center;">' +
-      '<select class="form-select" style="width:85px;" onchange="updateStockInCash(' + item.id + ',\'currency\',this.value)">' +
+    var lakAmount = item.amount * item.rate;
+    var rateHtml = '';
+    if (item.currency !== 'LAK') {
+      rateHtml = '<div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px;padding-top:8px;border-top:1px dashed var(--border-color);">' +
+        '<span style="font-size:11px;color:var(--text-secondary);">Rate: 1 ' + item.currency + ' = ' + formatNumber(item.rate) + ' LAK</span>' +
+        '<span class="lak-display" style="color:var(--gold-primary);font-weight:bold;">= ' + formatNumber(lakAmount) + ' LAK</span>' +
+        '</div>';
+    }
+    return '<div class="payment-item" data-id="' + item.id + '" style="margin-bottom:10px;padding:12px;background:var(--bg-light);border-radius:8px;">' +
+      '<div style="display:flex;gap:10px;align-items:center;">' +
+      '<select class="form-select" style="width:90px;" onchange="updateStockInCashCurrency(' + item.id + ',this.value)">' +
       '<option value="LAK"' + (item.currency === 'LAK' ? ' selected' : '') + '>LAK</option>' +
       '<option value="THB"' + (item.currency === 'THB' ? ' selected' : '') + '>THB</option>' +
       '<option value="USD"' + (item.currency === 'USD' ? ' selected' : '') + '>USD</option>' +
       '</select>' +
-      '<input type="number" class="form-input" placeholder="Amount" value="' + (item.amount || '') + '" style="flex:1;" oninput="updateStockInCash(' + item.id + ',\'amount\',this.value)">' +
-      '<button class="btn-secondary" style="padding:6px 10px;background:#f44336;color:#fff;" onclick="removeStockInCash(' + item.id + ')">✕</button>' +
-      '</div>';
+      '<input type="number" class="form-input" placeholder="Amount" value="' + (item.amount || '') + '" style="flex:1;" oninput="updateStockInCashAmount(' + item.id + ',this.value)">' +
+      '<button class="btn-secondary" style="padding:8px 12px;background:#f44336;color:white;" onclick="removeStockInCash(' + item.id + ')">✕</button>' +
+      '</div>' + rateHtml + '</div>';
   }).join('');
   updateStockInTotal();
 }
 
 function renderStockInBank() {
-  var banks = ['BCEL', 'JDB', 'LDB', 'OTHER'];
   var container = document.getElementById('stockInBankList');
   container.innerHTML = _stockInPayments.bank.map(function(item) {
-    return '<div data-id="' + item.id + '" style="margin-bottom:8px;padding:10px;background:var(--bg-light);border-radius:8px;">' +
-      '<div style="display:flex;gap:8px;align-items:center;">' +
-      '<select class="form-select" style="width:90px;" onchange="updateStockInBank(' + item.id + ',\'bank\',this.value)">' +
-      banks.map(function(b) { return '<option value="' + b + '"' + (item.bank === b ? ' selected' : '') + '>' + b + '</option>'; }).join('') +
+    var lakAmount = item.amount * item.rate;
+    var rateHtml = '';
+    if (item.currency !== 'LAK') {
+      rateHtml = '<div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px;padding-top:8px;border-top:1px dashed var(--border-color);">' +
+        '<span style="font-size:11px;color:var(--text-secondary);">Rate: 1 ' + item.currency + ' = ' + formatNumber(item.rate) + ' LAK</span>' +
+        '<span class="lak-display" style="color:var(--gold-primary);font-weight:bold;">= ' + formatNumber(lakAmount) + ' LAK</span>' +
+        '</div>';
+    }
+    return '<div class="payment-item" data-id="' + item.id + '" style="margin-bottom:10px;padding:12px;background:var(--bg-light);border-radius:8px;">' +
+      '<div style="display:flex;gap:10px;align-items:center;margin-bottom:8px;">' +
+      '<select class="form-select" style="flex:1;" onchange="updateStockInBankName(' + item.id + ',this.value)">' +
+      '<option value="BCEL"' + (item.bank === 'BCEL' ? ' selected' : '') + '>BCEL</option>' +
+      '<option value="LDB"' + (item.bank === 'LDB' ? ' selected' : '') + '>LDB</option>' +
+      '<option value="OTHER"' + (item.bank === 'OTHER' ? ' selected' : '') + '>อื่น ๆ</option>' +
       '</select>' +
-      '<select class="form-select" style="width:85px;" onchange="updateStockInBank(' + item.id + ',\'currency\',this.value)">' +
+      '<select class="form-select" style="flex:1;" onchange="updateStockInBankCurrency(' + item.id + ',this.value)">' +
       '<option value="LAK"' + (item.currency === 'LAK' ? ' selected' : '') + '>LAK</option>' +
       '<option value="THB"' + (item.currency === 'THB' ? ' selected' : '') + '>THB</option>' +
       '<option value="USD"' + (item.currency === 'USD' ? ' selected' : '') + '>USD</option>' +
       '</select>' +
-      '<input type="number" class="form-input" placeholder="Amount" value="' + (item.amount || '') + '" style="flex:1;" oninput="updateStockInBank(' + item.id + ',\'amount\',this.value)">' +
-      '<button class="btn-secondary" style="padding:6px 10px;background:#f44336;color:#fff;" onclick="removeStockInBank(' + item.id + ')">✕</button>' +
-      '</div></div>';
+      '<button class="btn-secondary" style="padding:8px 12px;background:#f44336;color:white;" onclick="removeStockInBank(' + item.id + ')">✕</button>' +
+      '</div>' +
+      '<div style="display:flex;gap:10px;align-items:center;">' +
+      '<input type="number" class="form-input" placeholder="Amount" value="' + (item.amount || '') + '" style="flex:1;" oninput="updateStockInBankAmount(' + item.id + ',this.value)">' +
+      '</div>' + rateHtml + '</div>';
   }).join('');
   updateStockInTotal();
 }
 
-function updateStockInCash(id, field, value) {
+function updateStockInCashCurrency(id, value) {
   var item = _stockInPayments.cash.find(function(i) { return i.id === id; });
   if (!item) return;
-  if (field === 'amount') item.amount = parseFloat(value) || 0;
-  else item[field] = value;
+  item.currency = value;
+  item.rate = getStockInRate(value);
+  renderStockInCash();
+}
+
+function updateStockInCashAmount(id, value) {
+  var item = _stockInPayments.cash.find(function(i) { return i.id === id; });
+  if (!item) return;
+  item.amount = parseFloat(value) || 0;
+  var lakAmount = item.amount * item.rate;
+  var container = document.querySelector('#stockInCashList .payment-item[data-id="' + id + '"]');
+  if (container && item.currency !== 'LAK') {
+    var lakSpan = container.querySelector('.lak-display');
+    if (lakSpan) lakSpan.textContent = '= ' + formatNumber(lakAmount) + ' LAK';
+  }
   updateStockInTotal();
 }
 
-function updateStockInBank(id, field, value) {
+function updateStockInBankName(id, value) {
+  var item = _stockInPayments.bank.find(function(i) { return i.id === id; });
+  if (item) item.bank = value;
+}
+
+function updateStockInBankCurrency(id, value) {
   var item = _stockInPayments.bank.find(function(i) { return i.id === id; });
   if (!item) return;
-  if (field === 'amount') item.amount = parseFloat(value) || 0;
-  else item[field] = value;
+  item.currency = value;
+  item.rate = getStockInRate(value);
+  renderStockInBank();
+}
+
+function updateStockInBankAmount(id, value) {
+  var item = _stockInPayments.bank.find(function(i) { return i.id === id; });
+  if (!item) return;
+  item.amount = parseFloat(value) || 0;
+  var lakAmount = item.amount * item.rate;
+  var container = document.querySelector('#stockInBankList .payment-item[data-id="' + id + '"]');
+  if (container && item.currency !== 'LAK') {
+    var lakSpan = container.querySelector('.lak-display');
+    if (lakSpan) lakSpan.textContent = '= ' + formatNumber(lakAmount) + ' LAK';
+  }
   updateStockInTotal();
 }
 
@@ -249,17 +307,8 @@ function removeStockInBank(id) {
 
 function updateStockInTotal() {
   var total = 0;
-  var rates = window._exchangeRates || { THB: 1, USD: 1 };
-  _stockInPayments.cash.forEach(function(i) {
-    if (i.currency === 'LAK') total += i.amount;
-    else if (i.currency === 'THB') total += i.amount * (rates.THB || 1);
-    else if (i.currency === 'USD') total += i.amount * (rates.USD || 1);
-  });
-  _stockInPayments.bank.forEach(function(i) {
-    if (i.currency === 'LAK') total += i.amount;
-    else if (i.currency === 'THB') total += i.amount * (rates.THB || 1);
-    else if (i.currency === 'USD') total += i.amount * (rates.USD || 1);
-  });
+  _stockInPayments.cash.forEach(function(i) { total += i.amount * i.rate; });
+  _stockInPayments.bank.forEach(function(i) { total += i.amount * i.rate; });
   document.getElementById('stockInTotalCost').textContent = formatNumber(Math.round(total)) + ' LAK';
 }
 
@@ -275,21 +324,20 @@ async function confirmStockInNew() {
     if (items.length === 0) { alert('กรุณาเพิ่มสินค้า'); return; }
 
     var payments = [];
+    var totalCost = 0;
     _stockInPayments.cash.forEach(function(c) {
-      if (c.amount > 0) payments.push({ method: 'Cash', bank: '', currency: c.currency, amount: c.amount });
+      if (c.amount > 0) {
+        payments.push({ method: 'Cash', bank: '', currency: c.currency, amount: c.amount });
+        totalCost += c.amount * c.rate;
+      }
     });
     _stockInPayments.bank.forEach(function(b) {
-      if (b.amount > 0) payments.push({ method: 'Bank', bank: b.bank, currency: b.currency, amount: b.amount });
+      if (b.amount > 0) {
+        payments.push({ method: 'Bank', bank: b.bank, currency: b.currency, amount: b.amount });
+        totalCost += b.amount * b.rate;
+      }
     });
     if (payments.length === 0) { alert('กรุณาเพิ่มการชำระเงิน'); return; }
-
-    var totalCost = 0;
-    var rates = window._exchangeRates || { THB: 1, USD: 1 };
-    payments.forEach(function(p) {
-      if (p.currency === 'LAK') totalCost += p.amount;
-      else if (p.currency === 'THB') totalCost += p.amount * (rates.THB || 1);
-      else if (p.currency === 'USD') totalCost += p.amount * (rates.USD || 1);
-    });
 
     if (!confirm('ยืนยัน Stock In (NEW) ' + items.length + ' รายการ ต้นทุน ' + formatNumber(Math.round(totalCost)) + ' LAK?')) return;
 

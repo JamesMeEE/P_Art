@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600;700&family=Montserrat:wght@200;300;400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-  <link rel="stylesheet" href="style.css?v=114">
+  <link rel="stylesheet" href="style.css?v=117">
   <script>
     (function() {
       const cb = localStorage.getItem('cacheBuster') || Date.now();
@@ -2075,32 +2075,32 @@
   </style>
   
   <script defer src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="js/config.js?v=114"></script>
-  <script src="js/utils.js?v=114"></script>
-  <script src="js/api.js?v=114"></script>
-  <script src="js/ui.js?v=114"></script>
-  <script src="js/dashboard.js?v=114"></script>
-  <script src="js/products.js?v=114"></script>
-  <script src="js/pricerate.js?v=114"></script>
-  <script src="js/sell.js?v=114"></script>
-  <script src="js/payment.js?v=114"></script>
-  <script src="js/tradein.js?v=114"></script>
-  <script src="js/buyback.js?v=114"></script>
-  <script src="js/exchange.js?v=114"></script>
-  <script src="js/switch.js?v=114"></script>
-  <script src="js/freeexchange.js?v=114"></script>
-  <script src="js/withdraw.js?v=114"></script>
-  <script src="js/historysell.js?v=114"></script>
-  <script src="js/cashbank.js?v=114"></script>
-  <script src="js/accounting.js?v=114"></script>
-  <script src="js/diff.js?v=114"></script>
-  <script src="js/reports.js?v=114"></script>
-  <script src="js/stockold.js?v=114"></script>
-  <script src="js/stocknew.js?v=114"></script>
-  <script src="js/wac.js?v=114"></script>
-  <script src="js/close.js?v=114"></script>
-  <script src="js/review.js?v=114"></script>
-  <script src="js/auth.js?v=114"></script>
+  <script src="js/config.js?v=117"></script>
+  <script src="js/utils.js?v=117"></script>
+  <script src="js/api.js?v=117"></script>
+  <script src="js/ui.js?v=117"></script>
+  <script src="js/dashboard.js?v=117"></script>
+  <script src="js/products.js?v=117"></script>
+  <script src="js/pricerate.js?v=117"></script>
+  <script src="js/sell.js?v=117"></script>
+  <script src="js/payment.js?v=117"></script>
+  <script src="js/tradein.js?v=117"></script>
+  <script src="js/buyback.js?v=117"></script>
+  <script src="js/exchange.js?v=117"></script>
+  <script src="js/switch.js?v=117"></script>
+  <script src="js/freeexchange.js?v=117"></script>
+  <script src="js/withdraw.js?v=117"></script>
+  <script src="js/historysell.js?v=117"></script>
+  <script src="js/cashbank.js?v=117"></script>
+  <script src="js/accounting.js?v=117"></script>
+  <script src="js/diff.js?v=117"></script>
+  <script src="js/reports.js?v=117"></script>
+  <script src="js/stockold.js?v=117"></script>
+  <script src="js/stocknew.js?v=117"></script>
+  <script src="js/wac.js?v=117"></script>
+  <script src="js/close.js?v=117"></script>
+  <script src="js/review.js?v=117"></script>
+  <script src="js/auth.js?v=117"></script>
   
   <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
   <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/th.js"></script>
@@ -2144,25 +2144,36 @@
         <h2>Stock In (NEW)</h2>
         <span class="close" onclick="closeModal('stockInNewModal')">&times;</span>
       </div>
-      <div class="form-group">
+      <div class="form-group" style="margin:0 20px;">
         <label class="form-label">Products</label>
         <div id="stockInNewProducts"></div>
         <button class="btn-secondary" onclick="addStockNewProduct('stockInNewProducts')" style="margin-top:10px;">+ Add Product</button>
       </div>
-      <div class="form-group">
-        <label class="form-label">💵 Cash</label>
-        <div id="stockInCashList"></div>
-        <button class="btn-secondary" onclick="addStockInCash()" style="margin-top:8px;">+ Add Cash</button>
+
+      <div style="margin: 20px;">
+        <div style="background: rgba(76, 175, 80, 0.1); padding: 15px; border-radius: 8px; border: 1px solid #4caf50; margin-bottom: 15px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+            <h3 style="color: #4caf50; margin: 0;">💵 Cash</h3>
+            <button class="btn-primary" style="padding: 5px 15px; background: #4caf50;" onclick="addStockInCash()">+ Add</button>
+          </div>
+          <div id="stockInCashList"></div>
+        </div>
+
+        <div style="background: rgba(33, 150, 243, 0.1); padding: 15px; border-radius: 8px; border: 1px solid #2196f3;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+            <h3 style="color: #2196f3; margin: 0;">🏦 Bank Transfer</h3>
+            <button class="btn-primary" style="padding: 5px 15px; background: #2196f3;" onclick="addStockInBank()">+ Add</button>
+          </div>
+          <div id="stockInBankList"></div>
+        </div>
       </div>
-      <div class="form-group">
-        <label class="form-label">🏦 Bank</label>
-        <div id="stockInBankList"></div>
-        <button class="btn-secondary" onclick="addStockInBank()" style="margin-top:8px;">+ Add Bank</button>
+
+      <div style="margin: 0 20px 15px 20px; padding: 15px; background: var(--bg-dark); border-radius: 8px; text-align: center;">
+        <div style="font-size: 12px; color: var(--text-secondary);">รวมต้นทุน</div>
+        <div style="font-size: 22px; font-weight: bold; color: var(--gold-primary);" id="stockInTotalCost">0 LAK</div>
       </div>
-      <div style="margin:15px 0;padding:12px;background:var(--bg-light);border-radius:8px;">
-        <div style="display:flex;justify-content:space-between;"><span>รวมต้นทุน</span><span id="stockInTotalCost" style="font-weight:bold;color:var(--gold-primary);">0 LAK</span></div>
-      </div>
-      <div class="form-group">
+
+      <div class="form-group" style="margin:0 20px 15px 20px;">
         <label class="form-label">Note</label>
         <textarea class="form-input" id="stockInNewNote" rows="2" placeholder="เช่น: รับทองจากซัพพลายเออร์"></textarea>
       </div>

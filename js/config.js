@@ -5,6 +5,7 @@ const CONFIG = {
 };
 
 const USERS = {
+  a: { password: 'a', role: 'Admin', nickname: 'Admin' },
   m: { password: 'm', role: 'Manager', nickname: 'Manager' },
   t: { password: 't', role: 'Teller', nickname: 'Teller' },
   u1: { password: 'u1', role: 'User', nickname: 'Sale 1' },
