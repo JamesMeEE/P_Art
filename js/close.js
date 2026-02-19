@@ -21,17 +21,22 @@ async function openCloseWorkModal() {
       return;
     }
     
-    const [sellData, tradeinData, exchangeData, buybackData, withdrawData, switchData, freeExData] = await Promise.all([
-      fetchSheetData('Sells!A:L'),
-      fetchSheetData('Tradeins!A:N'),
-      fetchSheetData('Exchanges!A:N'),
-      fetchSheetData('Buybacks!A:L'),
-      fetchSheetData('Withdraws!A:J'),
-      fetchSheetData('Switches!A:N'),
-      fetchSheetData('FreeExchanges!A:J')
-    ]);
+    var userSheetData = await fetchSheetData("'" + userName + "'!A:I");
     
     let cashReceived = { LAK: 0, THB: 0, USD: 0 };
+    
+    if (userSheetData && userSheetData.length > 1) {
+      for (var i = 1; i < userSheetData.length; i++) {
+        var r = userSheetData[i];
+        var method = String(r[4] || '').trim();
+        var currency = String(r[3] || '').trim();
+        var amount = parseFloat(r[2]) || 0;
+        if (method === 'Cash' && cashReceived.hasOwnProperty(currency)) {
+          cashReceived[currency] += amount;
+        }
+      }
+    }
+
     let oldGoldReceived = {};
     let newGoldGiven = {};
     
@@ -54,18 +59,16 @@ async function openCloseWorkModal() {
         });
       } catch(e) {}
     };
-    
-    const processCash = (currency, customerPaid, changeLAK) => {
-      if (currency === 'LAK') {
-        cashReceived.LAK += customerPaid - changeLAK;
-      } else if (currency === 'THB') {
-        cashReceived.THB += customerPaid;
-        cashReceived.LAK -= changeLAK;
-      } else if (currency === 'USD') {
-        cashReceived.USD += customerPaid;
-        cashReceived.LAK -= changeLAK;
-      }
-    };
+
+    const [sellData, tradeinData, exchangeData, buybackData, withdrawData, switchData, freeExData] = await Promise.all([
+      fetchSheetData('Sells!A:L'),
+      fetchSheetData('Tradeins!A:N'),
+      fetchSheetData('Exchanges!A:N'),
+      fetchSheetData('Buybacks!A:L'),
+      fetchSheetData('Withdraws!A:J'),
+      fetchSheetData('Switches!A:N'),
+      fetchSheetData('FreeExchanges!A:J')
+    ]);
     
     sellData.slice(1).forEach(row => {
       const date = parseSheetDate(row[9]);
@@ -73,7 +76,6 @@ async function openCloseWorkModal() {
       const createdBy = row[11];
       const isToday = date && date >= todayStart && date <= todayEnd;
       if (isToday && status === 'COMPLETED' && createdBy === userName) {
-        processCash(row[6] || 'LAK', parseFloat(row[5]) || 0, parseFloat(row[8]) || 0);
         addNewGold(row[2]);
       }
     });
@@ -84,7 +86,6 @@ async function openCloseWorkModal() {
       const createdBy = row[13];
       const isToday = date && date >= todayStart && date <= todayEnd;
       if (isToday && status === 'COMPLETED' && createdBy === userName) {
-        processCash(row[8] || 'LAK', parseFloat(row[7]) || 0, parseFloat(row[10]) || 0);
         addOldGold(row[2]);
         addNewGold(row[3]);
       }
@@ -96,7 +97,6 @@ async function openCloseWorkModal() {
       const createdBy = row[13];
       const isToday = date && date >= todayStart && date <= todayEnd;
       if (isToday && status === 'COMPLETED' && createdBy === userName) {
-        processCash(row[8] || 'LAK', parseFloat(row[7]) || 0, parseFloat(row[10]) || 0);
         addOldGold(row[2]);
         addNewGold(row[3]);
       }
@@ -128,7 +128,6 @@ async function openCloseWorkModal() {
       const createdBy = row[13];
       const isToday = date && date >= todayStart && date <= todayEnd;
       if (isToday && status === 'COMPLETED' && createdBy === userName) {
-        processCash(row[8] || 'LAK', parseFloat(row[7]) || 0, parseFloat(row[10]) || 0);
         addOldGold(row[2]);
         addNewGold(row[3]);
       }
