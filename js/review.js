@@ -80,6 +80,7 @@ async function submitReviewDecision(decision) {
       else if (type === 'FREE_EXCHANGE') loadFreeExchanges();
       else if (type === 'WITHDRAW') loadWithdraws();
       
+      if (typeof loadHistorySell === 'function') loadHistorySell();
       loadDashboard();
     } else {
       alert('❌ Error: ' + result.message);
@@ -134,6 +135,29 @@ async function reviewWithdraw(withdrawId) {
     const withdraw = data.slice(1).find(row => row[0] === withdrawId);
     if (withdraw) {
       openReviewDecisionModal('WITHDRAW', withdrawId, withdraw[2]);
+    }
+  } catch (e) {
+    alert('❌ Error loading data');
+  }
+}
+async function reviewSwitch(switchId) {
+  try {
+    var data = await fetchSheetData('Switches!A:N');
+    var sw = data.slice(1).find(function(row) { return row[0] === switchId; });
+    if (sw) {
+      openReviewDecisionModal('SWITCH', switchId, sw[3]);
+    }
+  } catch (e) {
+    alert('❌ Error loading data');
+  }
+}
+
+async function reviewFreeExchange(freeExId) {
+  try {
+    var data = await fetchSheetData('FreeExchanges!A:L');
+    var fe = data.slice(1).find(function(row) { return row[0] === freeExId; });
+    if (fe) {
+      openReviewDecisionModal('FREE_EXCHANGE', freeExId, fe[3]);
     }
   } catch (e) {
     alert('❌ Error loading data');

@@ -1,3 +1,23 @@
+function setupManagerUI() {
+  var managerHideButtons = ['addSellBtn', 'addTradeinBtn', 'addBuybackBtn', 'addExchangeBtn', 'addSwitchBtn', 'addFreeExchangeBtn', 'addWithdrawBtn', 'withdrawBtn'];
+  managerHideButtons.forEach(function(id) {
+    var el = document.getElementById(id);
+    if (el) el.style.display = 'none';
+  });
+  var mergeTabs = ['sell', 'trade-in', 'exchange', 'switch', 'free exchange', 'withdraw'];
+  document.querySelectorAll('.nav-btn').forEach(function(btn) {
+    var txt = btn.textContent.toLowerCase();
+    mergeTabs.forEach(function(tab) {
+      if (txt.includes(tab) && !txt.includes('history')) btn.style.display = 'none';
+    });
+    if (txt.includes('buyback')) btn.textContent = '◑ History Buyback';
+  });
+  var hBtn = document.getElementById('navHistorySell');
+  if (hBtn) hBtn.style.display = '';
+  var bbTitle = document.getElementById('buybackTitle');
+  if (bbTitle) bbTitle.textContent = 'History Buyback';
+}
+
 var _inactivityTimer = null;
 var INACTIVITY_LIMIT = 60 * 60 * 1000;
 
@@ -71,21 +91,7 @@ function login() {
       });
     }
 
-    if (currentUser.role === 'Manager') {
-      const managerHideButtons = ['addSellBtn', 'addTradeinBtn', 'addBuybackBtn', 'addExchangeBtn', 'addSwitchBtn', 'addFreeExchangeBtn', 'addWithdrawBtn', 'withdrawBtn'];
-      managerHideButtons.forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.style.display = 'none';
-      });
-      
-      document.querySelectorAll('.nav-btn').forEach(function(btn) {
-        var txt = btn.textContent.toLowerCase(); if (txt.includes("buyback")) btn.textContent = '◑ History Buyback';
-      });
-      var hBtn = document.getElementById('navHistorySell');
-      if (hBtn) hBtn.style.display = '';
-      var bbTitle = document.getElementById('buybackTitle');
-      if (bbTitle) bbTitle.textContent = 'History Buyback';
-    }
+    if (currentUser.role === 'Manager') { setupManagerUI(); }
 
     fetchExchangeRates();
     checkPendingClose();
@@ -168,21 +174,7 @@ function logout() {
       });
     }
 
-    if (currentUser.role === 'Manager') {
-      const managerHideButtons = ['addSellBtn', 'addTradeinBtn', 'addBuybackBtn', 'addExchangeBtn', 'addSwitchBtn', 'addFreeExchangeBtn', 'addWithdrawBtn', 'withdrawBtn'];
-      managerHideButtons.forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.style.display = 'none';
-      });
-      
-      document.querySelectorAll('.nav-btn').forEach(function(btn) {
-        var txt = btn.textContent.toLowerCase(); if (txt.includes("buyback")) btn.textContent = '◑ History Buyback';
-      });
-      var hBtn = document.getElementById('navHistorySell');
-      if (hBtn) hBtn.style.display = '';
-      var bbTitle = document.getElementById('buybackTitle');
-      if (bbTitle) bbTitle.textContent = 'History Buyback';
-    }
+    if (currentUser.role === 'Manager') { setupManagerUI(); }
 
     fetchExchangeRates();
     checkPendingClose();
