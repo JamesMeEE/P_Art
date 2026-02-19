@@ -342,12 +342,30 @@ async function confirmMultiPayment() {
     }
 
     try {
-      var dbData = await fetchSheetData('_database!A1:G23');
-      var cashLAK = dbData.length >= 17 ? (parseFloat(dbData[16][0]) || 0) : 0;
-      if (cashLAK < change) {
-        alert('❌ เงินสด LAK ไม่พอทอน! มี ' + formatNumber(cashLAK) + ' LAK แต่ต้องทอน ' + formatNumber(change) + ' LAK');
-        hideLoading();
-        return;
+      if (currentPaymentData.type === 'BUYBACK') {
+        var dbData = await fetchSheetData('_database!A1:G23');
+        var cashLAK = dbData.length >= 17 ? (parseFloat(dbData[16][0]) || 0) : 0;
+        if (cashLAK < change) {
+          alert('❌ เงินสด LAK ไม่พอทอน! มี ' + formatNumber(cashLAK) + ' LAK แต่ต้องทอน ' + formatNumber(change) + ' LAK');
+          hideLoading();
+          return;
+        }
+      } else {
+        var userSheetData = await fetchSheetData(currentUser.nickname + '!A:I');
+        var userCashLAK = 0;
+        if (userSheetData && userSheetData.length > 1) {
+          for (var ui = 1; ui < userSheetData.length; ui++) {
+            var r = userSheetData[ui];
+            if (r[4] === 'Cash' && r[3] === 'LAK') {
+              userCashLAK += parseFloat(r[2]) || 0;
+            }
+          }
+        }
+        if (userCashLAK < change) {
+          alert('❌ เงินสด LAK ของคุณไม่พอทอน! มี ' + formatNumber(userCashLAK) + ' LAK แต่ต้องทอน ' + formatNumber(change) + ' LAK');
+          hideLoading();
+          return;
+        }
       }
     } catch(e) {}
   }
