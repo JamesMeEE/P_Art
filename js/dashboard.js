@@ -99,10 +99,10 @@ async function loadDashboard() {
       var oldGoldG = parseFloat(dbData[30][2]) || 0;
       var oldValue = parseFloat(dbData[30][3]) || 0;
       var totalGoldG_wac = newGoldG + oldGoldG;
-      var totalCost_wac = Math.round(oldValue / 1000) * 1000 + Math.round(newValue / 1000) * 1000;
+      var totalCost_wac = oldValue + newValue;
       if (totalGoldG_wac > 0) {
-        wacPerG = Math.round(totalCost_wac / totalGoldG_wac / 1000) * 1000;
-        wacPerBaht = Math.round(wacPerG * 15 / 1000) * 1000;
+        wacPerG = totalCost_wac / totalGoldG_wac;
+        wacPerBaht = wacPerG * 15;
       }
     }
 

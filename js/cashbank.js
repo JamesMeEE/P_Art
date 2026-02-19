@@ -1,71 +1,120 @@
+var _cashbankAllRows = [];
+var _cashbankFilteredTypes = ['CASH_IN', 'CASH_OUT', 'BANK_DEPOSIT', 'BANK_WITHDRAW', 'OTHER_INCOME', 'OTHER_EXPENSE'];
+
 async function loadCashBank() {
   try {
     showLoading();
-    
+
     const [cashbankData, dbData] = await Promise.all([
       fetchSheetData('CashBank!A:I'),
-      fetchSheetData('_database!A1:G23')
+      fetchSheetData('_database!A1:G31')
     ]);
-    
+
     let balances = {
       cash: { LAK: 0, THB: 0, USD: 0 },
       bcel: { LAK: 0, THB: 0, USD: 0 },
-      ldb: { LAK: 0, THB: 0, USD: 0 }
+      ldb: { LAK: 0, THB: 0, USD: 0 },
+      other: { LAK: 0, THB: 0, USD: 0 }
     };
-    
+
     if (dbData.length >= 17) {
       balances.cash.LAK = parseFloat(dbData[16][0]) || 0;
       balances.cash.THB = parseFloat(dbData[16][1]) || 0;
       balances.cash.USD = parseFloat(dbData[16][2]) || 0;
     }
-    
+
     if (dbData.length >= 20) {
       balances.bcel.LAK = parseFloat(dbData[19][0]) || 0;
       balances.bcel.THB = parseFloat(dbData[19][1]) || 0;
       balances.bcel.USD = parseFloat(dbData[19][2]) || 0;
     }
-    
+
     if (dbData.length >= 23) {
       balances.ldb.LAK = parseFloat(dbData[22][0]) || 0;
       balances.ldb.THB = parseFloat(dbData[22][1]) || 0;
       balances.ldb.USD = parseFloat(dbData[22][2]) || 0;
     }
-    
+
+    if (dbData.length >= 26) {
+      balances.other.LAK = parseFloat(dbData[25][0]) || 0;
+      balances.other.THB = parseFloat(dbData[25][1]) || 0;
+      balances.other.USD = parseFloat(dbData[25][2]) || 0;
+    }
+
     document.getElementById('cashLAK').textContent = formatNumber(balances.cash.LAK);
     document.getElementById('cashTHB').textContent = formatNumber(balances.cash.THB);
     document.getElementById('cashUSD').textContent = formatNumber(balances.cash.USD);
-    
+
     document.getElementById('bcelLAK').textContent = formatNumber(balances.bcel.LAK);
     document.getElementById('bcelTHB').textContent = formatNumber(balances.bcel.THB);
     document.getElementById('bcelUSD').textContent = formatNumber(balances.bcel.USD);
-    
+
     document.getElementById('ldbLAK').textContent = formatNumber(balances.ldb.LAK);
     document.getElementById('ldbTHB').textContent = formatNumber(balances.ldb.THB);
     document.getElementById('ldbUSD').textContent = formatNumber(balances.ldb.USD);
-    
-    const tbody = document.getElementById('cashbankTable');
-    if (cashbankData.length <= 1) {
-      tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 40px;">No records</td></tr>';
-    } else {
-      tbody.innerHTML = cashbankData.slice(1).reverse().map(row => `
-        <tr>
-          <td>${row[0]}</td>
-          <td>${row[1]}</td>
-          <td>${formatNumber(row[2])}</td>
-          <td>${row[3] || '-'}</td>
-          <td>${row[4]}</td>
-          <td>${row[5] || '-'}</td>
-          <td>${row[6] || '-'}</td>
-          <td>${formatDateTime(row[7])}</td>
-        </tr>
-      `).join('');
+
+    document.getElementById('otherBankLAK').textContent = formatNumber(balances.other.LAK);
+    document.getElementById('otherBankTHB').textContent = formatNumber(balances.other.THB);
+    document.getElementById('otherBankUSD').textContent = formatNumber(balances.other.USD);
+
+    _cashbankAllRows = [];
+    if (cashbankData.length > 1) {
+      _cashbankAllRows = cashbankData.slice(1).filter(function(row) {
+        return _cashbankFilteredTypes.indexOf(row[1]) >= 0;
+      });
     }
-    
+
+    renderCashBankTable(_cashbankAllRows);
     hideLoading();
   } catch (error) {
     console.error('Error loading cashbank:', error);
     hideLoading();
   }
+}
+
+function renderCashBankTable(rows) {
+  var tbody = document.getElementById('cashbankTable');
+  if (!rows || rows.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 40px;">No records</td></tr>';
+    return;
+  }
+  tbody.innerHTML = rows.slice().reverse().map(function(row) {
+    return '<tr>' +
+      '<td>' + row[0] + '</td>' +
+      '<td>' + row[1] + '</td>' +
+      '<td>' + formatNumber(row[2]) + '</td>' +
+      '<td>' + (row[3] || '-') + '</td>' +
+      '<td>' + row[4] + '</td>' +
+      '<td>' + (row[5] || '-') + '</td>' +
+      '<td>' + (row[6] || '-') + '</td>' +
+      '<td>' + formatDateTime(row[7]) + '</td>' +
+      '</tr>';
+  }).join('');
+}
+
+function filterCashBankByDate() {
+  var startStr = document.getElementById('cbStartDate').value;
+  var endStr = document.getElementById('cbEndDate').value;
+  if (!startStr && !endStr) {
+    renderCashBankTable(_cashbankAllRows);
+    return;
+  }
+  var startDate = startStr ? new Date(startStr + 'T00:00:00') : null;
+  var endDate = endStr ? new Date(endStr + 'T23:59:59') : null;
+  var filtered = _cashbankAllRows.filter(function(row) {
+    var d = parseSheetDate(row[7]);
+    if (!d) return false;
+    if (startDate && d < startDate) return false;
+    if (endDate && d > endDate) return false;
+    return true;
+  });
+  renderCashBankTable(filtered);
+}
+
+function clearCashBankDateFilter() {
+  document.getElementById('cbStartDate').value = '';
+  document.getElementById('cbEndDate').value = '';
+  renderCashBankTable(_cashbankAllRows);
 }
 
 function toggleOtherIncomeBank() {
@@ -85,12 +134,12 @@ async function submitCash() {
   const amount = document.getElementById('cashAmount').value;
   const currency = document.getElementById('cashCurrency').value;
   const note = document.getElementById('cashNote').value;
-  
+
   if (!amount || amount <= 0) {
     alert('Please enter amount');
     return;
   }
-  
+
   try {
     showLoading();
     const result = await callAppsScript('ADD_CASHBANK', {
@@ -101,7 +150,7 @@ async function submitCash() {
       bank: '',
       note
     });
-    
+
     if (result.success) {
       alert('✅ Transaction added successfully!');
       closeModal('cashModal');
@@ -124,12 +173,12 @@ async function submitBank() {
   const amount = document.getElementById('bankAmount').value;
   const currency = document.getElementById('bankCurrency').value;
   const note = document.getElementById('bankNote').value;
-  
+
   if (!amount || amount <= 0) {
     alert('Please enter amount');
     return;
   }
-  
+
   try {
     showLoading();
     const result = await callAppsScript('ADD_CASHBANK', {
@@ -140,7 +189,7 @@ async function submitBank() {
       bank,
       note
     });
-    
+
     if (result.success) {
       alert('✅ Transaction added successfully!');
       closeModal('bankModal');
@@ -163,12 +212,12 @@ async function submitOtherIncome() {
   const amount = document.getElementById('otherIncomeAmount').value;
   const currency = document.getElementById('otherIncomeCurrency').value;
   const note = document.getElementById('otherIncomeNote').value;
-  
+
   if (!amount || amount <= 0) {
     alert('Please enter amount');
     return;
   }
-  
+
   try {
     showLoading();
     const result = await callAppsScript('ADD_CASHBANK', {
@@ -179,7 +228,7 @@ async function submitOtherIncome() {
       bank,
       note
     });
-    
+
     if (result.success) {
       alert('✅ Transaction added successfully!');
       closeModal('otherIncomeModal');
@@ -202,12 +251,12 @@ async function submitOtherExpense() {
   const amount = document.getElementById('otherExpenseAmount').value;
   const currency = document.getElementById('otherExpenseCurrency').value;
   const note = document.getElementById('otherExpenseNote').value;
-  
+
   if (!amount || amount <= 0) {
     alert('Please enter amount');
     return;
   }
-  
+
   try {
     showLoading();
     const result = await callAppsScript('ADD_CASHBANK', {
@@ -218,7 +267,7 @@ async function submitOtherExpense() {
       bank,
       note
     });
-    
+
     if (result.success) {
       alert('✅ Transaction added successfully!');
       closeModal('otherExpenseModal');

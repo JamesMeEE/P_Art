@@ -199,8 +199,8 @@ async function loadTodayStats() {
       var _oG = parseFloat(dbData[30][2]) || 0;
       var _oV = parseFloat(dbData[30][3]) || 0;
       var _tG = _nG + _oG;
-      var _tC = Math.round(_oV / 1000) * 1000 + Math.round(_nV / 1000) * 1000;
-      if (_tG > 0) wacPerG = Math.round(_tC / _tG / 1000) * 1000;
+      var _tC = _oV + _nV;
+      if (_tG > 0) wacPerG = _tC / _tG;
     }
 
     var today = new Date();

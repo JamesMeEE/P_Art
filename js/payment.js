@@ -97,6 +97,7 @@ function renderBankPayments() {
         <select class="form-select" style="flex: 1;" onchange="updateBankName(${item.id}, this.value)">
           <option value="BCEL" ${item.bank === 'BCEL' ? 'selected' : ''}>BCEL</option>
           <option value="LDB" ${item.bank === 'LDB' ? 'selected' : ''}>LDB</option>
+          <option value="OTHER" ${item.bank === 'OTHER' ? 'selected' : ''}>อื่น ๆ</option>
         </select>
         <select class="form-select" style="flex: 1;" onchange="updateBankCurrency(${item.id}, this.value)">
           <option value="LAK" ${item.currency === 'LAK' ? 'selected' : ''}>LAK</option>

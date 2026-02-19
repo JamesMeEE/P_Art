@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600;700&family=Montserrat:wght@200;300;400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-  <link rel="stylesheet" href="style.css?v=96">
+  <link rel="stylesheet" href="style.css?v=98">
   <script>
     (function() {
       const cb = localStorage.getItem('cacheBuster') || Date.now();
@@ -640,6 +640,42 @@
           <div class="stat-label">USD</div>
         </div>
       </div>
+      
+      <!-- Other Bank Row -->
+      <h3 style="margin: 20px 0 10px 0; color: var(--gold-primary); font-size: 24px; font-weight: 600;">🏦 อื่น ๆ (Other)</h3>
+      <div class="dashboard-stats" style="margin-bottom: 20px;">
+        <div class="stat-card">
+          <div class="card-header">
+            <div class="card-title">LAK</div>
+            <div class="card-icon">₭</div>
+          </div>
+          <div class="stat-value" id="otherBankLAK">0</div>
+          <div class="stat-label">LAK</div>
+        </div>
+        <div class="stat-card">
+          <div class="card-header">
+            <div class="card-title">THB</div>
+            <div class="card-icon">฿</div>
+          </div>
+          <div class="stat-value" id="otherBankTHB">0</div>
+          <div class="stat-label">THB</div>
+        </div>
+        <div class="stat-card">
+          <div class="card-header">
+            <div class="card-title">USD</div>
+            <div class="card-icon">$</div>
+          </div>
+          <div class="stat-value" id="otherBankUSD">0</div>
+          <div class="stat-label">USD</div>
+        </div>
+      </div>
+      <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 15px;">
+        <input type="date" id="cbStartDate" class="form-input" style="width: 150px;">
+        <span style="color: var(--text-secondary);">to</span>
+        <input type="date" id="cbEndDate" class="form-input" style="width: 150px;">
+        <button class="btn-secondary" onclick="filterCashBankByDate()">Filter</button>
+        <button class="btn-secondary" onclick="clearCashBankDateFilter()">Clear</button>
+      </div>
       <div class="table-container">
         <table>
           <thead>
@@ -1069,6 +1105,7 @@
         <select class="form-select" id="tradeinPaymentBank">
           <option value="BCEL">BCEL</option>
           <option value="LDB">LDB</option>
+          <option value="OTHER">อื่น ๆ</option>
         </select>
       </div>
 
@@ -1249,6 +1286,7 @@
         <select class="form-select" id="exchangePaymentBank">
           <option value="BCEL">BCEL</option>
           <option value="LDB">LDB</option>
+          <option value="OTHER">อื่น ๆ</option>
         </select>
       </div>
 
@@ -1406,6 +1444,7 @@
         <select class="form-select" id="withdrawPaymentBank">
           <option value="BCEL">BCEL</option>
           <option value="LDB">LDB</option>
+          <option value="OTHER">อื่น ๆ</option>
         </select>
       </div>
 
@@ -1596,6 +1635,7 @@
         <select class="form-select" id="bankName">
           <option value="BCEL">BCEL Bank</option>
           <option value="LDB">LDB Bank</option>
+          <option value="OTHER">อื่น ๆ</option>
         </select>
       </div>
       <div class="form-group">
@@ -1639,6 +1679,7 @@
         <select class="form-select" id="otherIncomeBank">
           <option value="BCEL">BCEL Bank</option>
           <option value="LDB">LDB Bank</option>
+          <option value="OTHER">อื่น ๆ</option>
         </select>
       </div>
       <div class="form-group">
@@ -1682,6 +1723,7 @@
         <select class="form-select" id="otherExpenseBank">
           <option value="BCEL">BCEL Bank</option>
           <option value="LDB">LDB Bank</option>
+          <option value="OTHER">อื่น ๆ</option>
         </select>
       </div>
       <div class="form-group">
@@ -1793,6 +1835,7 @@
         <label class="form-label">Select Bank</label>
         <select class="form-select" id="bankSelection">
           <option value="LDB">LDB Bank</option>
+          <option value="OTHER">อื่น ๆ</option>
           <option value="BCEL">BCEL Bank</option>
         </select>
       </div>
@@ -2009,32 +2052,32 @@
   </style>
   
   <script defer src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="js/config.js?v=96"></script>
-  <script src="js/utils.js?v=96"></script>
-  <script src="js/api.js?v=96"></script>
-  <script src="js/ui.js?v=96"></script>
-  <script src="js/dashboard.js?v=96"></script>
-  <script src="js/products.js?v=96"></script>
-  <script src="js/pricerate.js?v=96"></script>
-  <script src="js/sell.js?v=96"></script>
-  <script src="js/payment.js?v=96"></script>
-  <script src="js/tradein.js?v=96"></script>
-  <script src="js/buyback.js?v=96"></script>
-  <script src="js/exchange.js?v=96"></script>
-  <script src="js/switch.js?v=96"></script>
-  <script src="js/freeexchange.js?v=96"></script>
-  <script src="js/withdraw.js?v=96"></script>
-  <script src="js/historysell.js?v=96"></script>
-  <script src="js/cashbank.js?v=96"></script>
-  <script src="js/accounting.js?v=96"></script>
-  <script src="js/diff.js?v=96"></script>
-  <script src="js/reports.js?v=96"></script>
-  <script src="js/stockold.js?v=96"></script>
-  <script src="js/stocknew.js?v=96"></script>
-  <script src="js/wac.js?v=96"></script>
-  <script src="js/close.js?v=96"></script>
-  <script src="js/review.js?v=96"></script>
-  <script src="js/auth.js?v=96"></script>
+  <script src="js/config.js?v=98"></script>
+  <script src="js/utils.js?v=98"></script>
+  <script src="js/api.js?v=98"></script>
+  <script src="js/ui.js?v=98"></script>
+  <script src="js/dashboard.js?v=98"></script>
+  <script src="js/products.js?v=98"></script>
+  <script src="js/pricerate.js?v=98"></script>
+  <script src="js/sell.js?v=98"></script>
+  <script src="js/payment.js?v=98"></script>
+  <script src="js/tradein.js?v=98"></script>
+  <script src="js/buyback.js?v=98"></script>
+  <script src="js/exchange.js?v=98"></script>
+  <script src="js/switch.js?v=98"></script>
+  <script src="js/freeexchange.js?v=98"></script>
+  <script src="js/withdraw.js?v=98"></script>
+  <script src="js/historysell.js?v=98"></script>
+  <script src="js/cashbank.js?v=98"></script>
+  <script src="js/accounting.js?v=98"></script>
+  <script src="js/diff.js?v=98"></script>
+  <script src="js/reports.js?v=98"></script>
+  <script src="js/stockold.js?v=98"></script>
+  <script src="js/stocknew.js?v=98"></script>
+  <script src="js/wac.js?v=98"></script>
+  <script src="js/close.js?v=98"></script>
+  <script src="js/review.js?v=98"></script>
+  <script src="js/auth.js?v=98"></script>
   
   <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
   <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/th.js"></script>

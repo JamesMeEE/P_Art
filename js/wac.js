@@ -14,13 +14,13 @@ async function loadWAC() {
     }
 
     var totalGoldG = newGoldG + oldGoldG;
-    var totalCost = Math.round(oldValue / 1000) * 1000 + Math.round(newValue / 1000) * 1000;
-    var wacPerG = totalGoldG > 0 ? Math.round(totalCost / totalGoldG / 1000) * 1000 : 0;
-    var wacPerBaht = Math.round(wacPerG * 15 / 1000) * 1000;
+    var totalCost = newValue + oldValue;
+    var wacPerG = totalGoldG > 0 ? totalCost / totalGoldG : 0;
+    var wacPerBaht = wacPerG * 15;
 
     document.getElementById('wacSummaryTable').innerHTML =
-      '<tr><td>Stock (NEW)</td><td>' + formatWeight(newGoldG) + ' g</td><td>' + formatNumber(Math.round(newValue / 1000) * 1000) + ' LAK</td></tr>' +
-      '<tr><td>Stock (OLD)</td><td>' + formatWeight(oldGoldG) + ' g</td><td>' + formatNumber(Math.round(oldValue / 1000) * 1000) + ' LAK</td></tr>' +
+      '<tr><td>Stock (NEW)</td><td>' + formatWeight(newGoldG) + ' g</td><td>' + formatNumber(newValue) + ' LAK</td></tr>' +
+      '<tr><td>Stock (OLD)</td><td>' + formatWeight(oldGoldG) + ' g</td><td>' + formatNumber(oldValue) + ' LAK</td></tr>' +
       '<tr style="font-weight:bold;background:rgba(212,175,55,0.1);"><td>ผลรวม</td><td>' + formatWeight(totalGoldG) + ' g</td><td>' + formatNumber(totalCost) + ' LAK</td></tr>';
 
     document.getElementById('wacCalcTable').innerHTML =
