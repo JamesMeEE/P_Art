@@ -29,22 +29,69 @@ async function loadHistorySell() {
     var all = [];
 
     results[0].slice(1).forEach(function(r) {
-      all.push({ type: 'SELL', id: r[0], phone: r[1], items: formatItemsForTable(r[2]), total: parseFloat(r[3]) || 0, status: r[10] || '', sale: r[11] || '', date: r[9], raw: r });
+      all.push({
+        type: 'SELL', id: r[0], phone: r[1],
+        oldGold: '-', newGold: formatItemsForTable(r[2]),
+        difference: '-', exchangeFee: '-', switchFee: '-',
+        premium: formatNumber(calculatePremiumFromItems(r[2])),
+        total: parseFloat(r[3]) || 0,
+        status: r[10] || '', sale: r[11] || '', date: r[9], raw: r
+      });
     });
+
     results[1].slice(1).forEach(function(r) {
-      all.push({ type: 'TRADE-IN', id: r[0], phone: r[1], items: formatItemsForTable(r[2]) + ' → ' + formatItemsForTable(r[3]), total: parseFloat(r[6]) || 0, status: r[12] || '', sale: r[13] || '', date: r[11], raw: r });
+      all.push({
+        type: 'TRADE-IN', id: r[0], phone: r[1],
+        oldGold: formatItemsForTable(r[2]), newGold: formatItemsForTable(r[3]),
+        difference: formatNumber(parseFloat(r[4]) || 0), exchangeFee: '-', switchFee: '-',
+        premium: formatNumber(calculatePremiumFromItems(r[3])),
+        total: parseFloat(r[6]) || 0,
+        status: r[12] || '', sale: r[13] || '', date: r[11], raw: r
+      });
     });
+
     results[2].slice(1).forEach(function(r) {
-      all.push({ type: 'EXCHANGE', id: r[0], phone: r[1], items: formatItemsForTable(r[2]) + ' → ' + formatItemsForTable(r[3]), total: parseFloat(r[6]) || 0, status: r[12] || '', sale: r[13] || '', date: r[11], raw: r });
+      all.push({
+        type: 'EXCHANGE', id: r[0], phone: r[1],
+        oldGold: formatItemsForTable(r[2]), newGold: formatItemsForTable(r[3]),
+        difference: '-', exchangeFee: formatNumber(parseFloat(r[4]) || 0), switchFee: '-',
+        premium: formatNumber(parseFloat(r[5]) || 0),
+        total: parseFloat(r[6]) || 0,
+        status: r[12] || '', sale: r[13] || '', date: r[11], raw: r
+      });
     });
+
     results[3].slice(1).forEach(function(r) {
-      all.push({ type: 'SWITCH', id: r[0], phone: r[1], items: formatItemsForTable(r[2]) + ' → ' + formatItemsForTable(r[3]), total: parseFloat(r[6]) || 0, status: r[12] || '', sale: r[13] || '', date: r[11], raw: r });
+      all.push({
+        type: 'SWITCH', id: r[0], phone: r[1],
+        oldGold: formatItemsForTable(r[2]), newGold: formatItemsForTable(r[3]),
+        difference: '-', exchangeFee: '-', switchFee: formatNumber(parseFloat(r[4]) || 0),
+        premium: formatNumber(parseFloat(r[5]) || 0),
+        total: parseFloat(r[6]) || 0,
+        status: r[12] || '', sale: r[13] || '', date: r[11], raw: r
+      });
     });
+
     results[4].slice(1).forEach(function(r) {
-      all.push({ type: 'FREE EX', id: r[0], phone: r[1], items: formatItemsForTable(r[2]) + ' → ' + formatItemsForTable(r[3]), total: parseFloat(r[5]) || 0, status: r[8] || '', sale: r[9] || '', date: r[7], raw: r });
+      all.push({
+        type: 'FREE EX', id: r[0], phone: r[1],
+        oldGold: formatItemsForTable(r[2]), newGold: formatItemsForTable(r[3]),
+        difference: '-', exchangeFee: '-', switchFee: '-',
+        premium: formatNumber(parseFloat(r[4]) || 0),
+        total: parseFloat(r[5]) || 0,
+        status: r[8] || '', sale: r[9] || '', date: r[7], raw: r
+      });
     });
+
     results[5].slice(1).forEach(function(r) {
-      all.push({ type: 'WITHDRAW', id: r[0], phone: r[1], items: formatItemsForTable(r[2]), total: parseFloat(r[4]) || 0, status: r[7] || '', sale: r[8] || '', date: r[6], raw: r });
+      all.push({
+        type: 'WITHDRAW', id: r[0], phone: r[1],
+        oldGold: '-', newGold: formatItemsForTable(r[2]),
+        difference: '-', exchangeFee: '-', switchFee: '-',
+        premium: formatNumber(parseFloat(r[3]) || 0),
+        total: parseFloat(r[4]) || 0,
+        status: r[7] || '', sale: r[8] || '', date: r[6], raw: r
+      });
     });
 
     all = filterHistoryByDate(all, historySellDateFrom, historySellDateTo);
@@ -52,29 +99,41 @@ async function loadHistorySell() {
 
     var tbody = document.getElementById('historySellTable');
     if (all.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:40px;">No records</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="13" style="text-align:center;padding:40px;">No records</td></tr>';
     } else {
       tbody.innerHTML = all.map(function(r) {
         var typeColors = { 'SELL': '#4caf50', 'TRADE-IN': '#2196f3', 'EXCHANGE': '#9c27b0', 'SWITCH': '#ff9800', 'FREE EX': '#00bcd4', 'WITHDRAW': '#f44336' };
         var color = typeColors[r.type] || '#888';
         var actions = '-';
         if (r.status === 'COMPLETED' || r.status === 'PAID') {
-          var detail = encodeURIComponent(JSON.stringify([['Type', r.type], ['Transaction ID', r.id], ['Phone', r.phone], ['Items', r.items], ['Total', formatNumber(r.total) + ' LAK'], ['Date', formatDateTime(r.date)], ['Status', r.status], ['Sale', r.sale]]));
+          var detail = encodeURIComponent(JSON.stringify([
+            ['Type', r.type], ['Transaction ID', r.id], ['Phone', r.phone],
+            ['Old Gold', r.oldGold], ['New Gold', r.newGold],
+            ['Difference', r.difference], ['Exchange Fee', r.exchangeFee],
+            ['Switch Fee', r.switchFee], ['Premium', r.premium],
+            ['Total', formatNumber(r.total) + ' LAK'],
+            ['Date', formatDateTime(r.date)], ['Status', r.status], ['Sale', r.sale]
+          ]));
           actions = '<button class="btn-action" onclick="viewTransactionDetail(\'' + r.type + '\',\'' + detail + '\')" style="background:#555;">👁 View</button>';
         } else if (r.status === 'PENDING') {
-          actions = '<span style="color:var(--text-secondary);">Pending Review</span>';
+          actions = '<span style="color:var(--text-secondary);font-size:12px;">Pending</span>';
         } else if (r.status === 'READY') {
-          actions = '<span style="color:var(--text-secondary);">Ready</span>';
+          actions = '<span style="color:var(--text-secondary);font-size:12px;">Ready</span>';
         }
+        var dim = 'style="color:var(--text-secondary);"';
         return '<tr>' +
-          '<td><span style="background:' + color + ';color:#fff;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:bold;">' + r.type + '</span></td>' +
-          '<td>' + r.id + '</td>' +
+          '<td style="white-space:nowrap;">' + r.id + '</td>' +
           '<td>' + r.phone + '</td>' +
-          '<td>' + r.items + '</td>' +
-          '<td>' + formatNumber(r.total) + '</td>' +
+          '<td><span style="background:' + color + ';color:#fff;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:bold;white-space:nowrap;">' + r.type + '</span></td>' +
+          '<td>' + (r.oldGold === '-' ? '<span ' + dim + '>-</span>' : r.oldGold) + '</td>' +
+          '<td>' + (r.newGold === '-' ? '<span ' + dim + '>-</span>' : r.newGold) + '</td>' +
+          '<td>' + (r.difference === '-' ? '<span ' + dim + '>-</span>' : r.difference) + '</td>' +
+          '<td>' + (r.exchangeFee === '-' ? '<span ' + dim + '>-</span>' : r.exchangeFee) + '</td>' +
+          '<td>' + (r.switchFee === '-' ? '<span ' + dim + '>-</span>' : r.switchFee) + '</td>' +
+          '<td>' + (r.premium === '0' || r.premium === '-' ? '<span ' + dim + '>-</span>' : r.premium) + '</td>' +
+          '<td style="font-weight:bold;">' + formatNumber(r.total) + '</td>' +
           '<td><span class="status-badge status-' + (r.status || '').toLowerCase() + '">' + r.status + '</span></td>' +
           '<td>' + r.sale + '</td>' +
-          '<td style="font-size:12px;">' + formatDateTime(r.date) + '</td>' +
           '<td>' + actions + '</td>' +
           '</tr>';
       }).join('');
