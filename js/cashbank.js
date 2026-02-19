@@ -35,10 +35,10 @@ async function loadCashBank() {
       balances.ldb.USD = parseFloat(dbData[22][2]) || 0;
     }
 
-    if (dbData.length >= 26) {
-      balances.other.LAK = parseFloat(dbData[25][0]) || 0;
-      balances.other.THB = parseFloat(dbData[25][1]) || 0;
-      balances.other.USD = parseFloat(dbData[25][2]) || 0;
+    if (dbData.length >= 17) {
+      balances.other.LAK = parseFloat(dbData[16][4]) || 0;
+      balances.other.THB = parseFloat(dbData[16][5]) || 0;
+      balances.other.USD = parseFloat(dbData[16][6]) || 0;
     }
 
     document.getElementById('cashLAK').textContent = formatNumber(balances.cash.LAK);
