@@ -339,6 +339,59 @@ async function confirmStockInNew() {
     });
     if (payments.length === 0) { alert('กรุณาเพิ่มการชำระเงิน'); return; }
 
+    showLoading();
+    var dbData = await fetchSheetData('_database!A1:G31');
+    hideLoading();
+
+    var shopBalance = {
+      cash: { LAK: 0, THB: 0, USD: 0 },
+      BCEL: { LAK: 0, THB: 0, USD: 0 },
+      LDB: { LAK: 0, THB: 0, USD: 0 },
+      OTHER: { LAK: 0, THB: 0, USD: 0 }
+    };
+    if (dbData.length >= 17) {
+      shopBalance.cash.LAK = parseFloat(dbData[16][0]) || 0;
+      shopBalance.cash.THB = parseFloat(dbData[16][1]) || 0;
+      shopBalance.cash.USD = parseFloat(dbData[16][2]) || 0;
+      shopBalance.OTHER.LAK = parseFloat(dbData[16][4]) || 0;
+      shopBalance.OTHER.THB = parseFloat(dbData[16][5]) || 0;
+      shopBalance.OTHER.USD = parseFloat(dbData[16][6]) || 0;
+    }
+    if (dbData.length >= 20) {
+      shopBalance.BCEL.LAK = parseFloat(dbData[19][0]) || 0;
+      shopBalance.BCEL.THB = parseFloat(dbData[19][1]) || 0;
+      shopBalance.BCEL.USD = parseFloat(dbData[19][2]) || 0;
+    }
+    if (dbData.length >= 23) {
+      shopBalance.LDB.LAK = parseFloat(dbData[22][0]) || 0;
+      shopBalance.LDB.THB = parseFloat(dbData[22][1]) || 0;
+      shopBalance.LDB.USD = parseFloat(dbData[22][2]) || 0;
+    }
+
+    var usageSummary = {};
+    payments.forEach(function(p) {
+      var source = p.method === 'Cash' ? 'cash' : (p.bank || 'OTHER');
+      var cur = p.currency || 'LAK';
+      var key = source + '_' + cur;
+      if (!usageSummary[key]) usageSummary[key] = { source: source, currency: cur, total: 0 };
+      usageSummary[key].total += p.amount;
+    });
+
+    var insufficientList = [];
+    Object.keys(usageSummary).forEach(function(key) {
+      var u = usageSummary[key];
+      var available = (shopBalance[u.source] && shopBalance[u.source][u.currency]) ? shopBalance[u.source][u.currency] : 0;
+      if (u.total > available) {
+        var label = u.source === 'cash' ? 'เงินสด' : u.source;
+        insufficientList.push(label + ' ' + u.currency + ': ต้องการ ' + formatNumber(u.total) + ' แต่มี ' + formatNumber(available));
+      }
+    });
+
+    if (insufficientList.length > 0) {
+      alert('❌ ยอดเงินร้านไม่เพียงพอ\n\n' + insufficientList.join('\n'));
+      return;
+    }
+
     if (!confirm('ยืนยัน Stock In (NEW) ' + items.length + ' รายการ ต้นทุน ' + formatNumber(Math.round(totalCost)) + ' LAK?')) return;
 
     var note = document.getElementById('stockInNewNote').value.trim();
