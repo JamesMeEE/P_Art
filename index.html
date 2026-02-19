@@ -839,8 +839,8 @@
           <span>to</span>
           <input type="date" id="stockOldDateTo" class="form-input" style="width:150px;">
           <button class="btn-secondary" onclick="resetStockOldFilter()">Today</button>
-          <button class="btn-primary manager-only" onclick="openTransferModal()">Transfer OLD → NEW</button>
-          <button class="btn-primary manager-only" onclick="openStockOutModal()">Stock Out</button>
+          <button id="transferOldBtn" class="btn-primary manager-only" onclick="openTransferModal()">Transfer OLD → NEW</button>
+          <button id="stockOutOldBtn" class="btn-primary manager-only" onclick="openStockOutModal()">Stock Out</button>
         </div>
       </div>
       <div class="table-container">
@@ -897,7 +897,7 @@
           <span>to</span>
           <input type="date" id="stockNewDateTo" class="form-input" style="width:150px;">
           <button class="btn-secondary" onclick="resetStockNewFilter()">Today</button>
-          <button class="btn-primary manager-only" onclick="openStockInNewModal()">Stock In</button>
+          <button id="stockInNewBtn" class="btn-primary manager-only" onclick="openStockInNewModal()">Stock In</button>
         </div>
       </div>
       <div class="table-container">

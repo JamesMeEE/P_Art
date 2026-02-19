@@ -1,5 +1,5 @@
 function setupManagerUI() {
-  var managerHideButtons = ['addSellBtn', 'addTradeinBtn', 'addBuybackBtn', 'addExchangeBtn', 'addSwitchBtn', 'addFreeExchangeBtn', 'addWithdrawBtn', 'withdrawBtn'];
+  var managerHideButtons = ['addSellBtn', 'addTradeinBtn', 'addBuybackBtn', 'addExchangeBtn', 'addSwitchBtn', 'addFreeExchangeBtn', 'addWithdrawBtn', 'withdrawBtn', 'stockInNewBtn', 'transferOldBtn', 'stockOutOldBtn'];
   managerHideButtons.forEach(function(id) {
     var el = document.getElementById(id);
     if (el) el.style.display = 'none';
