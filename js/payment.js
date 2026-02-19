@@ -190,14 +190,61 @@ function updatePaymentSummary() {
   
   document.getElementById('multiPaymentPaidTotal').textContent = formatNumber(totalPaid) + ' LAK';
   
+  var changeBox = document.getElementById('multiPaymentChangeBox');
+  var changeEl = document.getElementById('multiPaymentChange');
+  var changeLbl = document.getElementById('multiPaymentChangeLabel');
+  var changeNote = document.getElementById('multiPaymentChangeNote');
+  
   if (remaining > 0) {
     document.getElementById('multiPaymentRemaining').textContent = formatNumber(remaining) + ' LAK';
     document.getElementById('multiPaymentRemaining').style.color = '#f44336';
-    document.getElementById('multiPaymentChange').textContent = '0 LAK';
+    changeEl.textContent = '0 LAK';
+    changeBox.style.background = 'rgba(76, 175, 80, 0.15)';
+    changeBox.style.borderColor = '#4caf50';
+    changeLbl.style.color = '#4caf50';
+    changeEl.style.color = '#4caf50';
+    changeNote.style.display = 'none';
   } else {
     document.getElementById('multiPaymentRemaining').textContent = '0 LAK';
     document.getElementById('multiPaymentRemaining').style.color = '#4caf50';
-    document.getElementById('multiPaymentChange').textContent = formatNumber(Math.max(0, change)) + ' LAK';
+    var ch = Math.max(0, change);
+    changeEl.textContent = formatNumber(ch) + ' LAK';
+
+    var overLimit = false;
+    var limitLabel = '';
+    if (ch > 0 && currentPaymentData && currentPaymentData.type !== 'BUYBACK') {
+      var allItems = paymentItems.cash.concat(paymentItems.bank);
+      var hasTHB = allItems.some(function(i) { return i.currency === 'THB' && i.amount > 0; });
+      var hasUSD = allItems.some(function(i) { return i.currency === 'USD' && i.amount > 0; });
+      if (hasTHB || hasUSD) {
+        var thbRate = currentExchangeRates.THB_Sell || 0;
+        var usdRate = currentExchangeRates.USD_Sell || 0;
+        var maxLAK = 0;
+        if (hasUSD && !hasTHB) {
+          maxLAK = 100 * usdRate;
+          limitLabel = '100 USD (' + formatNumber(maxLAK) + ' LAK)';
+        } else {
+          maxLAK = 1000 * thbRate;
+          limitLabel = '1,000 THB (' + formatNumber(maxLAK) + ' LAK)';
+        }
+        if (maxLAK > 0 && ch > maxLAK) overLimit = true;
+      }
+    }
+
+    if (overLimit) {
+      changeBox.style.background = 'rgba(244, 67, 54, 0.15)';
+      changeBox.style.borderColor = '#f44336';
+      changeLbl.style.color = '#f44336';
+      changeEl.style.color = '#f44336';
+      changeNote.style.display = 'block';
+      changeNote.textContent = '⚠ เงินทอนเกินกำหนด! สูงสุด ' + limitLabel;
+    } else {
+      changeBox.style.background = 'rgba(76, 175, 80, 0.15)';
+      changeBox.style.borderColor = '#4caf50';
+      changeLbl.style.color = '#4caf50';
+      changeEl.style.color = '#4caf50';
+      changeNote.style.display = 'none';
+    }
   }
 }
 
