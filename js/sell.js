@@ -44,7 +44,8 @@ async function loadSells() {
             actions = '<span style="color: var(--text-secondary);">Waiting for confirmation</span>';
           }
         } else {
-          actions = '-';
+          var detail = encodeURIComponent(JSON.stringify([['Transaction ID', row[0]], ['Phone', row[1]], ['Items', formatItemsForTable(row[2])], ['Total', formatNumber(row[3]) + ' LAK'], ['Date', formatDateTime(row[9])], ['Status', status], ['Sale', row[11]]]));
+          actions = '<button class="btn-action" onclick="viewTransactionDetail(\'Sell\',\'' + detail + '\')" style="background:#555;">👁 View</button>';
         }
         
         return `

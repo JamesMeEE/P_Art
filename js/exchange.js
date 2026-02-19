@@ -46,7 +46,8 @@ async function loadExchanges() {
             actions = '<span style="color: var(--text-secondary);">Waiting for confirmation</span>';
           }
         } else {
-          actions = '-';
+          var detail = encodeURIComponent(JSON.stringify([['Transaction ID', row[0]], ['Phone', row[1]], ['Old Gold', oldGold], ['New Gold', newGold], ['Exchange Fee', formatNumber(exchangeFee) + ' LAK'], ['Premium', formatNumber(premium) + ' LAK'], ['Total', formatNumber(row[6]) + ' LAK'], ['Date', formatDateTime(row[11])], ['Status', status], ['Sale', saleName]]));
+          actions = '<button class="btn-action" onclick="viewTransactionDetail(\'Exchange\',\'' + detail + '\')" style="background:#555;">👁 View</button>';
         }
         
         return `

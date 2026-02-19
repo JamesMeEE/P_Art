@@ -63,7 +63,8 @@ async function loadFreeExchanges() {
             actions = '<span style="color: var(--text-secondary);">Waiting for confirmation</span>';
           }
         } else {
-          actions = '-';
+          var detail = encodeURIComponent(JSON.stringify([['Transaction ID', row[0]], ['Phone', row[1]], ['Old Gold', oldGold], ['New Gold', newGold], ['Premium', formatNumber(premium) + ' LAK'], ['Total', formatNumber(row[5]) + ' LAK'], ['Date', formatDateTime(row[7])], ['Status', status], ['Sale', saleName]]));
+          actions = '<button class="btn-action" onclick="viewTransactionDetail(\'Free Exchange\',\'' + detail + '\')" style="background:#555;">👁 View</button>';
         }
         
         return `

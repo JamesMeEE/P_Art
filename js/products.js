@@ -29,7 +29,7 @@ async function loadProducts() {
     const tbody = document.getElementById('productsTable');
     tbody.innerHTML = FIXED_PRODUCTS.map(product => {
       const sellPrice = calculateSellPrice(product.id, currentPricing.sell1Baht);
-      const buybackPrice = Math.round(calculateBuybackPrice(product.id, currentPricing.sell1Baht) / 1000) * 1000;
+      const buybackPrice = calculateBuybackPrice(product.id, currentPricing.sell1Baht);
       const exchangeFee = EXCHANGE_FEES[product.id];
       const switchFee = EXCHANGE_FEES_SWITCH[product.id];
       const unit = unitLabels[product.id] || product.unit;

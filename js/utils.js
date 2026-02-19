@@ -249,7 +249,7 @@ function calculateSellPrice(productId, sell1Baht) {
     case 'G04': price = sell1Baht; break;
     case 'G05': price = (sell1Baht / 2); break;
     case 'G06': price = (sell1Baht / 4); break;
-    case 'G07': price = (sell1Baht / 15); break;
+    case 'G07': price = Math.round(((sell1Baht / 15) + 120000) / 1000) * 1000; break;
   }
   return price;
 }
@@ -267,7 +267,7 @@ function calculateBuybackPrice(productId, sell1Baht) {
     case 'G06': price = buyback1B / 4; break;
     case 'G07': price = buyback1B / 15; break;
   }
-  return price;
+  return Math.round(price / 1000) * 1000;
 }
 
 function filterByDateRange(data, dateColumnIndex, createdByIndex, dateFrom, dateTo) {
@@ -343,4 +343,29 @@ function getTodayDateString() {
   const month = String(today.getMonth() + 1).padStart(2, '0');
   const day = String(today.getDate()).padStart(2, '0');
   return `${year}-${month}-${day}`;
+}
+
+function viewTransactionDetail(type, jsonData) {
+  var row = JSON.parse(decodeURIComponent(jsonData));
+  var html = '<div style="padding:20px;">';
+  html += '<h3 style="color:var(--gold-primary);margin-bottom:15px;">' + type.toUpperCase() + ' Detail</h3>';
+  html += '<table style="width:100%;border-collapse:collapse;">';
+  row.forEach(function(item) {
+    html += '<tr style="border-bottom:1px solid var(--border-color);">';
+    html += '<td style="padding:8px 12px;color:var(--text-secondary);white-space:nowrap;">' + item[0] + '</td>';
+    html += '<td style="padding:8px 12px;font-weight:600;">' + item[1] + '</td>';
+    html += '</tr>';
+  });
+  html += '</table></div>';
+
+  var modal = document.getElementById('viewDetailModal');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'viewDetailModal';
+    modal.className = 'modal';
+    modal.innerHTML = '<div class="modal-content" style="max-width:500px;"><div id="viewDetailContent"></div><div style="text-align:right;padding:0 20px 20px;"><button class="btn-secondary" onclick="closeModal(\'viewDetailModal\')">Close</button></div></div>';
+    document.body.appendChild(modal);
+  }
+  document.getElementById('viewDetailContent').innerHTML = html;
+  openModal('viewDetailModal');
 }

@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600;700&family=Montserrat:wght@200;300;400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-  <link rel="stylesheet" href="style.css?v=88">
+  <link rel="stylesheet" href="style.css?v=89">
   <script>
     (function() {
       const cb = localStorage.getItem('cacheBuster') || Date.now();
@@ -261,10 +261,10 @@
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
         <h2 style="font-family: 'Cormorant Garamond', serif; font-size: 36px; color: var(--gold-primary);">Withdraw Management</h2>
         <div style="display: flex; gap: 10px; align-items: center;">
-          <input type="date" class="form-input" id="withdrawDateFrom" style="width: 150px;">
-          <span>to</span>
-          <input type="date" class="form-input" id="withdrawDateTo" style="width: 150px;">
-          <button class="btn-secondary" onclick="resetWithdrawDateFilter()">Today</button>
+          <input type="date" class="form-input date-filter" id="withdrawDateFrom" style="width: 150px;">
+          <span class="date-filter">to</span>
+          <input type="date" class="form-input date-filter" id="withdrawDateTo" style="width: 150px;">
+          <button class="btn-secondary date-filter" onclick="resetWithdrawDateFilter()">Today</button>
           <button class="btn-primary" onclick="openWithdrawModal()" id="addWithdrawBtn">+ New Withdraw</button>
         </div>
       </div>
@@ -295,10 +295,10 @@
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
         <h2 style="font-family: 'Cormorant Garamond', serif; font-size: 36px; color: var(--gold-primary);">Sell Management</h2>
         <div style="display: flex; gap: 10px; align-items: center;">
-          <input type="date" class="form-input" id="sellDateFrom" style="width: 150px;">
-          <span>to</span>
-          <input type="date" class="form-input" id="sellDateTo" style="width: 150px;">
-          <button class="btn-secondary" onclick="resetSellDateFilter()">Today</button>
+          <input type="date" class="form-input date-filter" id="sellDateFrom" style="width: 150px;">
+          <span class="date-filter">to</span>
+          <input type="date" class="form-input date-filter" id="sellDateTo" style="width: 150px;">
+          <button class="btn-secondary date-filter" onclick="resetSellDateFilter()">Today</button>
           <button class="btn-primary" onclick="openSellModal()" id="addSellBtn">+ New Sell</button>
         </div>
       </div>
@@ -329,10 +329,10 @@
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
         <h2 style="font-family: 'Cormorant Garamond', serif; font-size: 36px; color: var(--gold-primary);">Trade-in Management</h2>
         <div style="display: flex; gap: 10px; align-items: center;">
-          <input type="date" class="form-input" id="tradeinDateFrom" style="width: 150px;">
-          <span>to</span>
-          <input type="date" class="form-input" id="tradeinDateTo" style="width: 150px;">
-          <button class="btn-secondary" onclick="resetTradeinDateFilter()">Today</button>
+          <input type="date" class="form-input date-filter" id="tradeinDateFrom" style="width: 150px;">
+          <span class="date-filter">to</span>
+          <input type="date" class="form-input date-filter" id="tradeinDateTo" style="width: 150px;">
+          <button class="btn-secondary date-filter" onclick="resetTradeinDateFilter()">Today</button>
           <button class="btn-primary" onclick="openTradeinModal()" id="addTradeinBtn">+ New Trade-in</button>
         </div>
       </div>
@@ -365,10 +365,10 @@
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
         <h2 style="font-family: 'Cormorant Garamond', serif; font-size: 36px; color: var(--gold-primary);">Exchange Management</h2>
         <div style="display: flex; gap: 10px; align-items: center;">
-          <input type="date" class="form-input" id="exchangeDateFrom" style="width: 150px;">
-          <span>to</span>
-          <input type="date" class="form-input" id="exchangeDateTo" style="width: 150px;">
-          <button class="btn-secondary" onclick="resetExchangeDateFilter()">Today</button>
+          <input type="date" class="form-input date-filter" id="exchangeDateFrom" style="width: 150px;">
+          <span class="date-filter">to</span>
+          <input type="date" class="form-input date-filter" id="exchangeDateTo" style="width: 150px;">
+          <button class="btn-secondary date-filter" onclick="resetExchangeDateFilter()">Today</button>
           <button class="btn-primary" onclick="openExchangeModal()" id="addExchangeBtn">+ New Exchange</button>
         </div>
       </div>
@@ -401,10 +401,10 @@
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
         <h2 style="font-family: 'Cormorant Garamond', serif; font-size: 36px; color: var(--gold-primary);">Switch Management</h2>
         <div style="display: flex; gap: 10px; align-items: center;">
-          <input type="date" class="form-input" id="switchDateFrom" style="width: 150px;">
-          <span>to</span>
-          <input type="date" class="form-input" id="switchDateTo" style="width: 150px;">
-          <button class="btn-secondary" onclick="clearSwitchDateFilter()">Today</button>
+          <input type="date" class="form-input date-filter" id="switchDateFrom" style="width: 150px;">
+          <span class="date-filter">to</span>
+          <input type="date" class="form-input date-filter" id="switchDateTo" style="width: 150px;">
+          <button class="btn-secondary date-filter" onclick="clearSwitchDateFilter()">Today</button>
           <button class="btn-primary" onclick="openSwitchModal()" id="addSwitchBtn">+ New Switch</button>
         </div>
       </div>
@@ -437,10 +437,10 @@
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
         <h2 style="font-family: 'Cormorant Garamond', serif; font-size: 36px; color: var(--gold-primary);">Free Exchange Management</h2>
         <div style="display: flex; gap: 10px; align-items: center;">
-          <input type="date" class="form-input" id="freeExchangeDateFrom" style="width: 150px;">
-          <span>to</span>
-          <input type="date" class="form-input" id="freeExchangeDateTo" style="width: 150px;">
-          <button class="btn-secondary" onclick="clearFreeExchangeDateFilter()">Today</button>
+          <input type="date" class="form-input date-filter" id="freeExchangeDateFrom" style="width: 150px;">
+          <span class="date-filter">to</span>
+          <input type="date" class="form-input date-filter" id="freeExchangeDateTo" style="width: 150px;">
+          <button class="btn-secondary date-filter" onclick="clearFreeExchangeDateFilter()">Today</button>
           <button class="btn-primary" onclick="openFreeExchangeModal()" id="addFreeExchangeBtn">+ New Free Exchange</button>
         </div>
       </div>
@@ -472,10 +472,10 @@
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
         <h2 style="font-family: 'Cormorant Garamond', serif; font-size: 36px; color: var(--gold-primary);">Buyback Management</h2>
         <div style="display: flex; gap: 10px; align-items: center;">
-          <input type="date" class="form-input" id="buybackDateFrom" style="width: 150px;">
-          <span>to</span>
-          <input type="date" class="form-input" id="buybackDateTo" style="width: 150px;">
-          <button class="btn-secondary" onclick="resetBuybackDateFilter()">Today</button>
+          <input type="date" class="form-input date-filter" id="buybackDateFrom" style="width: 150px;">
+          <span class="date-filter">to</span>
+          <input type="date" class="form-input date-filter" id="buybackDateTo" style="width: 150px;">
+          <button class="btn-secondary date-filter" onclick="resetBuybackDateFilter()">Today</button>
           <button class="btn-primary" onclick="openBuybackModal()" id="addBuybackBtn">+ New Buyback</button>
         </div>
       </div>
@@ -1968,31 +1968,31 @@
   </style>
   
   <script defer src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="js/config.js?v=88"></script>
-  <script src="js/utils.js?v=88"></script>
-  <script src="js/api.js?v=88"></script>
-  <script src="js/ui.js?v=88"></script>
-  <script src="js/dashboard.js?v=88"></script>
-  <script src="js/products.js?v=88"></script>
-  <script src="js/pricerate.js?v=88"></script>
-  <script src="js/sell.js?v=88"></script>
-  <script src="js/payment.js?v=88"></script>
-  <script src="js/tradein.js?v=88"></script>
-  <script src="js/buyback.js?v=88"></script>
-  <script src="js/exchange.js?v=88"></script>
-  <script src="js/switch.js?v=88"></script>
-  <script src="js/freeexchange.js?v=88"></script>
-  <script src="js/withdraw.js?v=88"></script>
-  <script src="js/cashbank.js?v=88"></script>
-  <script src="js/accounting.js?v=88"></script>
-  <script src="js/diff.js?v=88"></script>
-  <script src="js/reports.js?v=88"></script>
-  <script src="js/stockold.js?v=88"></script>
-  <script src="js/stocknew.js?v=88"></script>
-  <script src="js/wac.js?v=88"></script>
-  <script src="js/close.js?v=88"></script>
-  <script src="js/review.js?v=88"></script>
-  <script src="js/auth.js?v=88"></script>
+  <script src="js/config.js?v=89"></script>
+  <script src="js/utils.js?v=89"></script>
+  <script src="js/api.js?v=89"></script>
+  <script src="js/ui.js?v=89"></script>
+  <script src="js/dashboard.js?v=89"></script>
+  <script src="js/products.js?v=89"></script>
+  <script src="js/pricerate.js?v=89"></script>
+  <script src="js/sell.js?v=89"></script>
+  <script src="js/payment.js?v=89"></script>
+  <script src="js/tradein.js?v=89"></script>
+  <script src="js/buyback.js?v=89"></script>
+  <script src="js/exchange.js?v=89"></script>
+  <script src="js/switch.js?v=89"></script>
+  <script src="js/freeexchange.js?v=89"></script>
+  <script src="js/withdraw.js?v=89"></script>
+  <script src="js/cashbank.js?v=89"></script>
+  <script src="js/accounting.js?v=89"></script>
+  <script src="js/diff.js?v=89"></script>
+  <script src="js/reports.js?v=89"></script>
+  <script src="js/stockold.js?v=89"></script>
+  <script src="js/stocknew.js?v=89"></script>
+  <script src="js/wac.js?v=89"></script>
+  <script src="js/close.js?v=89"></script>
+  <script src="js/review.js?v=89"></script>
+  <script src="js/auth.js?v=89"></script>
   
   <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
   <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/th.js"></script>

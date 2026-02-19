@@ -63,7 +63,8 @@ async function loadBuybacks() {
             actions = '<span style="color: var(--text-secondary);">Waiting for payment</span>';
           }
         } else {
-          actions = '-';
+          var detail = encodeURIComponent(JSON.stringify([['Transaction ID', row[0]], ['Phone', row[1]], ['Items', items], ['Price', formatNumber(price) + ' LAK'], ['Fee', formatNumber(fee) + ' LAK'], ['Total', formatNumber(total) + ' LAK'], ['Paid', formatNumber(paid) + ' LAK'], ['Balance', formatNumber(balance) + ' LAK'], ['Date', formatDateTime(row[cDate])], ['Status', status], ['Sale', saleName]]));
+          actions = '<button class="btn-action" onclick="viewTransactionDetail(\'Buyback\',\'' + detail + '\')" style="background:#555;">👁 View</button>';
         }
         
         return '<tr>' +

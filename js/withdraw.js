@@ -45,7 +45,8 @@ async function loadWithdraws() {
             actions = '<span style="color: var(--text-secondary);">Waiting for confirmation</span>';
           }
         } else {
-          actions = '-';
+          var detail = encodeURIComponent(JSON.stringify([['Transaction ID', row[0]], ['Phone', row[1]], ['Items', items], ['Premium', formatNumber(premium) + ' LAK'], ['Total', formatNumber(total) + ' LAK'], ['Date', formatDateTime(row[6])], ['Status', status], ['Sale', saleName]]));
+          actions = '<button class="btn-action" onclick="viewTransactionDetail(\'Withdraw\',\'' + detail + '\')" style="background:#555;">👁 View</button>';
         }
         
         return `
@@ -102,7 +103,7 @@ function calculateWithdrawPremium() {
 
   let premium = 0;
   products.forEach(item => {
-    if (PREMIUM_PRODUCTS.includes(item.productId)) {
+    if (PREMIUM_PRODUCTS.includes(item.productId) || item.productId === 'G07') {
       premium += PREMIUM_PER_PIECE * item.qty;
     }
   });
@@ -133,7 +134,7 @@ async function calculateWithdraw() {
 
   let premium = 0;
   products.forEach(item => {
-    if (PREMIUM_PRODUCTS.includes(item.productId)) {
+    if (PREMIUM_PRODUCTS.includes(item.productId) || item.productId === 'G07') {
       premium += PREMIUM_PER_PIECE * item.qty;
     }
   });
