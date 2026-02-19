@@ -4,13 +4,16 @@ function setupManagerUI() {
     var el = document.getElementById(id);
     if (el) el.style.display = 'none';
   });
-  var mergeTabs = ['sell', 'trade-in', 'exchange', 'switch', 'free exchange', 'withdraw'];
+  var hideSections = ["'sell'", "'tradein'", "'exchange'", "'switch'", "'freeexchange'", "'withdraw'"];
   document.querySelectorAll('.nav-btn').forEach(function(btn) {
-    var txt = btn.textContent.toLowerCase();
-    mergeTabs.forEach(function(tab) {
-      if (txt.includes(tab) && !txt.includes('history')) btn.style.display = 'none';
-    });
-    if (txt.includes('buyback')) btn.textContent = '◑ History Buyback';
+    var oc = (btn.getAttribute('onclick') || '') + '';
+    for (var i = 0; i < hideSections.length; i++) {
+      if (oc.indexOf(hideSections[i]) !== -1) {
+        btn.style.display = 'none';
+        break;
+      }
+    }
+    if (oc.indexOf("'buyback'") !== -1) btn.textContent = '◑ History Buyback';
   });
   var hBtn = document.getElementById('navHistorySell');
   if (hBtn) hBtn.style.display = '';
