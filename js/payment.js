@@ -32,7 +32,7 @@ function addCashPayment() {
 
 function addBankPayment() {
   const id = Date.now();
-  paymentItems.bank.push({ id, bank: 'BCEL', currency: 'LAK', amount: 0, rate: 1 });
+  paymentItems.bank.push({ id, bank: 'BCEL', currency: 'LAK', amount: 0, rate: 1, fee: 0 });
   renderBankPayments();
 }
 
@@ -79,8 +79,18 @@ function updateCashAmountOnly(id, value) {
 
 function renderBankPayments() {
   const container = document.getElementById('bankPaymentsList');
+  var isBuyback = currentPaymentData && currentPaymentData.type === 'BUYBACK';
   container.innerHTML = paymentItems.bank.map((item, idx) => {
     const lakAmount = item.amount * item.rate;
+    var feeHtml = '';
+    if (isBuyback) {
+      feeHtml = `
+        <div style="display: flex; gap: 10px; align-items: center; margin-top: 8px; padding-top: 8px; border-top: 1px dashed var(--border-color);">
+          <span style="font-size: 12px; color: #ff9800; white-space: nowrap;">💰 Fee (LAK):</span>
+          <input type="number" class="form-input" placeholder="0" value="${item.fee || ''}"
+                 style="flex: 1;" oninput="updateBankFee(${item.id}, this.value)">
+        </div>`;
+    }
     return `
     <div class="payment-item" data-id="${item.id}" style="margin-bottom: 10px; padding: 12px; background: var(--bg-light); border-radius: 8px;">
       <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 8px;">
@@ -105,6 +115,7 @@ function renderBankPayments() {
           <span class="lak-display" style="color: var(--gold-primary); font-weight: bold;">= ${formatNumber(lakAmount)} LAK</span>
         </div>
       ` : ''}
+      ${feeHtml}
     </div>
   `}).join('');
   updatePaymentSummary();
@@ -173,6 +184,14 @@ function removeBankPayment(id) {
   renderBankPayments();
 }
 
+function updateBankFee(id, value) {
+  var item = paymentItems.bank.find(function(i) { return i.id === id; });
+  if (item) {
+    item.fee = parseFloat(value) || 0;
+    updatePaymentSummary();
+  }
+}
+
 function updatePaymentSummary() {
   let totalPaid = 0;
   
@@ -187,6 +206,7 @@ function updatePaymentSummary() {
   const total = currentPaymentData?.total || 0;
   const remaining = total - totalPaid;
   const change = totalPaid - total;
+  var isBuyback = currentPaymentData && currentPaymentData.type === 'BUYBACK';
   
   document.getElementById('multiPaymentPaidTotal').textContent = formatNumber(totalPaid) + ' LAK';
   
@@ -194,56 +214,76 @@ function updatePaymentSummary() {
   var changeEl = document.getElementById('multiPaymentChange');
   var changeLbl = document.getElementById('multiPaymentChangeLabel');
   var changeNote = document.getElementById('multiPaymentChangeNote');
+  var feeBox = document.getElementById('multiPaymentFeeSummary');
+
+  if (isBuyback) {
+    changeBox.style.display = 'none';
+    var totalFee = 0;
+    paymentItems.bank.forEach(function(item) { totalFee += item.fee || 0; });
+    if (feeBox) {
+      feeBox.style.display = 'block';
+      feeBox.innerHTML = '<div style="font-size: 14px; color: #ff9800; margin-bottom: 5px;">💰 Total Fee (ค่าธรรมเนียม)</div>' +
+        '<div style="font-size: 24px; font-weight: bold; color: #ff9800;">' + formatNumber(totalFee) + ' LAK</div>';
+    }
+  } else {
+    changeBox.style.display = '';
+    if (feeBox) feeBox.style.display = 'none';
+  }
   
   if (remaining > 0) {
     document.getElementById('multiPaymentRemaining').textContent = formatNumber(remaining) + ' LAK';
     document.getElementById('multiPaymentRemaining').style.color = '#f44336';
-    changeEl.textContent = '0 LAK';
-    changeBox.style.background = 'rgba(76, 175, 80, 0.15)';
-    changeBox.style.borderColor = '#4caf50';
-    changeLbl.style.color = '#4caf50';
-    changeEl.style.color = '#4caf50';
-    changeNote.style.display = 'none';
-  } else {
-    document.getElementById('multiPaymentRemaining').textContent = '0 LAK';
-    document.getElementById('multiPaymentRemaining').style.color = '#4caf50';
-    var ch = Math.max(0, change);
-    changeEl.textContent = formatNumber(ch) + ' LAK';
-
-    var overLimit = false;
-    var limitLabel = '';
-    if (ch > 0 && currentPaymentData && currentPaymentData.type !== 'BUYBACK') {
-      var allItems = paymentItems.cash.concat(paymentItems.bank);
-      var hasTHB = allItems.some(function(i) { return i.currency === 'THB' && i.amount > 0; });
-      var hasUSD = allItems.some(function(i) { return i.currency === 'USD' && i.amount > 0; });
-      if (hasTHB || hasUSD) {
-        var thbRate = currentExchangeRates.THB_Sell || 0;
-        var usdRate = currentExchangeRates.USD_Sell || 0;
-        var maxLAK = 0;
-        if (hasUSD && !hasTHB) {
-          maxLAK = 100 * usdRate;
-          limitLabel = '100 USD (' + formatNumber(maxLAK) + ' LAK)';
-        } else {
-          maxLAK = 1000 * thbRate;
-          limitLabel = '1,000 THB (' + formatNumber(maxLAK) + ' LAK)';
-        }
-        if (maxLAK > 0 && ch > maxLAK) overLimit = true;
-      }
-    }
-
-    if (overLimit) {
-      changeBox.style.background = 'rgba(244, 67, 54, 0.15)';
-      changeBox.style.borderColor = '#f44336';
-      changeLbl.style.color = '#f44336';
-      changeEl.style.color = '#f44336';
-      changeNote.style.display = 'block';
-      changeNote.textContent = '⚠ เงินทอนเกินกำหนด! สูงสุด ' + limitLabel;
-    } else {
+    if (!isBuyback) {
+      changeEl.textContent = '0 LAK';
       changeBox.style.background = 'rgba(76, 175, 80, 0.15)';
       changeBox.style.borderColor = '#4caf50';
       changeLbl.style.color = '#4caf50';
       changeEl.style.color = '#4caf50';
       changeNote.style.display = 'none';
+    }
+  } else {
+    document.getElementById('multiPaymentRemaining').textContent = '0 LAK';
+    document.getElementById('multiPaymentRemaining').style.color = '#4caf50';
+
+    if (!isBuyback) {
+      var ch = Math.max(0, change);
+      changeEl.textContent = formatNumber(ch) + ' LAK';
+
+      var overLimit = false;
+      var limitLabel = '';
+      if (ch > 0) {
+        var allItems = paymentItems.cash.concat(paymentItems.bank);
+        var hasTHB = allItems.some(function(i) { return i.currency === 'THB' && i.amount > 0; });
+        var hasUSD = allItems.some(function(i) { return i.currency === 'USD' && i.amount > 0; });
+        if (hasTHB || hasUSD) {
+          var thbRate = currentExchangeRates.THB_Sell || 0;
+          var usdRate = currentExchangeRates.USD_Sell || 0;
+          var maxLAK = 0;
+          if (hasUSD && !hasTHB) {
+            maxLAK = 100 * usdRate;
+            limitLabel = '100 USD (' + formatNumber(maxLAK) + ' LAK)';
+          } else {
+            maxLAK = 1000 * thbRate;
+            limitLabel = '1,000 THB (' + formatNumber(maxLAK) + ' LAK)';
+          }
+          if (maxLAK > 0 && ch > maxLAK) overLimit = true;
+        }
+      }
+
+      if (overLimit) {
+        changeBox.style.background = 'rgba(244, 67, 54, 0.15)';
+        changeBox.style.borderColor = '#f44336';
+        changeLbl.style.color = '#f44336';
+        changeEl.style.color = '#f44336';
+        changeNote.style.display = 'block';
+        changeNote.textContent = '⚠ เงินทอนเกินกำหนด! สูงสุด ' + limitLabel;
+      } else {
+        changeBox.style.background = 'rgba(76, 175, 80, 0.15)';
+        changeBox.style.borderColor = '#4caf50';
+        changeLbl.style.color = '#4caf50';
+        changeEl.style.color = '#4caf50';
+        changeNote.style.display = 'none';
+      }
     }
   }
 }
@@ -270,7 +310,10 @@ async function confirmMultiPayment() {
     }
   }
   
-  const change = Math.max(0, totalPaid - total);
+  var change = 0;
+  if (currentPaymentData.type !== 'BUYBACK') {
+    change = Math.max(0, totalPaid - total);
+  }
 
   if (change > 0) {
     var allItems = paymentItems.cash.concat(paymentItems.bank);
@@ -342,7 +385,9 @@ async function confirmMultiPayment() {
       user: currentUser.nickname
     };
     if (currentPaymentData.type === 'BUYBACK') {
-      params.fee = parseFloat(document.getElementById('multiPaymentFeeInput').value) || 0;
+      var totalFee = 0;
+      paymentItems.bank.forEach(function(item) { totalFee += item.fee || 0; });
+      params.fee = totalFee;
       params.items = currentPaymentData.items || '';
       params.total = currentPaymentData.total || 0;
     }
@@ -474,9 +519,7 @@ async function openBuybackPaymentModalFromList(buybackId) {
   document.getElementById('multiPaymentDetails').innerHTML = currentPaymentData.details;
   document.getElementById('multiPaymentTotal').textContent = formatNumber(outstanding) + ' LAK';
   
-  document.getElementById('multiPaymentFeeGroup').style.display = 'block';
-  document.getElementById('multiPaymentFeeInput').value = '';
-  document.getElementById('multiPaymentFeeInput').placeholder = '0';
+  document.getElementById('multiPaymentFeeGroup').style.display = 'none';
   
   document.getElementById('cashPaymentsList').innerHTML = '';
   document.getElementById('bankPaymentsList').innerHTML = '';

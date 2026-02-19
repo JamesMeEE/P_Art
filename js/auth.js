@@ -83,9 +83,12 @@ function login() {
         mergeTabs.forEach(function(tab) {
           if (txt.includes(tab) && !txt.includes('history')) btn.style.display = 'none';
         });
+        if (txt.includes('buyback')) btn.textContent = '◑ History Buyback';
       });
       var hBtn = document.getElementById('navHistorySell');
       if (hBtn) hBtn.style.display = '';
+      var bbTitle = document.getElementById('buybackTitle');
+      if (bbTitle) bbTitle.textContent = 'History Buyback';
     }
 
     fetchExchangeRates();
@@ -181,9 +184,12 @@ function logout() {
         mergeTabs.forEach(function(tab) {
           if (txt.includes(tab) && !txt.includes('history')) btn.style.display = 'none';
         });
+        if (txt.includes('buyback')) btn.textContent = '◑ History Buyback';
       });
       var hBtn = document.getElementById('navHistorySell');
       if (hBtn) hBtn.style.display = '';
+      var bbTitle = document.getElementById('buybackTitle');
+      if (bbTitle) bbTitle.textContent = 'History Buyback';
     }
 
     fetchExchangeRates();
