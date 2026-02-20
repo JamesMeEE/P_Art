@@ -19,7 +19,7 @@ function renderDiffTable(data, startDate, endDate) {
     return;
   }
 
-  var rows = data.slice(1);
+  var rows = data.slice(1).filter(function(row) { return String(row[1] || '').toUpperCase() !== 'BUYBACK'; });
 
   if (startDate && endDate) {
     rows = rows.filter(function(row) {

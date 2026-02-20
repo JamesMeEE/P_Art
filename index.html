@@ -701,64 +701,21 @@
 
     <section id="accounting" class="section">
       <div style="margin-bottom: 30px;">
-        <h2 style="font-family: 'Cormorant Garamond', serif; font-size: 36px; color: var(--gold-primary);">Accounting (Today's Summary)</h2>
+        <h2 style="font-family: 'Cormorant Garamond', serif; font-size: 36px; color: var(--gold-primary);">Accounting</h2>
+        <div style="display: flex; gap: 10px; align-items: center; margin-top: 15px;">
+          <input type="date" id="accDateFrom" class="form-input" style="width: 150px;">
+          <span style="color: var(--text-secondary);">to</span>
+          <input type="date" id="accDateTo" class="form-input" style="width: 150px;">
+          <button class="btn-secondary" onclick="resetAccDateFilter()">Today</button>
+        </div>
       </div>
       
       <div id="accountingStats"></div>
-      
-      <div style="margin-top: 40px;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-          <h3 style="color: var(--gold-primary);">Daily History</h3>
-          <div style="display: flex; gap: 10px; align-items: center;">
-            <input type="date" id="accountingStartDate" class="form-input" style="width: 150px;" onchange="checkAccountingFilter()">
-            <span style="color: var(--text-secondary);">to</span>
-            <input type="date" id="accountingEndDate" class="form-input" style="width: 150px;" onchange="checkAccountingFilter()">
-            <button class="btn-secondary" onclick="showTodayAccounting()">TODAY</button>
-          </div>
-        </div>
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
-          <div style="background: var(--bg-card); border-radius: 12px; padding: 20px; border: 1px solid var(--border-color);">
-            <h3 style="color: var(--gold-primary); margin-bottom: 10px; font-size: 16px;">💰 Daily LAK Summary</h3>
-            <canvas id="accountingLAKChart" height="220"></canvas>
-          </div>
-          <div style="background: var(--bg-card); border-radius: 12px; padding: 20px; border: 1px solid var(--border-color);">
-            <h3 style="color: var(--gold-primary); margin-bottom: 10px; font-size: 16px;">⚖ Daily Gold Summary</h3>
-            <canvas id="accountingGoldChart" height="220"></canvas>
-          </div>
-        </div>
-        <div class="table-container">
-          <table>
-            <thead>
-              <tr style="background: #2d2d2d !important; border-bottom: 2px solid #d4af37 !important;">
-                <th rowspan="2" style="background: #2d2d2d !important; color: #d4af37 !important; border: 1px solid rgba(212, 175, 55, 0.5) !important; text-transform: uppercase !important; font-weight: 700 !important; padding: 14px 8px !important; font-size: 13px !important; text-align: center !important;">Date</th>
-                <th colspan="2" style="background: #2d2d2d !important; color: #d4af37 !important; border: 1px solid rgba(212, 175, 55, 0.5) !important; text-transform: uppercase !important; font-weight: 700 !important; padding: 14px 8px !important; font-size: 13px !important; text-align: center !important;">SELL</th>
-                <th colspan="2" style="background: #2d2d2d !important; color: #d4af37 !important; border: 1px solid rgba(212, 175, 55, 0.5) !important; text-transform: uppercase !important; font-weight: 700 !important; padding: 14px 8px !important; font-size: 13px !important; text-align: center !important;">TRADE-IN</th>
-                <th colspan="2" style="background: #2d2d2d !important; color: #d4af37 !important; border: 1px solid rgba(212, 175, 55, 0.5) !important; text-transform: uppercase !important; font-weight: 700 !important; padding: 14px 8px !important; font-size: 13px !important; text-align: center !important;">EXCHANGE</th>
-                <th colspan="2" style="background: #2d2d2d !important; color: #d4af37 !important; border: 1px solid rgba(212, 175, 55, 0.5) !important; text-transform: uppercase !important; font-weight: 700 !important; padding: 14px 8px !important; font-size: 13px !important; text-align: center !important;">BUY BACK</th>
-                <th colspan="2" style="background: #2d2d2d !important; color: #d4af37 !important; border: 1px solid rgba(212, 175, 55, 0.5) !important; text-transform: uppercase !important; font-weight: 700 !important; padding: 14px 8px !important; font-size: 13px !important; text-align: center !important;">WITHDRAW</th>
-                <th colspan="2" style="background: #2d2d2d !important; color: #d4af37 !important; border: 1px solid rgba(212, 175, 55, 0.5) !important; text-transform: uppercase !important; font-weight: 700 !important; padding: 14px 8px !important; font-size: 13px !important; text-align: center !important;">INCOMPLETE</th>
-              </tr>
-              <tr style="background: #252525 !important;">
-                <th style="background: #252525 !important; color: #d4af37 !important; border: 1px solid rgba(212, 175, 55, 0.4) !important; font-weight: 600 !important; padding: 10px 8px !important; font-size: 12px !important; text-align: center !important;">LAK</th>
-                <th style="background: #252525 !important; color: #d4af37 !important; border: 1px solid rgba(212, 175, 55, 0.4) !important; font-weight: 600 !important; padding: 10px 8px !important; font-size: 12px !important; text-align: center !important;">Gold (g)</th>
-                <th style="background: #252525 !important; color: #d4af37 !important; border: 1px solid rgba(212, 175, 55, 0.4) !important; font-weight: 600 !important; padding: 10px 8px !important; font-size: 12px !important; text-align: center !important;">LAK</th>
-                <th style="background: #252525 !important; color: #d4af37 !important; border: 1px solid rgba(212, 175, 55, 0.4) !important; font-weight: 600 !important; padding: 10px 8px !important; font-size: 12px !important; text-align: center !important;">Gold (g)</th>
-                <th style="background: #252525 !important; color: #d4af37 !important; border: 1px solid rgba(212, 175, 55, 0.4) !important; font-weight: 600 !important; padding: 10px 8px !important; font-size: 12px !important; text-align: center !important;">LAK</th>
-                <th style="background: #252525 !important; color: #d4af37 !important; border: 1px solid rgba(212, 175, 55, 0.4) !important; font-weight: 600 !important; padding: 10px 8px !important; font-size: 12px !important; text-align: center !important;">Gold (g)</th>
-                <th style="background: #252525 !important; color: #d4af37 !important; border: 1px solid rgba(212, 175, 55, 0.4) !important; font-weight: 600 !important; padding: 10px 8px !important; font-size: 12px !important; text-align: center !important;">LAK</th>
-                <th style="background: #252525 !important; color: #d4af37 !important; border: 1px solid rgba(212, 175, 55, 0.4) !important; font-weight: 600 !important; padding: 10px 8px !important; font-size: 12px !important; text-align: center !important;">Gold (g)</th>
-                <th style="background: #252525 !important; color: #d4af37 !important; border: 1px solid rgba(212, 175, 55, 0.4) !important; font-weight: 600 !important; padding: 10px 8px !important; font-size: 12px !important; text-align: center !important;">LAK</th>
-                <th style="background: #252525 !important; color: #d4af37 !important; border: 1px solid rgba(212, 175, 55, 0.4) !important; font-weight: 600 !important; padding: 10px 8px !important; font-size: 12px !important; text-align: center !important;">Gold (g)</th>
-                <th style="background: #252525 !important; color: #d4af37 !important; border: 1px solid rgba(212, 175, 55, 0.4) !important; font-weight: 600 !important; padding: 10px 8px !important; font-size: 12px !important; text-align: center !important;">LAK</th>
-                <th style="background: #252525 !important; color: #d4af37 !important; border: 1px solid rgba(212, 175, 55, 0.4) !important; font-weight: 600 !important; padding: 10px 8px !important; font-size: 12px !important; text-align: center !important;">Gold (g)</th>
-              </tr>
-            </thead>
-            <tbody id="accountingTable">
-              <tr>
-                <td colspan="13" style="text-align: center; padding: 40px;">No records</td>
-              </tr>
-            </tbody>
-          </table>
+
+      <div style="margin-top: 20px;">
+        <div style="background: var(--bg-card); border-radius: 12px; padding: 20px; border: 1px solid var(--border-color);">
+          <h3 style="color: var(--gold-primary); margin-bottom: 10px; font-size: 16px;">⚖ Net Sell (บาท) — Last 7 Days</h3>
+          <canvas id="accNetSellChart" height="250"></canvas>
         </div>
       </div>
     </section>
