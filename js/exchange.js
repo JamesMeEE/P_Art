@@ -158,7 +158,7 @@ async function verifyFreeExBill() {
 
   try {
     showLoading();
-    var sheets = ['Sells!A:M', 'Tradeins!A:O', 'Exchanges!A:T', 'Switches!A:O', 'FreeExchanges!A:K'];
+    var sheets = ['Sells!A:M', 'Tradeins!A:O', 'Exchanges!A:T', 'Withdraws!A:J'];
     var results = await Promise.all(sheets.map(function(s) { return fetchSheetData(s); }));
 
     var bill = null;
@@ -180,8 +180,7 @@ async function verifyFreeExBill() {
           if (si === 0) { billNewGold = sdata[ri][2]; billDate = sdata[ri][9]; billSheet = 'Sells'; }
           else if (si === 1) { billNewGold = sdata[ri][3]; billDate = sdata[ri][11]; billSheet = 'Tradeins'; }
           else if (si === 2) { billNewGold = sdata[ri][3]; billDate = sdata[ri][11]; billSheet = 'Exchanges'; }
-          else if (si === 3) { billNewGold = sdata[ri][3]; billDate = sdata[ri][11]; billSheet = 'Switches'; }
-          else if (si === 4) { billNewGold = sdata[ri][3]; billDate = sdata[ri][7]; billSheet = 'FreeExchanges'; }
+          else if (si === 3) { billNewGold = sdata[ri][2]; billDate = sdata[ri][6]; billSheet = 'Withdraws'; }
           break;
         }
       }
