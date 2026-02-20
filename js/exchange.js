@@ -164,6 +164,7 @@ async function verifyFreeExBill() {
     var bill = null;
     var billNewGold = null;
     var billDate = null;
+    var billStatus = '';
     var freeExUsedCol = -1;
     var billSheet = '';
 
@@ -177,10 +178,10 @@ async function verifyFreeExBill() {
         if (String(sdata[ri][0]) === billId) {
           bill = sdata[ri];
           freeExUsedCol = feuCol;
-          if (si === 0) { billNewGold = sdata[ri][2]; billDate = sdata[ri][9]; billSheet = 'Sells'; }
-          else if (si === 1) { billNewGold = sdata[ri][3]; billDate = sdata[ri][11]; billSheet = 'Tradeins'; }
-          else if (si === 2) { billNewGold = sdata[ri][3]; billDate = sdata[ri][11]; billSheet = 'Exchanges'; }
-          else if (si === 3) { billNewGold = sdata[ri][2]; billDate = sdata[ri][6]; billSheet = 'Withdraws'; }
+          if (si === 0) { billNewGold = sdata[ri][2]; billDate = sdata[ri][9]; billStatus = String(sdata[ri][10] || ''); billSheet = 'Sells'; }
+          else if (si === 1) { billNewGold = sdata[ri][3]; billDate = sdata[ri][11]; billStatus = String(sdata[ri][12] || ''); billSheet = 'Tradeins'; }
+          else if (si === 2) { billNewGold = sdata[ri][3]; billDate = sdata[ri][11]; billStatus = String(sdata[ri][12] || ''); billSheet = 'Exchanges'; }
+          else if (si === 3) { billNewGold = sdata[ri][2]; billDate = sdata[ri][6]; billStatus = String(sdata[ri][7] || ''); billSheet = 'Withdraws'; }
           break;
         }
       }
@@ -190,6 +191,11 @@ async function verifyFreeExBill() {
     hideLoading();
 
     if (!bill) { statusEl.innerHTML = '<span style="color:#f44336;">❌ ไม่พบบิล ' + billId + '</span>'; return; }
+
+    if (billStatus !== 'COMPLETED' && billStatus !== 'PAID') {
+      statusEl.innerHTML = '<span style="color:#f44336;">❌ บิลนี้สถานะ ' + billStatus + ' (ต้องเป็น COMPLETED)</span>';
+      return;
+    }
 
     if (freeExUsedCol >= 0 && bill[freeExUsedCol] && String(bill[freeExUsedCol]).trim() !== '') {
       statusEl.innerHTML = '<span style="color:#f44336;">❌ บิลนี้ถูกนำไปแลก Free Ex แล้ว (' + bill[freeExUsedCol] + ')</span>';
