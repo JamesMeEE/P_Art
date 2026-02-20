@@ -267,7 +267,7 @@ function roundTo1000(num) {
 }
 
 function calculateSellPrice(productId, sell1Baht) {
-  let price = 0;
+  var price = 0;
   switch(productId) {
     case 'G01': price = sell1Baht * 10; break;
     case 'G02': price = sell1Baht * 5; break;
@@ -275,7 +275,7 @@ function calculateSellPrice(productId, sell1Baht) {
     case 'G04': price = sell1Baht; break;
     case 'G05': price = (sell1Baht / 2); break;
     case 'G06': price = (sell1Baht / 4); break;
-    case 'G07': price = Math.round(((sell1Baht / 15) + 120000) / 1000) * 1000; break;
+    case 'G07': price = (sell1Baht / 15) + 120000; break;
   }
   return price;
 }
