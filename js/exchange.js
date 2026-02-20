@@ -74,11 +74,12 @@ function addExRow(containerId) {
   _exRowCounter++;
   var rid = 'exr_' + _exRowCounter;
   var opts = FIXED_PRODUCTS.map(function(p) { return '<option value="' + p.id + '">' + p.name + '</option>'; }).join('');
+  var extraChange = containerId === 'exOldFreeEx' ? ';onFreeExChanged()' : '';
   document.getElementById(containerId).insertAdjacentHTML('beforeend',
-    '<div class="product-row" id="' + rid + '">' +
-    '<select class="form-select" style="flex:2;" onchange="updateExTotal()"><option value="">Select</option>' + opts + '</select>' +
-    '<input type="number" class="form-input" placeholder="Qty" min="1" style="flex:1;" oninput="updateExTotal()">' +
-    '<button type="button" class="btn-remove" onclick="document.getElementById(\'' + rid + '\').remove();updateExTotal()">×</button></div>');
+    '<div class="product-row" id="' + rid + '" data-container="' + containerId + '">' +
+    '<select class="form-select" style="flex:2;" onchange="updateExTotal()' + extraChange + '"><option value="">Select</option>' + opts + '</select>' +
+    '<input type="number" class="form-input" placeholder="Qty" min="1" style="flex:1;" oninput="updateExTotal()' + extraChange + '">' +
+    '<button type="button" class="btn-remove" onclick="document.getElementById(\'' + rid + '\').remove();updateExTotal()' + extraChange + '">×</button></div>');
   updateExTotal();
 }
 
@@ -279,11 +280,7 @@ async function calculateExchangeNew() {
 
   if (oldFreeEx.length > 0) {
     var freeExPrem = calcPremium(oldFreeEx);
-    if (freeExPrem > newPremium) {
-      alert('❌ ค่า Premium ของทอง Free Ex (' + formatNumber(freeExPrem) + ') มากกว่า Premium ทองใหม่ (' + formatNumber(newPremium) + ')');
-      return;
-    }
-    freeExPremiumDeduct = freeExPrem;
+    freeExPremiumDeduct = Math.min(freeExPrem, newPremium);
   }
 
   var premium = newPremium - freeExPremiumDeduct;

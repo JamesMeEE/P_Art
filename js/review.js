@@ -1,91 +1,100 @@
-let currentReviewData = null;
+var currentReviewData = null;
 
-function openReviewDecisionModal(type, id, items) {
-  currentReviewData = { type, id, items };
-  
-  const titles = {
+function openReviewDecisionModal(type, id, newGold, oldGold) {
+  currentReviewData = { type: type, id: id };
+
+  var titles = {
     'SELL': 'Review Sell',
     'TRADEIN': 'Review Trade-in',
     'EXCHANGE': 'Review Exchange',
-    'SWITCH': 'Review Switch',
-    'FREE_EXCHANGE': 'Review Free Exchange',
     'WITHDRAW': 'Review Withdraw'
   };
-  
+
   document.getElementById('reviewDecisionTitle').textContent = titles[type] || 'Review';
-  document.getElementById('reviewDecisionId').textContent = `Transaction ID: ${id}`;
+  document.getElementById('reviewDecisionId').textContent = 'Transaction ID: ' + id;
   document.getElementById('reviewDecisionNote').value = '';
-  
-  let itemsHTML = '<table style="width: 100%; font-size: 14px;">';
-  itemsHTML += '<tr style="border-bottom: 1px solid var(--border-color);"><th style="text-align: left; padding: 5px;">Product</th><th style="text-align: right; padding: 5px;">Qty</th></tr>';
-  
-  try {
-    const itemsArray = typeof items === 'string' ? JSON.parse(items) : items;
-    itemsArray.forEach(item => {
-      const productName = FIXED_PRODUCTS.find(p => p.id === item.productId)?.name || item.productId;
-      itemsHTML += `<tr><td style="padding: 5px;">${productName}</td><td style="text-align: right; padding: 5px;">${item.qty}</td></tr>`;
-    });
-  } catch (e) {
-    itemsHTML += '<tr><td colspan="2" style="padding: 5px; color: var(--text-secondary);">No items</td></tr>';
+
+  var buildTable = function(label, color, itemsJson) {
+    var html = '<div style="margin-bottom:10px;"><span style="color:' + color + ';font-weight:bold;font-size:13px;">' + label + '</span></div>';
+    html += '<table style="width:100%;font-size:14px;margin-bottom:12px;">';
+    html += '<tr style="border-bottom:1px solid var(--border-color);"><th style="text-align:left;padding:5px;">Product</th><th style="text-align:right;padding:5px;">Qty</th></tr>';
+    try {
+      var items = typeof itemsJson === 'string' ? JSON.parse(itemsJson) : itemsJson;
+      if (items && items.length > 0) {
+        items.forEach(function(item) {
+          var p = FIXED_PRODUCTS.find(function(fp) { return fp.id === item.productId; });
+          var name = p ? p.name : item.productId;
+          html += '<tr><td style="padding:5px;">' + name + '</td><td style="text-align:right;padding:5px;">' + item.qty + '</td></tr>';
+        });
+      } else {
+        html += '<tr><td colspan="2" style="padding:5px;color:var(--text-secondary);">ไม่มี</td></tr>';
+      }
+    } catch(e) {
+      html += '<tr><td colspan="2" style="padding:5px;color:var(--text-secondary);">ไม่มี</td></tr>';
+    }
+    html += '</table>';
+    return html;
+  };
+
+  var content = '';
+
+  if (oldGold) {
+    content += buildTable('◀ ทองเก่า (OLD GOLD)', '#ff9800', oldGold);
   }
-  
-  itemsHTML += '</table>';
-  document.getElementById('reviewDecisionItems').innerHTML = itemsHTML;
-  
+
+  content += buildTable('▶ ทองใหม่ (NEW GOLD)', '#4caf50', newGold);
+
+  document.getElementById('reviewDecisionItems').innerHTML = content;
   openModal('reviewDecisionModal');
 }
 
 async function submitReviewDecision(decision) {
   if (!currentReviewData) return;
-  
-  const note = document.getElementById('reviewDecisionNote').value.trim();
-  
-  const actionMap = {
+
+  var note = document.getElementById('reviewDecisionNote').value.trim();
+
+  var actionMap = {
     'SELL': 'REVIEW_SELL',
     'TRADEIN': 'REVIEW_TRADEIN',
     'EXCHANGE': 'REVIEW_EXCHANGE',
-    'SWITCH': 'REVIEW_SWITCH',
-    'FREE_EXCHANGE': 'REVIEW_FREE_EXCHANGE',
     'WITHDRAW': 'REVIEW_WITHDRAW'
   };
-  
-  const action = actionMap[currentReviewData.type];
+
+  var action = actionMap[currentReviewData.type];
   if (!action) {
     alert('❌ Unknown transaction type');
     return;
   }
-  
+
   try {
     showLoading();
-    
-    const result = await callAppsScript(action, {
+
+    var result = await callAppsScript(action, {
       id: currentReviewData.id,
       decision: decision,
       approvedBy: currentUser.nickname,
       note: note
     });
-    
+
     if (result.success) {
-      const msg = decision === 'APPROVE' ? '✅ Approved!' : '❌ Rejected!';
+      var msg = decision === 'APPROVE' ? '✅ Approved!' : '❌ Rejected!';
       alert(msg);
       closeModal('reviewDecisionModal');
-      
-      const type = currentReviewData.type;
+
+      var type = currentReviewData.type;
       currentReviewData = null;
-      
+
       if (type === 'SELL') loadSells();
       else if (type === 'TRADEIN') loadTradeins();
       else if (type === 'EXCHANGE') loadExchanges();
-      else if (type === 'SWITCH') loadSwitches();
-      else if (type === 'FREE_EXCHANGE') loadFreeExchanges();
       else if (type === 'WITHDRAW') loadWithdraws();
-      
+
       if (typeof loadHistorySell === 'function') loadHistorySell();
       loadDashboard();
     } else {
       alert('❌ Error: ' + result.message);
     }
-    
+
     hideLoading();
   } catch (error) {
     alert('❌ Error: ' + error.message);
@@ -95,10 +104,10 @@ async function submitReviewDecision(decision) {
 
 async function reviewSell(sellId) {
   try {
-    const data = await fetchSheetData('Sells!A:L');
-    const sell = data.slice(1).find(row => row[0] === sellId);
+    var data = await fetchSheetData('Sells!A:L');
+    var sell = data.slice(1).find(function(row) { return row[0] === sellId; });
     if (sell) {
-      openReviewDecisionModal('SELL', sellId, sell[2]);
+      openReviewDecisionModal('SELL', sellId, sell[2], null);
     }
   } catch (e) {
     alert('❌ Error loading data');
@@ -107,10 +116,10 @@ async function reviewSell(sellId) {
 
 async function reviewTradein(tradeinId) {
   try {
-    const data = await fetchSheetData('Tradeins!A:N');
-    const tradein = data.slice(1).find(row => row[0] === tradeinId);
+    var data = await fetchSheetData('Tradeins!A:N');
+    var tradein = data.slice(1).find(function(row) { return row[0] === tradeinId; });
     if (tradein) {
-      openReviewDecisionModal('TRADEIN', tradeinId, tradein[3]);
+      openReviewDecisionModal('TRADEIN', tradeinId, tradein[3], tradein[2]);
     }
   } catch (e) {
     alert('❌ Error loading data');
@@ -119,10 +128,10 @@ async function reviewTradein(tradeinId) {
 
 async function reviewExchange(exchangeId) {
   try {
-    const data = await fetchSheetData('Exchanges!A:N');
-    const exchange = data.slice(1).find(row => row[0] === exchangeId);
-    if (exchange) {
-      openReviewDecisionModal('EXCHANGE', exchangeId, exchange[3]);
+    var data = await fetchSheetData('Exchanges!A:T');
+    var ex = data.slice(1).find(function(row) { return row[0] === exchangeId; });
+    if (ex) {
+      openReviewDecisionModal('EXCHANGE', exchangeId, ex[3], ex[2]);
     }
   } catch (e) {
     alert('❌ Error loading data');
@@ -131,33 +140,10 @@ async function reviewExchange(exchangeId) {
 
 async function reviewWithdraw(withdrawId) {
   try {
-    const data = await fetchSheetData('Withdraws!A:J');
-    const withdraw = data.slice(1).find(row => row[0] === withdrawId);
+    var data = await fetchSheetData('Withdraws!A:J');
+    var withdraw = data.slice(1).find(function(row) { return row[0] === withdrawId; });
     if (withdraw) {
-      openReviewDecisionModal('WITHDRAW', withdrawId, withdraw[2]);
-    }
-  } catch (e) {
-    alert('❌ Error loading data');
-  }
-}
-async function reviewSwitch(switchId) {
-  try {
-    var data = await fetchSheetData('Switches!A:N');
-    var sw = data.slice(1).find(function(row) { return row[0] === switchId; });
-    if (sw) {
-      openReviewDecisionModal('SWITCH', switchId, sw[3]);
-    }
-  } catch (e) {
-    alert('❌ Error loading data');
-  }
-}
-
-async function reviewFreeExchange(freeExId) {
-  try {
-    var data = await fetchSheetData('FreeExchanges!A:L');
-    var fe = data.slice(1).find(function(row) { return row[0] === freeExId; });
-    if (fe) {
-      openReviewDecisionModal('FREE_EXCHANGE', freeExId, fe[3]);
+      openReviewDecisionModal('WITHDRAW', withdrawId, withdraw[2], null);
     }
   } catch (e) {
     alert('❌ Error loading data');
