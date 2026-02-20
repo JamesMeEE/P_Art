@@ -244,10 +244,19 @@ async function refreshDashReport() {
     var result = await callAppsScript('GET_LIVE_REPORT');
     if (!result.data) return;
     var net = result.data.netTotal || 0;
+    var carry = result.data.carryForward || 0;
+    var diff = result.data.diff || 0;
+    var diffColor = diff >= 0 ? '#4caf50' : '#f44336';
+    var diffSign = diff >= 0 ? '+' : '';
 
     document.getElementById('dashReportBox').innerHTML =
-      '<h3 style="color:var(--gold-primary);margin-bottom:10px;">📋 Report</h3>' +
-      '<p style="font-size:24px;font-weight:bold;margin:15px 0;">' + net.toFixed(2) + ' g</p>';
+      '<h3 style="color:var(--gold-primary);margin-bottom:8px;">📋 Report</h3>' +
+      '<p style="font-size:11px;color:var(--text-secondary);margin:0;">ส่วนต่างทอง</p>' +
+      '<p style="font-size:26px;font-weight:bold;color:' + diffColor + ';margin:4px 0;">' + diffSign + diff.toFixed(2) + ' g</p>' +
+      '<div style="border-top:1px solid var(--border-color);margin-top:8px;padding-top:8px;">' +
+      '<div style="display:flex;justify-content:space-between;font-size:12px;margin:3px 0;"><span style="color:var(--text-secondary);">ยอดปัจจุบัน</span><span style="font-weight:bold;">' + net.toFixed(2) + ' g</span></div>' +
+      '<div style="display:flex;justify-content:space-between;font-size:12px;margin:3px 0;"><span style="color:var(--text-secondary);">ยอดยกมา (วันก่อน)</span><span style="font-weight:bold;">' + carry.toFixed(2) + ' g</span></div>' +
+      '</div>';
   } catch(e) {}
 }
 
