@@ -466,6 +466,7 @@ async function rejectClose() {
 }
 
 var _transferCashBalances = { LAK: 0, THB: 0, USD: 0 };
+var _transferCashCounter = 0;
 
 async function openTransferCashModal() {
   try {
@@ -486,9 +487,17 @@ async function openTransferCashModal() {
       }
     }
 
-    document.getElementById('transferCashCurrency').value = 'LAK';
-    document.getElementById('transferCashAmount').value = '';
-    updateTransferCashBalance();
+    document.getElementById('transferCashBalanceAll').innerHTML =
+      '<div style="font-size:13px;color:var(--text-secondary);margin-bottom:8px;">ยอดเงินสดของคุณ</div>' +
+      '<div style="display:flex;gap:15px;">' +
+      '<div><span style="color:var(--text-secondary);font-size:12px;">LAK</span><br><span style="font-weight:bold;font-size:16px;color:var(--gold-primary);">' + formatNumber(_transferCashBalances.LAK) + '</span></div>' +
+      '<div><span style="color:var(--text-secondary);font-size:12px;">THB</span><br><span style="font-weight:bold;font-size:16px;color:var(--gold-primary);">' + formatNumber(_transferCashBalances.THB) + '</span></div>' +
+      '<div><span style="color:var(--text-secondary);font-size:12px;">USD</span><br><span style="font-weight:bold;font-size:16px;color:var(--gold-primary);">' + formatNumber(_transferCashBalances.USD) + '</span></div>' +
+      '</div>';
+
+    document.getElementById('transferCashRows').innerHTML = '';
+    _transferCashCounter = 0;
+    addTransferCashRow();
 
     hideLoading();
     openModal('transferCashModal');
@@ -498,39 +507,48 @@ async function openTransferCashModal() {
   }
 }
 
-function updateTransferCashBalance() {
-  var currency = document.getElementById('transferCashCurrency').value;
-  var bal = _transferCashBalances[currency] || 0;
-  document.getElementById('transferCashBalance').innerHTML =
-    '<div style="display:flex;justify-content:space-between;align-items:center;">' +
-    '<span style="color:var(--text-secondary);">ยอดเงินสด ' + currency + ' ของคุณ</span>' +
-    '<span style="font-size:20px;font-weight:bold;color:var(--gold-primary);">' + formatNumber(bal) + ' ' + currency + '</span>' +
-    '</div>';
+function addTransferCashRow() {
+  _transferCashCounter++;
+  var rid = 'tcr_' + _transferCashCounter;
+  document.getElementById('transferCashRows').insertAdjacentHTML('beforeend',
+    '<div class="product-row" id="' + rid + '" style="display:flex;gap:8px;align-items:center;margin-bottom:8px;">' +
+    '<select class="form-select" style="width:90px;"><option value="LAK">LAK</option><option value="THB">THB</option><option value="USD">USD</option></select>' +
+    '<input type="number" class="form-input" placeholder="จำนวนเงิน" step="1000" style="flex:1;">' +
+    '<button type="button" class="btn-remove" onclick="document.getElementById(\'' + rid + '\').remove()">×</button>' +
+    '</div>');
 }
 
-async function confirmTransferCash() {
-  var currency = document.getElementById('transferCashCurrency').value;
-  var amount = parseFloat(document.getElementById('transferCashAmount').value) || 0;
+async function confirmTransferCashMulti() {
+  var rows = document.querySelectorAll('#transferCashRows .product-row');
+  var transfers = [];
+  rows.forEach(function(row) {
+    var currency = row.querySelector('select').value;
+    var amount = parseFloat(row.querySelector('input').value) || 0;
+    if (amount > 0) transfers.push({ currency: currency, amount: amount });
+  });
 
-  if (amount <= 0) {
+  if (transfers.length === 0) {
     alert('❌ กรุณากรอกจำนวนเงิน');
     return;
   }
 
-  var bal = _transferCashBalances[currency] || 0;
-  if (amount > bal) {
-    alert('❌ ยอดเงินไม่พอ! มี ' + formatNumber(bal) + ' ' + currency + ' แต่ต้องการย้าย ' + formatNumber(amount) + ' ' + currency);
-    return;
+  for (var i = 0; i < transfers.length; i++) {
+    var t = transfers[i];
+    var bal = _transferCashBalances[t.currency] || 0;
+    if (t.amount > bal) {
+      alert('❌ ยอด ' + t.currency + ' ไม่พอ! มี ' + formatNumber(bal) + ' แต่ต้องการ ' + formatNumber(t.amount));
+      return;
+    }
   }
 
-  if (!confirm('ยืนยันย้ายเงิน ' + formatNumber(amount) + ' ' + currency + ' เข้าร้าน?')) return;
+  var summary = transfers.map(function(t) { return formatNumber(t.amount) + ' ' + t.currency; }).join(', ');
+  if (!confirm('ยืนยันย้ายเงินเข้าร้าน?\n' + summary)) return;
 
   try {
     showLoading();
     var result = await callAppsScript('TRANSFER_CASH_TO_SHOP', {
       user: currentUser.nickname,
-      currency: currency,
-      amount: amount
+      transfers: JSON.stringify(transfers)
     });
 
     if (result.success) {
