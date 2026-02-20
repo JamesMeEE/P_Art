@@ -457,8 +457,8 @@ function printBill(encodedData, type) {
     '.ref { font-size: 10px; color: #aaa; margin-top: 8px; text-align: center; }' +
     '</style></head><body>' +
     '<div class="header">' +
-    '<div class="logo">GOLD SHOP</div>' +
-    '<div class="sub">ร้านทอง</div>' +
+    '<div class="logo">KPV GOLD</div>' +
+    '<div class="sub">ร้านทอง KPV</div>' +
     '</div>' +
     '<div style="text-align:center;"><span class="bill-type">' + type.toUpperCase() + '</span></div>' +
     '<div class="info"><span>Ref: ' + txId + '</span><span>' + date + '</span></div>' +

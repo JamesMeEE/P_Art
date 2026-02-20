@@ -157,11 +157,53 @@ async function login() {
 
     if (currentUser.role === 'User') {
       showSection('sell');
+      checkOpenShift();
     } else {
       loadDashboard();
     }
   } else {
     alert('Invalid username or password');
+  }
+}
+
+async function checkOpenShift() {
+  if (!currentUser || currentUser.role !== 'User') return;
+  try {
+    var sheetName = currentUser.nickname;
+    var data = await fetchSheetData(sheetName + '!A2:A2');
+    if (!data || data.length === 0 || !data[0] || !data[0][0] || String(data[0][0]).trim() === '') {
+      document.getElementById('openShiftAmount').value = '';
+      openModal('openShiftModal');
+    }
+  } catch(e) {
+    document.getElementById('openShiftAmount').value = '';
+    openModal('openShiftModal');
+  }
+}
+
+async function confirmOpenShift() {
+  var amount = parseInt(document.getElementById('openShiftAmount').value) || 0;
+  if (amount <= 0) {
+    alert('กรุณากรอกจำนวนเงิน');
+    return;
+  }
+  if (!confirm('ยืนยันเปิดกะด้วยเงิน ' + formatNumber(amount) + ' LAK ?')) return;
+  try {
+    showLoading();
+    var result = await callAppsScript('OPEN_SHIFT', {
+      user: currentUser.nickname,
+      amount: amount
+    });
+    if (result.success) {
+      alert('✅ เปิดกะสำเร็จ');
+      closeModal('openShiftModal');
+    } else {
+      alert('❌ ' + result.message);
+    }
+    hideLoading();
+  } catch(e) {
+    alert('❌ ' + e.message);
+    hideLoading();
   }
 }
 
@@ -205,6 +247,7 @@ function logout() {
     setTimeout(function() {
       if (currentUser.role === 'User') {
         showSection('sell');
+        checkOpenShift();
       } else {
         loadDashboard();
       }
