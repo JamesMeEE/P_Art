@@ -104,7 +104,7 @@ function applyRoleUI() {
 
   if (currentUser.role === 'User') {
     document.querySelectorAll('.date-filter').forEach(function(el) { el.style.display = 'none'; });
-    var allowedTabs = ['sell', 'trade-in', 'exchange', 'switch', 'free exchange', 'buyback', 'withdraw'];
+    var allowedTabs = ['sell', 'trade-in', 'exchange', 'buyback', 'withdraw'];
     document.querySelectorAll('.nav-btn').forEach(function(btn) {
       var text = btn.textContent.toLowerCase();
       var isAllowed = false;

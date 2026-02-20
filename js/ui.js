@@ -29,8 +29,6 @@ function showSection(sectionId) {
     'sell': 'loadSells',
     'tradein': 'loadTradeins',
     'exchange': 'loadExchanges',
-    'switch': 'loadSwitches',
-    'freeexchange': 'loadFreeExchanges',
     'buyback': 'loadBuybacks',
     'withdraw': 'loadWithdraws',
     'historysell': 'loadHistorySell',

@@ -75,8 +75,6 @@
       <button class="nav-btn" onclick="showSection('sell')">◐ Sell</button>
       <button class="nav-btn" onclick="showSection('tradein')">◎ Trade-in</button>
       <button class="nav-btn" onclick="showSection('exchange')">◍ Exchange</button>
-      <button class="nav-btn" onclick="showSection('switch')">⟳ Switch</button>
-      <button class="nav-btn" onclick="showSection('freeexchange')">◇ Free Exchange</button>
       <button class="nav-btn" onclick="showSection('buyback')">◑ Buyback</button>
       <button class="nav-btn" onclick="showSection('withdraw')">◌ Withdraw</button>
       <button class="nav-btn" id="navHistorySell" style="display:none;" onclick="showSection('historysell')">📋 History Sell</button>
@@ -379,7 +377,8 @@
               <th>PHONE NO.</th>
               <th>Old Gold</th>
               <th>New Gold</th>
-              <th>Exchange</th>
+              <th>Exchange Fee</th>
+              <th>Switch Fee</th>
               <th>Premium</th>
               <th>Total (LAK)</th>
               <th>Status</th>
@@ -389,78 +388,7 @@
           </thead>
           <tbody id="exchangeTable">
             <tr>
-              <td colspan="10" style="text-align: center; padding: 40px;">Loading...</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </section>
-
-    <section id="switch" class="section">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
-        <h2 style="font-family: 'Cormorant Garamond', serif; font-size: 36px; color: var(--gold-primary);">Switch Management</h2>
-        <div style="display: flex; gap: 10px; align-items: center;">
-          <input type="date" class="form-input date-filter" id="switchDateFrom" style="width: 150px;">
-          <span class="date-filter">to</span>
-          <input type="date" class="form-input date-filter" id="switchDateTo" style="width: 150px;">
-          <button class="btn-secondary date-filter" onclick="clearSwitchDateFilter()">Today</button>
-          <button class="btn-primary" onclick="openSwitchModal()" id="addSwitchBtn">+ New Switch</button>
-        </div>
-      </div>
-      <div class="table-container">
-        <table>
-          <thead>
-            <tr>
-              <th>Transaction ID</th>
-              <th>PHONE NO.</th>
-              <th>Old Gold</th>
-              <th>New Gold</th>
-              <th>Exchange Fee</th>
-              <th>Premium</th>
-              <th>Total (LAK)</th>
-              <th>Status</th>
-              <th>Sale</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody id="switchTable">
-            <tr>
-              <td colspan="10" style="text-align: center; padding: 40px;">Loading...</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </section>
-
-    <section id="freeexchange" class="section">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
-        <h2 style="font-family: 'Cormorant Garamond', serif; font-size: 36px; color: var(--gold-primary);">Free Exchange Management</h2>
-        <div style="display: flex; gap: 10px; align-items: center;">
-          <input type="date" class="form-input date-filter" id="freeExchangeDateFrom" style="width: 150px;">
-          <span class="date-filter">to</span>
-          <input type="date" class="form-input date-filter" id="freeExchangeDateTo" style="width: 150px;">
-          <button class="btn-secondary date-filter" onclick="clearFreeExchangeDateFilter()">Today</button>
-          <button class="btn-primary" onclick="openFreeExchangeModal()" id="addFreeExchangeBtn">+ New Free Exchange</button>
-        </div>
-      </div>
-      <div class="table-container">
-        <table>
-          <thead>
-            <tr>
-              <th>Transaction ID</th>
-              <th>PHONE NO.</th>
-              <th>Old Gold</th>
-              <th>New Gold</th>
-              <th>Premium</th>
-              <th>Total (LAK)</th>
-              <th>Status</th>
-              <th>Sale</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody id="freeExchangeTable">
-            <tr>
-              <td colspan="9" style="text-align: center; padding: 40px;">Loading...</td>
+              <td colspan="11" style="text-align: center; padding: 40px;">Loading...</td>
             </tr>
           </tbody>
         </table>
@@ -1174,7 +1102,7 @@
   </div>
 
   <div id="exchangeModal" class="modal">
-    <div class="modal-content modal-large">
+    <div class="modal-content" style="max-width:750px;max-height:90vh;overflow-y:auto;">
       <div class="modal-header">
         <h2 class="modal-title">New Exchange</h2>
       </div>
@@ -1182,71 +1110,44 @@
         <label class="form-label">Phone Number</label>
         <input type="text" class="form-input" id="exchangePhone" placeholder="Enter phone number">
       </div>
-      <div class="form-group">
-        <label class="form-label">Old Gold</label>
-        <div id="exchangeOldGold"></div>
-        <button class="btn-secondary" style="margin-top: 10px;" onclick="addExchangeOldGold()">+ Add Old Gold</button>
+
+      <div style="background:var(--bg-card);border:1px solid #4caf50;border-radius:8px;padding:12px;margin-bottom:12px;">
+        <label class="form-label" style="color:#4caf50;font-size:15px;">▶ NEW GOLD (ทองใหม่ที่ลูกค้าอยากได้)</label>
+        <div id="exNewGold"></div>
+        <button class="btn-secondary" style="margin-top:8px;" onclick="addExRow('exNewGold')">+ Add</button>
       </div>
-      <div class="form-group">
-        <label class="form-label">New Gold</label>
-        <div id="exchangeNewGold"></div>
-        <button class="btn-secondary" style="margin-top: 10px;" onclick="addExchangeNewGold()">+ Add New Gold</button>
+
+      <div style="background:var(--bg-card);border:1px solid #2196f3;border-radius:8px;padding:12px;margin-bottom:12px;">
+        <label class="form-label" style="color:#2196f3;font-size:15px;">◀ EXCHANGE — OLD GOLD (ทองเก่า)</label>
+        <div id="exOldExchange"></div>
+        <button class="btn-secondary" style="margin-top:8px;" onclick="addExRow('exOldExchange')">+ Add</button>
       </div>
+
+      <div style="background:var(--bg-card);border:1px solid #ff9800;border-radius:8px;padding:12px;margin-bottom:12px;">
+        <label class="form-label" style="color:#ff9800;font-size:15px;">◀ SWITCH — OLD GOLD (ทองเก่า)</label>
+        <div id="exOldSwitch"></div>
+        <button class="btn-secondary" style="margin-top:8px;" onclick="addExRow('exOldSwitch')">+ Add</button>
+      </div>
+
+      <div style="background:var(--bg-card);border:1px solid #9c27b0;border-radius:8px;padding:12px;margin-bottom:12px;">
+        <label class="form-label" style="color:#9c27b0;font-size:15px;">◀ FREE EXCHANGE — OLD GOLD (ทองเก่า)</label>
+        <div class="form-group" style="margin-bottom:8px;">
+          <label class="form-label" style="font-size:12px;">รหัสบิลเก่า</label>
+          <div style="display:flex;gap:8px;">
+            <input type="text" class="form-input" id="exFreeExBillId" placeholder="เช่น SE00001" style="flex:1;" oninput="onFreeExChanged()">
+            <button class="btn-secondary" onclick="verifyFreeExBill()" id="exVerifyBtn">ตรวจสอบ</button>
+          </div>
+          <div id="exFreeExStatus" style="margin-top:5px;font-size:12px;"></div>
+        </div>
+        <div id="exOldFreeEx"></div>
+        <button class="btn-secondary" style="margin-top:8px;" onclick="addExRow('exOldFreeEx');onFreeExChanged()">+ Add</button>
+      </div>
+
+      <div id="exSummary" style="background:#1a1a2e;border:1px solid var(--gold-primary);border-radius:8px;padding:12px;margin-bottom:12px;display:none;"></div>
+
       <div class="modal-footer">
         <button class="btn-secondary" onclick="closeModal('exchangeModal')">Cancel</button>
-        <button class="btn-primary" onclick="calculateExchange()">Create Exchange</button>
-      </div>
-    </div>
-  </div>
-
-  <div id="switchModal" class="modal">
-    <div class="modal-content modal-large">
-      <div class="modal-header">
-        <h2 class="modal-title">New Switch</h2>
-      </div>
-      <div class="form-group">
-        <label class="form-label">Phone Number</label>
-        <input type="text" class="form-input" id="switchPhone" placeholder="Enter phone number">
-      </div>
-      <div class="form-group">
-        <label class="form-label">Old Gold</label>
-        <div id="switchOldGold"></div>
-        <button class="btn-secondary" style="margin-top: 10px;" onclick="addSwitchOldGold()">+ Add Old Gold</button>
-      </div>
-      <div class="form-group">
-        <label class="form-label">New Gold</label>
-        <div id="switchNewGold"></div>
-        <button class="btn-secondary" style="margin-top: 10px;" onclick="addSwitchNewGold()">+ Add New Gold</button>
-      </div>
-      <div class="modal-footer">
-        <button class="btn-secondary" onclick="closeModal('switchModal')">Cancel</button>
-        <button class="btn-primary" onclick="calculateSwitch()">Create Switch</button>
-      </div>
-    </div>
-  </div>
-
-  <div id="freeExchangeModal" class="modal">
-    <div class="modal-content modal-large">
-      <div class="modal-header">
-        <h2 class="modal-title">New Free Exchange</h2>
-      </div>
-      <div class="form-group">
-        <label class="form-label">Phone Number</label>
-        <input type="text" class="form-input" id="freeExPhone" placeholder="Enter phone number">
-      </div>
-      <div class="form-group">
-        <label class="form-label">Old Gold</label>
-        <div id="freeExOldGold"></div>
-        <button class="btn-secondary" style="margin-top: 10px;" onclick="addFreeExOldGold()">+ Add Old Gold</button>
-      </div>
-      <div class="form-group">
-        <label class="form-label">New Gold</label>
-        <div id="freeExNewGold"></div>
-        <button class="btn-secondary" style="margin-top: 10px;" onclick="addFreeExNewGold()">+ Add New Gold</button>
-      </div>
-      <div class="modal-footer">
-        <button class="btn-secondary" onclick="closeModal('freeExchangeModal')">Cancel</button>
-        <button class="btn-primary" onclick="calculateFreeExchange()">Create Free Exchange</button>
+        <button class="btn-primary" onclick="calculateExchangeNew()">Create Exchange</button>
       </div>
     </div>
   </div>
@@ -2110,8 +2011,7 @@
   <script src="js/tradein.js?v=117"></script>
   <script src="js/buyback.js?v=117"></script>
   <script src="js/exchange.js?v=117"></script>
-  <script src="js/switch.js?v=117"></script>
-  <script src="js/freeexchange.js?v=117"></script>
+  <script src="js/exchange.js?v=118"></script>
   <script src="js/withdraw.js?v=117"></script>
   <script src="js/historysell.js?v=117"></script>
   <script src="js/cashbank.js?v=117"></script>

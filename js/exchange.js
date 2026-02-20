@@ -1,10 +1,12 @@
+var _exRowCounter = 0;
+var _exFreeExVerified = false;
+var _exFreeExBillData = null;
+
 async function loadExchanges() {
   try {
     showLoading();
-    const data = await fetchSheetData('Exchanges!A:N');
-    
-    let filteredData = data.slice(1);
-    
+    var data = await fetchSheetData('Exchanges!A:T');
+    var filteredData = data.slice(1);
     if (currentUser.role === 'User' || isManager()) {
       if (exchangeDateFrom || exchangeDateTo) {
         filteredData = filterByDateRange(filteredData, 11, 13, exchangeDateFrom, exchangeDateTo);
@@ -12,239 +14,316 @@ async function loadExchanges() {
         filteredData = filterTodayData(filteredData, 11, 13);
       }
     }
-    
     if (exchangeSortOrder === 'asc') {
-      filteredData.sort((a, b) => new Date(a[11]) - new Date(b[11]));
+      filteredData.sort(function(a, b) { return new Date(a[11]) - new Date(b[11]); });
     } else {
-      filteredData.sort((a, b) => new Date(b[11]) - new Date(a[11]));
+      filteredData.sort(function(a, b) { return new Date(b[11]) - new Date(a[11]); });
     }
-    
-    const tbody = document.getElementById('exchangeTable');
+    var tbody = document.getElementById('exchangeTable');
     if (filteredData.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="10" style="text-align: center; padding: 40px;">No records</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="11" style="text-align:center;padding:40px;">No records</td></tr>';
     } else {
-      tbody.innerHTML = filteredData.map(row => {
-        const oldGold = formatItemsForTable(row[2]);
-        const newGold = formatItemsForTable(row[3]);
-        const exchangeFee = parseFloat(row[4]) || 0;
-        const premium = parseFloat(row[5]) || 0;
-        const saleName = row[13];
-        const status = row[12];
-        
-        let actions = '';
-        
+      tbody.innerHTML = filteredData.map(function(row) {
+        var oldGold = formatItemsForTable(row[2]);
+        var newGold = formatItemsForTable(row[3]);
+        var exFee = parseFloat(row[4]) || 0;
+        var switchFee = parseFloat(row[14]) || 0;
+        var premium = parseFloat(row[5]) || 0;
+        var total = row[6];
+        var status = row[12] || '';
+        var sale = row[13] || '';
+        var actions = '';
         if (status === 'PENDING') {
           if (isManager()) {
-            actions = `<button class="btn-action" onclick="reviewExchange('${row[0]}')">Review</button>`;
+            actions = '<button class="btn-action" onclick="reviewExchange(\'' + row[0] + '\')">Review</button>';
           } else {
-            actions = '<span style="color: var(--text-secondary);">Waiting for review</span>';
+            actions = '<span style="color:var(--text-secondary);">Waiting</span>';
           }
         } else if (status === 'READY') {
           if (currentUser.role === 'User') {
-            actions = `<button class="btn-action" onclick="openExchangePaymentModal('${row[0]}')">Confirm</button>`;
+            actions = '<button class="btn-action" onclick="openExchangePaymentModal(\'' + row[0] + '\')">Confirm</button>';
           } else {
-            actions = '<span style="color: var(--text-secondary);">Waiting for confirmation</span>';
+            actions = '<span style="color:var(--text-secondary);">Waiting</span>';
           }
         } else {
-          var detail = encodeURIComponent(JSON.stringify([['Transaction ID', row[0]], ['Phone', row[1]], ['Old Gold', oldGold], ['New Gold', newGold], ['Exchange Fee', formatNumber(exchangeFee) + ' LAK'], ['Premium', formatNumber(premium) + ' LAK'], ['Total', formatNumber(row[6]) + ' LAK'], ['Date', formatDateTime(row[11])], ['Status', status], ['Sale', saleName]]));
+          var detail = encodeURIComponent(JSON.stringify([['Transaction ID', row[0]], ['Phone', row[1]], ['Old Gold (Exchange)', formatItemsForTable(row[2])], ['New Gold', formatItemsForTable(row[3])], ['Exchange Fee', formatNumber(exFee) + ' LAK'], ['Switch Old Gold', formatItemsForTable(row[14] ? row[15] : '')], ['Switch Fee', formatNumber(switchFee) + ' LAK'], ['Free Ex Old Gold', formatItemsForTable(row[17] || '')], ['Free Ex Bill', row[18] || '-'], ['Premium', formatNumber(premium) + ' LAK'], ['Total', formatNumber(total) + ' LAK'], ['Date', formatDateTime(row[11])], ['Status', status], ['Sale', sale]]));
           actions = '<button class="btn-action" onclick="viewTransactionDetail(\'Exchange\',\'' + detail + '\')" style="background:#555;">👁 View</button>';
         }
-        
-        return `
-          <tr>
-            <td>${row[0]}</td>
-            <td>${row[1]}</td>
-            <td>${oldGold}</td>
-            <td>${newGold}</td>
-            <td>${formatNumber(exchangeFee)}</td>
-            <td>${formatNumber(premium)}</td>
-            <td>${formatNumber(row[6])}</td>
-            <td><span class="status-badge status-${status.toLowerCase()}">${status}</span></td>
-            <td>${saleName}</td>
-            <td>${actions}</td>
-          </tr>
-        `;
+        return '<tr>' +
+          '<td>' + row[0] + '</td>' +
+          '<td>' + row[1] + '</td>' +
+          '<td>' + oldGold + '</td>' +
+          '<td>' + newGold + '</td>' +
+          '<td>' + formatNumber(exFee) + '</td>' +
+          '<td>' + formatNumber(switchFee) + '</td>' +
+          '<td>' + formatNumber(premium) + '</td>' +
+          '<td>' + formatNumber(total) + '</td>' +
+          '<td><span class="status-badge status-' + status.toLowerCase() + '">' + status + '</span></td>' +
+          '<td>' + sale + '</td>' +
+          '<td>' + actions + '</td></tr>';
       }).join('');
     }
-    
     hideLoading();
-  } catch (error) {
+  } catch (e) {
+    console.error('loadExchanges error:', e);
     hideLoading();
   }
 }
 
-let exchangeOldCounter = 0;
-let exchangeNewCounter = 0;
-
-function addExchangeOldGold() {
-  exchangeOldCounter++;
-  const container = document.getElementById('exchangeOldGold');
-  const productOptions = FIXED_PRODUCTS.map(p => 
-    `<option value="${p.id}">${p.name}</option>`
-  ).join('');
-  
-  container.insertAdjacentHTML('beforeend', `
-    <div class="product-row" id="oldGold${exchangeOldCounter}">
-      <select class="form-select" style="flex: 2;">
-        <option value="">Select Product</option>
-        ${productOptions}
-      </select>
-      <input type="number" class="form-input" placeholder="Qty" min="1" style="flex: 1;">
-      <button type="button" class="btn-remove" onclick="document.getElementById('oldGold${exchangeOldCounter}').remove()">×</button>
-    </div>
-  `);
+function addExRow(containerId) {
+  _exRowCounter++;
+  var rid = 'exr_' + _exRowCounter;
+  var opts = FIXED_PRODUCTS.map(function(p) { return '<option value="' + p.id + '">' + p.name + '</option>'; }).join('');
+  document.getElementById(containerId).insertAdjacentHTML('beforeend',
+    '<div class="product-row" id="' + rid + '">' +
+    '<select class="form-select" style="flex:2;"><option value="">Select</option>' + opts + '</select>' +
+    '<input type="number" class="form-input" placeholder="Qty" min="1" style="flex:1;">' +
+    '<button type="button" class="btn-remove" onclick="document.getElementById(\'' + rid + '\').remove()">×</button></div>');
 }
 
-function addExchangeNewGold() {
-  exchangeNewCounter++;
-  const container = document.getElementById('exchangeNewGold');
-  const productOptions = FIXED_PRODUCTS.map(p => 
-    `<option value="${p.id}">${p.name}</option>`
-  ).join('');
-  
-  container.insertAdjacentHTML('beforeend', `
-    <div class="product-row" id="newGold${exchangeNewCounter}">
-      <select class="form-select" style="flex: 2;">
-        <option value="">Select Product</option>
-        ${productOptions}
-      </select>
-      <input type="number" class="form-input" placeholder="Qty" min="1" style="flex: 1;">
-      <button type="button" class="btn-remove" onclick="document.getElementById('newGold${exchangeNewCounter}').remove()">×</button>
-    </div>
-  `);
+function getItemsFromContainer(containerId) {
+  var items = [];
+  document.querySelectorAll('#' + containerId + ' .product-row').forEach(function(row) {
+    var pid = row.querySelector('select').value;
+    var qty = parseInt(row.querySelector('input').value) || 0;
+    if (pid && qty > 0) items.push({ productId: pid, qty: qty });
+  });
+  return items;
 }
 
-async function calculateExchange() {
+function calcWeight(items) {
+  var w = 0;
+  items.forEach(function(item) {
+    var p = FIXED_PRODUCTS.find(function(fp) { return fp.id === item.productId; });
+    if (p) w += p.weight * item.qty;
+  });
+  return w;
+}
+
+function calcPremium(items) {
+  var p = 0;
+  items.forEach(function(item) {
+    if (PREMIUM_PRODUCTS.includes(item.productId)) p += PREMIUM_PER_PIECE * item.qty;
+  });
+  return p;
+}
+
+function onFreeExChanged() {
+  _exFreeExVerified = false;
+  _exFreeExBillData = null;
+  document.getElementById('exFreeExStatus').innerHTML = '<span style="color:#ff9800;">⚠ กรุณากดตรวจสอบ</span>';
+}
+
+async function verifyFreeExBill() {
+  var billId = document.getElementById('exFreeExBillId').value.trim();
+  var freeExItems = getItemsFromContainer('exOldFreeEx');
+  var statusEl = document.getElementById('exFreeExStatus');
+
+  if (!billId) { statusEl.innerHTML = '<span style="color:#f44336;">❌ กรุณากรอกรหัสบิล</span>'; return; }
+  if (freeExItems.length === 0) { statusEl.innerHTML = '<span style="color:#f44336;">❌ กรุณาเพิ่มทองเก่า Free Ex</span>'; return; }
+
+  try {
+    showLoading();
+    var sheets = ['Sells!A:M', 'Tradeins!A:O', 'Exchanges!A:T', 'Switches!A:O', 'FreeExchanges!A:K'];
+    var results = await Promise.all(sheets.map(function(s) { return fetchSheetData(s); }));
+
+    var bill = null;
+    var billNewGold = null;
+    var billDate = null;
+    var freeExUsedCol = -1;
+    var billSheet = '';
+
+    for (var si = 0; si < results.length; si++) {
+      var sdata = results[si];
+      if (!sdata || sdata.length <= 1) continue;
+      var headers = sdata[0];
+      var feuCol = -1;
+      for (var h = 0; h < headers.length; h++) { if (headers[h] === 'FreeEx_Used') feuCol = h; }
+      for (var ri = 1; ri < sdata.length; ri++) {
+        if (String(sdata[ri][0]) === billId) {
+          bill = sdata[ri];
+          freeExUsedCol = feuCol;
+          if (si === 0) { billNewGold = sdata[ri][2]; billDate = sdata[ri][9]; billSheet = 'Sells'; }
+          else if (si === 1) { billNewGold = sdata[ri][3]; billDate = sdata[ri][11]; billSheet = 'Tradeins'; }
+          else if (si === 2) { billNewGold = sdata[ri][3]; billDate = sdata[ri][11]; billSheet = 'Exchanges'; }
+          else if (si === 3) { billNewGold = sdata[ri][3]; billDate = sdata[ri][11]; billSheet = 'Switches'; }
+          else if (si === 4) { billNewGold = sdata[ri][3]; billDate = sdata[ri][7]; billSheet = 'FreeExchanges'; }
+          break;
+        }
+      }
+      if (bill) break;
+    }
+
+    hideLoading();
+
+    if (!bill) { statusEl.innerHTML = '<span style="color:#f44336;">❌ ไม่พบบิล ' + billId + '</span>'; return; }
+
+    if (freeExUsedCol >= 0 && bill[freeExUsedCol] && String(bill[freeExUsedCol]).trim() !== '') {
+      statusEl.innerHTML = '<span style="color:#f44336;">❌ บิลนี้ถูกนำไปแลก Free Ex แล้ว (' + bill[freeExUsedCol] + ')</span>';
+      return;
+    }
+
+    var bd = parseSheetDate(billDate);
+    if (bd) {
+      var now = new Date();
+      var diffDays = (now - bd) / (1000 * 60 * 60 * 24);
+      if (diffDays > 30) {
+        statusEl.innerHTML = '<span style="color:#f44336;">❌ บิลนี้เกิน 1 เดือนแล้ว (' + Math.floor(diffDays) + ' วัน)</span>';
+        return;
+      }
+    }
+
+    var billItems = {};
+    try {
+      JSON.parse(billNewGold).forEach(function(item) {
+        if (!billItems[item.productId]) billItems[item.productId] = 0;
+        billItems[item.productId] += item.qty;
+      });
+    } catch(e) {
+      statusEl.innerHTML = '<span style="color:#f44336;">❌ ไม่สามารถอ่านข้อมูลทองจากบิลได้</span>';
+      return;
+    }
+
+    for (var fi = 0; fi < freeExItems.length; fi++) {
+      var fItem = freeExItems[fi];
+      var available = billItems[fItem.productId] || 0;
+      if (fItem.qty > available) {
+        statusEl.innerHTML = '<span style="color:#f44336;">❌ ' + fItem.productId + ' ในบิลมี ' + available + ' ชิ้น แต่กรอก ' + fItem.qty + ' ชิ้น</span>';
+        return;
+      }
+    }
+
+    _exFreeExVerified = true;
+    _exFreeExBillData = { billId: billId, sheet: billSheet };
+    statusEl.innerHTML = '<span style="color:#4caf50;">✅ ตรวจสอบผ่าน — บิล ' + billId + ' (' + billSheet + ')</span>';
+
+  } catch(e) {
+    hideLoading();
+    statusEl.innerHTML = '<span style="color:#f44336;">❌ ' + e.message + '</span>';
+  }
+}
+
+async function calculateExchangeNew() {
   if (_isSubmitting) return;
-  const phone = document.getElementById('exchangePhone').value;
-  if (!phone) {
-    alert('กรุณากรอกเบอร์โทร');
+  var phone = document.getElementById('exchangePhone').value.trim();
+  if (!phone) { alert('กรุณากรอกเบอร์โทร'); return; }
+
+  var newGold = getItemsFromContainer('exNewGold');
+  var oldExchange = getItemsFromContainer('exOldExchange');
+  var oldSwitch = getItemsFromContainer('exOldSwitch');
+  var oldFreeEx = getItemsFromContainer('exOldFreeEx');
+
+  if (newGold.length === 0) { alert('กรุณาเพิ่มทองใหม่'); return; }
+  if (oldExchange.length === 0 && oldSwitch.length === 0 && oldFreeEx.length === 0) { alert('กรุณาเพิ่มทองเก่าอย่างน้อย 1 section'); return; }
+
+  var newW = calcWeight(newGold);
+  var oldW = calcWeight(oldExchange) + calcWeight(oldSwitch) + calcWeight(oldFreeEx);
+
+  if (Math.abs(newW - oldW) > 0.001) {
+    alert('❌ น้ำหนักทองเก่าและทองใหม่ต้องเท่ากัน!\nทองใหม่: ' + (newW * 15).toFixed(3) + ' g\nทองเก่ารวม: ' + (oldW * 15).toFixed(3) + ' g');
     return;
   }
 
-  const oldGold = [];
-  document.querySelectorAll('#exchangeOldGold .product-row').forEach(row => {
-    const productId = row.querySelector('select').value;
-    const qty = parseInt(row.querySelector('input').value) || 0;
-    if (productId && qty > 0) {
-      oldGold.push({ productId, qty });
-    }
-  });
-
-  const newGold = [];
-  document.querySelectorAll('#exchangeNewGold .product-row').forEach(row => {
-    const productId = row.querySelector('select').value;
-    const qty = parseInt(row.querySelector('input').value) || 0;
-    if (productId && qty > 0) {
-      newGold.push({ productId, qty });
-    }
-  });
-
-  if (oldGold.length === 0 || newGold.length === 0) {
-    alert('กรุณาเลือกทองเก่าและทองใหม่');
+  if (oldFreeEx.length > 0 && !_exFreeExVerified) {
+    alert('❌ กรุณากดตรวจสอบบิลเก่า Free Exchange ก่อน');
     return;
   }
 
-  let oldWeight = 0;
-  oldGold.forEach(item => {
-    const product = FIXED_PRODUCTS.find(p => p.id === item.productId);
-    oldWeight += product.weight * item.qty;
-  });
+  var exchangeFee = 0;
+  oldExchange.forEach(function(item) { exchangeFee += (EXCHANGE_FEES[item.productId] || 0) * item.qty; });
 
-  let newWeight = 0;
-  newGold.forEach(item => {
-    const product = FIXED_PRODUCTS.find(p => p.id === item.productId);
-    newWeight += product.weight * item.qty;
-  });
+  var switchFee = 0;
+  oldSwitch.forEach(function(item) { switchFee += (EXCHANGE_FEES_SWITCH[item.productId] || 0) * item.qty; });
 
-  if (Math.abs(oldWeight - newWeight) > 0.001) {
-    alert('❌ น้ำหนักทองเก่าและทองใหม่ต้องเท่ากัน!\nทองเก่า: ' + oldWeight.toFixed(3) + ' บาท\nทองใหม่: ' + newWeight.toFixed(3) + ' บาท');
-    return;
+  var newPremium = calcPremium(newGold);
+  var freeExPremiumDeduct = 0;
+
+  if (oldFreeEx.length > 0) {
+    var freeExPrem = calcPremium(oldFreeEx);
+    if (freeExPrem > newPremium) {
+      alert('❌ ค่า Premium ของทอง Free Ex (' + formatNumber(freeExPrem) + ') มากกว่า Premium ทองใหม่ (' + formatNumber(newPremium) + ')');
+      return;
+    }
+    freeExPremiumDeduct = freeExPrem;
   }
 
-  let exchangeFee = 0;
-  let premium = 0;
+  var premium = newPremium - freeExPremiumDeduct;
+  var total = roundTo1000(exchangeFee + switchFee + premium);
 
-  newGold.forEach(item => {
-    exchangeFee += EXCHANGE_FEES[item.productId] * item.qty;
-    
-    if (PREMIUM_PRODUCTS.includes(item.productId)) {
-      premium += PREMIUM_PER_PIECE * item.qty;
-    }
-  });
+  var allOldGold = oldExchange.concat(oldSwitch).concat(oldFreeEx);
 
-  const total = roundTo1000(exchangeFee + premium);
+  var freeExBillId = '';
+  if (oldFreeEx.length > 0 && _exFreeExBillData) freeExBillId = _exFreeExBillData.billId;
 
   try {
     _isSubmitting = true;
     showLoading();
-    const result = await callAppsScript('ADD_EXCHANGE', {
-      phone,
-      oldGold: JSON.stringify(oldGold),
+    var result = await callAppsScript('ADD_EXCHANGE', {
+      phone: phone,
+      oldGold: JSON.stringify(allOldGold),
       newGold: JSON.stringify(newGold),
-      exchangeFee,
-      premium,
-      total,
+      exchangeFee: exchangeFee,
+      premium: premium,
+      total: total,
+      switchOldGold: JSON.stringify(oldSwitch),
+      switchFee: switchFee,
+      freeExOldGold: JSON.stringify(oldFreeEx),
+      freeExBillId: freeExBillId,
+      freeExPremiumDeduct: freeExPremiumDeduct,
+      freeExBillSheet: _exFreeExBillData ? _exFreeExBillData.sheet : '',
       user: currentUser.nickname
     });
-    
     if (result.success) {
-      alert('✅ สร้างรายการแลกเปลี่ยนสำเร็จ! รอ Manager Review');
+      alert('✅ สร้างรายการ Exchange สำเร็จ! รอ Manager Review');
       closeModal('exchangeModal');
-      document.getElementById('exchangePhone').value = '';
-      document.getElementById('exchangeOldGold').innerHTML = '';
-      document.getElementById('exchangeNewGold').innerHTML = '';
-      exchangeOldCounter = 0;
-      exchangeNewCounter = 0;
-      addExchangeOldGold();
-      addExchangeNewGold();
+      resetExchangeForm();
       loadExchanges();
-      loadDashboard();
     } else {
-      alert('❌ เกิดข้อผิดพลาด: ' + result.message);
+      alert('❌ ' + result.message);
     }
     endSubmit();
-  } catch (error) {
-    alert('❌ เกิดข้อผิดพลาด: ' + error.message);
+  } catch(e) {
+    alert('❌ ' + e.message);
     endSubmit();
   }
+}
+
+function resetExchangeForm() {
+  document.getElementById('exchangePhone').value = '';
+  ['exNewGold', 'exOldExchange', 'exOldSwitch', 'exOldFreeEx'].forEach(function(id) { document.getElementById(id).innerHTML = ''; });
+  document.getElementById('exFreeExBillId').value = '';
+  document.getElementById('exFreeExStatus').innerHTML = '';
+  _exFreeExVerified = false;
+  _exFreeExBillData = null;
+  _exRowCounter = 0;
 }
 
 async function loadCurrentPricingForExchange() {
   try {
-    const pricingData = await fetchSheetData('Pricing!A:B');
-    
+    var pricingData = await fetchSheetData('Pricing!A:B');
     if (pricingData.length > 1) {
-      const latestPricing = pricingData[pricingData.length - 1];
-      currentPricing = {
-        sell1Baht: parseFloat(latestPricing[1]) || 0,
-        buyback1Baht: 0
-      };
-      
-      console.log('Loaded currentPricing for Exchange:', currentPricing);
+      var latestPricing = pricingData[pricingData.length - 1];
+      currentPricing = { sell1Baht: parseFloat(latestPricing[1]) || 0, buyback1Baht: 0 };
       return true;
     }
     return false;
-  } catch (error) {
-    console.error('Error loading pricing:', error);
-    return false;
-  }
+  } catch(e) { return false; }
 }
 
 async function openExchangeModal() {
-  const hasPrice = await loadCurrentPricingForExchange();
-  
+  var hasPrice = await loadCurrentPricingForExchange();
   if (!hasPrice || !currentPricing.sell1Baht || currentPricing.sell1Baht === 0) {
     alert('❌ ยังไม่มีราคาทองในระบบ! กรุณาไปที่หน้า Products → Set New Price ก่อน');
     return;
   }
-  
+  resetExchangeForm();
+  addExRow('exNewGold');
+  addExRow('exOldExchange');
   openModal('exchangeModal');
 }
 
-
 function resetExchangeDateFilter() {
-  const today = getTodayDateString();
+  var today = getTodayDateString();
   document.getElementById('exchangeDateFrom').value = today;
   document.getElementById('exchangeDateTo').value = today;
   exchangeDateFrom = today;
@@ -253,24 +332,12 @@ function resetExchangeDateFilter() {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
-  const fromInput = document.getElementById('exchangeDateFrom');
-  const toInput = document.getElementById('exchangeDateTo');
-  
+  var fromInput = document.getElementById('exchangeDateFrom');
+  var toInput = document.getElementById('exchangeDateTo');
   if (fromInput && toInput) {
-    fromInput.addEventListener('change', function() {
-      exchangeDateFrom = this.value;
-      if (exchangeDateFrom && exchangeDateTo) {
-        loadExchanges();
-      }
-    });
-    
-    toInput.addEventListener('change', function() {
-      exchangeDateTo = this.value;
-      if (exchangeDateFrom && exchangeDateTo) {
-        loadExchanges();
-      }
-    });
+    fromInput.addEventListener('change', function() { exchangeDateFrom = this.value; if (exchangeDateFrom && exchangeDateTo) loadExchanges(); });
+    toInput.addEventListener('change', function() { exchangeDateTo = this.value; if (exchangeDateFrom && exchangeDateTo) loadExchanges(); });
   }
 });
 
-let currentExchangePayment = null;
+var currentExchangePayment = null;
