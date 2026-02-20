@@ -1137,13 +1137,18 @@
             <input type="text" class="form-input" id="exFreeExBillId" placeholder="เช่น SE00001" style="flex:1;" oninput="onFreeExChanged()">
             <button class="btn-secondary" onclick="verifyFreeExBill()" id="exVerifyBtn">ตรวจสอบ</button>
           </div>
+          <div style="margin-top:4px;font-size:11px;color:#9c27b0;">* บิลเก่าต้องไม่เกิน 1 เดือน</div>
           <div id="exFreeExStatus" style="margin-top:5px;font-size:12px;"></div>
         </div>
         <div id="exOldFreeEx"></div>
         <button class="btn-secondary" style="margin-top:8px;" onclick="addExRow('exOldFreeEx');onFreeExChanged()">+ Add</button>
       </div>
 
-      <div id="exSummary" style="background:#1a1a2e;border:1px solid var(--gold-primary);border-radius:8px;padding:12px;margin-bottom:12px;display:none;"></div>
+      <div id="exTotalDisplay" style="background:#1a1a2e;border:2px solid var(--gold-primary);border-radius:8px;padding:15px;margin-bottom:12px;text-align:center;">
+        <span style="color:var(--text-secondary);font-size:13px;">Total ที่ลูกค้าต้องจ่าย</span>
+        <div id="exTotalValue" style="font-size:28px;font-weight:bold;color:var(--gold-primary);margin-top:4px;">0 LAK</div>
+        <div id="exTotalBreakdown" style="font-size:11px;color:var(--text-secondary);margin-top:4px;"></div>
+      </div>
 
       <div class="modal-footer">
         <button class="btn-secondary" onclick="closeModal('exchangeModal')">Cancel</button>

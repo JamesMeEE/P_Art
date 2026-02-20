@@ -76,9 +76,43 @@ function addExRow(containerId) {
   var opts = FIXED_PRODUCTS.map(function(p) { return '<option value="' + p.id + '">' + p.name + '</option>'; }).join('');
   document.getElementById(containerId).insertAdjacentHTML('beforeend',
     '<div class="product-row" id="' + rid + '">' +
-    '<select class="form-select" style="flex:2;"><option value="">Select</option>' + opts + '</select>' +
-    '<input type="number" class="form-input" placeholder="Qty" min="1" style="flex:1;">' +
-    '<button type="button" class="btn-remove" onclick="document.getElementById(\'' + rid + '\').remove()">×</button></div>');
+    '<select class="form-select" style="flex:2;" onchange="updateExTotal()"><option value="">Select</option>' + opts + '</select>' +
+    '<input type="number" class="form-input" placeholder="Qty" min="1" style="flex:1;" oninput="updateExTotal()">' +
+    '<button type="button" class="btn-remove" onclick="document.getElementById(\'' + rid + '\').remove();updateExTotal()">×</button></div>');
+  updateExTotal();
+}
+
+function updateExTotal() {
+  var newGold = getItemsFromContainer('exNewGold');
+  var oldExchange = getItemsFromContainer('exOldExchange');
+  var oldSwitch = getItemsFromContainer('exOldSwitch');
+  var oldFreeEx = getItemsFromContainer('exOldFreeEx');
+
+  var exFee = 0;
+  oldExchange.forEach(function(item) { exFee += (EXCHANGE_FEES[item.productId] || 0) * item.qty; });
+
+  var swFee = 0;
+  oldSwitch.forEach(function(item) { swFee += (EXCHANGE_FEES_SWITCH[item.productId] || 0) * item.qty; });
+
+  var newPrem = calcPremium(newGold);
+  var freeExPrem = calcPremium(oldFreeEx);
+  var premDeduct = Math.min(freeExPrem, newPrem);
+  var premium = newPrem - (oldFreeEx.length > 0 ? premDeduct : 0);
+
+  var total = roundTo1000(exFee + swFee + premium);
+
+  var el = document.getElementById('exTotalValue');
+  if (el) el.textContent = formatNumber(total) + ' LAK';
+
+  var bd = document.getElementById('exTotalBreakdown');
+  if (bd) {
+    var parts = [];
+    if (exFee > 0) parts.push('Exchange Fee: ' + formatNumber(exFee));
+    if (swFee > 0) parts.push('Switch Fee: ' + formatNumber(swFee));
+    if (premium > 0) parts.push('Premium: ' + formatNumber(premium));
+    if (oldFreeEx.length > 0 && premDeduct > 0) parts.push('FreeEx หัก: -' + formatNumber(premDeduct));
+    bd.textContent = parts.join(' | ');
+  }
 }
 
 function getItemsFromContainer(containerId) {
