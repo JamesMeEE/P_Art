@@ -40,7 +40,8 @@ function showSection(sectionId) {
     'reports': 'loadReports',
     'stockold': 'loadStockOld',
     'stocknew': 'loadStockNew',
-    'wac': 'loadWAC'
+    'wac': 'loadWAC',
+    'usersetting': 'loadUserSetting'
   };
   const fn = loaderMap[sectionId];
   if (fn && typeof window[fn] === 'function') window[fn]();

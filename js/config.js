@@ -4,13 +4,7 @@ const CONFIG = {
   SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbziDXIkJa_VIXVJpRnwv5aYDq425OU5O1vkDvMXEDmzj5KAzg80PJQFtN5DKOmlv0qp/exec'
 };
 
-const USERS = {
-  a: { password: 'a', role: 'Admin', nickname: 'Admin' },
-  m: { password: 'm', role: 'Manager', nickname: 'Manager' },
-  t: { password: 't', role: 'Teller', nickname: 'Teller' },
-  u1: { password: 'u1', role: 'User', nickname: 'Sale 1' },
-  u2: { password: 'u2', role: 'User', nickname: 'Sale 2' }
-};
+let USERS = {};
 
 const FIXED_PRODUCTS = [
   { id: 'G01', name: '10 บาท', unit: 'แท่ง', weight: 10 },

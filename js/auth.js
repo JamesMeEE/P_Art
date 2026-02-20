@@ -1,3 +1,8 @@
+function mapRole(sheetRole) {
+  if (sheetRole === 'Sales') return 'User';
+  return sheetRole;
+}
+
 function setupManagerUI() {
   var managerHideButtons = ['addSellBtn', 'addTradeinBtn', 'addBuybackBtn', 'addExchangeBtn', 'addSwitchBtn', 'addFreeExchangeBtn', 'addWithdrawBtn', 'withdrawBtn'];
   managerHideButtons.forEach(function(id) {
@@ -60,53 +65,95 @@ function isSessionExpired() {
   return (Date.now() - last) > INACTIVITY_LIMIT;
 }
 
-function login() {
-  const username = document.getElementById('loginUsername').value;
-  const password = document.getElementById('loginPassword').value;
+async function fetchUsersFromSheet() {
+  try {
+    var data = await fetchSheetData('_database!A33:D100');
+    USERS = {};
+    if (data.length > 1) {
+      for (var i = 1; i < data.length; i++) {
+        var role = String(data[i][0] || '').trim();
+        var name = String(data[i][1] || '').trim();
+        var username = String(data[i][2] || '').trim();
+        var pass = String(data[i][3] || '').trim();
+        if (username && pass && role) {
+          USERS[username] = { password: pass, role: mapRole(role), nickname: name || role, sheetRole: role };
+        }
+      }
+    }
+    return true;
+  } catch(e) {
+    console.error('Error fetching users:', e);
+    return false;
+  }
+}
+
+function applyRoleUI() {
+  if (currentUser.role === 'Admin') {
+    var navUS = document.getElementById('navUserSetting');
+    if (navUS) navUS.style.display = '';
+  }
+
+  if (currentUser.role === 'Accountant') {
+    document.body.classList.add('accountant-readonly');
+    var readonlyBtns = ['quickSales', 'quickTradein', 'quickBuyback', 'addSellBtn', 'addTradeinBtn', 'addBuybackBtn', 'addExchangeBtn', 'addSwitchBtn', 'addFreeExchangeBtn', 'withdrawBtn'];
+    readonlyBtns.forEach(function(id) {
+      var el = document.getElementById(id);
+      if (el) el.style.display = 'none';
+    });
+  }
+
+  if (currentUser.role === 'User') {
+    document.querySelectorAll('.date-filter').forEach(function(el) { el.style.display = 'none'; });
+    var allowedTabs = ['sell', 'trade-in', 'exchange', 'switch', 'free exchange', 'buyback', 'withdraw'];
+    document.querySelectorAll('.nav-btn').forEach(function(btn) {
+      var text = btn.textContent.toLowerCase();
+      var isAllowed = false;
+      allowedTabs.forEach(function(tab) {
+        if (text.indexOf(tab) !== -1) isAllowed = true;
+      });
+      if (!isAllowed) btn.style.display = 'none';
+    });
+  }
+
+  if (isManager()) { setupManagerUI(); }
+}
+
+function enterApp() {
+  document.getElementById('loginScreen').classList.remove('active');
+  document.getElementById('mainHeader').style.display = 'block';
+  document.getElementById('mainContainer').style.display = 'block';
+  document.getElementById('userName').textContent = currentUser.nickname || currentUser.role;
+  document.getElementById('userRole').textContent = currentUser.role;
+  document.getElementById('userAvatar').textContent = (currentUser.nickname || currentUser.role)[0];
+  document.body.className = 'role-' + currentUser.username;
+
+  applyRoleUI();
+
+  fetchExchangeRates();
+  checkPendingClose();
+  callAppsScript('INIT_STOCK').catch(function(){});
+  startAutoRefresh();
+  startInactivityWatch();
+}
+
+async function login() {
+  var username = document.getElementById('loginUsername').value.trim();
+  var password = document.getElementById('loginPassword').value;
+
+  if (!username || !password) {
+    alert('กรุณากรอก Username และ Password');
+    return;
+  }
+
+  showLoading();
+  await fetchUsersFromSheet();
+  hideLoading();
 
   if (USERS[username] && USERS[username].password === password) {
-    currentUser = { username, ...USERS[username] };
-
+    currentUser = { username: username, password: USERS[username].password, role: USERS[username].role, nickname: USERS[username].nickname, sheetRole: USERS[username].sheetRole };
     localStorage.setItem('currentUser', JSON.stringify(currentUser));
 
-    document.getElementById('loginScreen').classList.remove('active');
-    document.getElementById('mainHeader').style.display = 'block';
-    document.getElementById('mainContainer').style.display = 'block';
-    document.getElementById('userName').textContent = currentUser.nickname || currentUser.role;
-    document.getElementById('userRole').textContent = currentUser.role;
-    document.getElementById('userAvatar').textContent = (currentUser.nickname || currentUser.role)[0];
-
-    document.body.className = 'role-' + username;
-
-    if (currentUser.role === 'Accountant') {
-      document.body.classList.add('accountant-readonly');
-      const readonlyBtns = ['quickSales', 'quickTradein', 'quickBuyback', 'addSellBtn', 'addTradeinBtn', 'addBuybackBtn', 'addExchangeBtn', 'addSwitchBtn', 'addFreeExchangeBtn', 'withdrawBtn'];
-      readonlyBtns.forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.style.display = 'none';
-      });
-    }
-
-    if (currentUser.role === 'User') {
-      document.querySelectorAll('.date-filter').forEach(function(el) { el.style.display = 'none'; });
-      const allowedTabs = ['sell', 'trade-in', 'exchange', 'switch', 'free exchange', 'buyback', 'withdraw'];
-      document.querySelectorAll('.nav-btn').forEach(btn => {
-        const text = btn.textContent.toLowerCase();
-        let isAllowed = false;
-        allowedTabs.forEach(tab => {
-          if (text.includes(tab)) isAllowed = true;
-        });
-        if (!isAllowed) btn.style.display = 'none';
-      });
-    }
-
-    if (isManager()) { setupManagerUI(); }
-
-    fetchExchangeRates();
-    checkPendingClose();
-    callAppsScript('INIT_STOCK').catch(function(){});
-    startAutoRefresh();
-    startInactivityWatch();
+    enterApp();
 
     if (currentUser.role === 'User') {
       showSection('sell');
@@ -135,13 +182,13 @@ function logout() {
 
   localStorage.setItem('cacheBuster', Date.now());
 
-  setTimeout(() => {
+  setTimeout(function() {
     window.location.reload();
   }, 100);
 }
 
 (function checkSession() {
-  const savedUser = localStorage.getItem('currentUser');
+  var savedUser = localStorage.getItem('currentUser');
   if (!savedUser) return;
 
   if (isSessionExpired()) {
@@ -152,46 +199,10 @@ function logout() {
 
   try {
     currentUser = JSON.parse(savedUser);
-    document.getElementById('loginScreen').classList.remove('active');
-    document.getElementById('mainHeader').style.display = 'block';
-    document.getElementById('mainContainer').style.display = 'block';
-    document.getElementById('userName').textContent = currentUser.nickname || currentUser.role;
-    document.getElementById('userRole').textContent = currentUser.role;
-    document.getElementById('userAvatar').textContent = (currentUser.nickname || currentUser.role)[0];
 
-    document.body.className = 'role-' + currentUser.username;
+    enterApp();
 
-    if (currentUser.role === 'Accountant') {
-      document.body.classList.add('accountant-readonly');
-      const readonlyBtns = ['quickSales', 'quickTradein', 'quickBuyback', 'addSellBtn', 'addTradeinBtn', 'addBuybackBtn', 'addExchangeBtn', 'addSwitchBtn', 'addFreeExchangeBtn', 'withdrawBtn'];
-      readonlyBtns.forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.style.display = 'none';
-      });
-    }
-
-    if (currentUser.role === 'User') {
-      document.querySelectorAll('.date-filter').forEach(function(el) { el.style.display = 'none'; });
-      const allowedTabs = ['sell', 'trade-in', 'exchange', 'switch', 'free exchange', 'buyback', 'withdraw'];
-      document.querySelectorAll('.nav-btn').forEach(btn => {
-        const text = btn.textContent.toLowerCase();
-        let isAllowed = false;
-        allowedTabs.forEach(tab => {
-          if (text.includes(tab)) isAllowed = true;
-        });
-        if (!isAllowed) btn.style.display = 'none';
-      });
-    }
-
-    if (isManager()) { setupManagerUI(); }
-
-    fetchExchangeRates();
-    checkPendingClose();
-    callAppsScript('INIT_STOCK').catch(function(){});
-    startAutoRefresh();
-    startInactivityWatch();
-
-    setTimeout(() => {
+    setTimeout(function() {
       if (currentUser.role === 'User') {
         showSection('sell');
       } else {

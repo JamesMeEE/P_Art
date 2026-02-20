@@ -60,7 +60,6 @@ async function loadReports() {
       </tr>
     `}).join('');
     
-    renderReportsChart(updatedData);
     hideLoading();
   } catch (error) {
     console.error('Error loading reports:', error);

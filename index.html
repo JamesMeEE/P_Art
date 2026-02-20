@@ -88,10 +88,11 @@
       <button class="nav-btn" onclick="showSection('cashbank')">◔ Cash/Bank</button>
       <button class="nav-btn" onclick="showSection('accounting')">◕ Accounting</button>
       <button class="nav-btn" onclick="showSection('diff')">◈ Diff</button>
-      <button class="nav-btn" onclick="showSection('reports')">◖ Reports</button>
+      <button class="nav-btn" onclick="showSection('reports')">◖ Wealth</button>
       <button class="nav-btn" onclick="showSection('stockold')">◗ Stock (OLD)</button>
       <button class="nav-btn" onclick="showSection('stocknew')">◘ Stock (NEW)</button>
       <button class="nav-btn" onclick="showSection('wac')">◙ WAC</button>
+      <button id="navUserSetting" class="nav-btn" onclick="showSection('usersetting')" style="display:none;">⚙ User Setting</button>
     </nav>
 
     <section id="dashboard" class="section active">
@@ -760,13 +761,7 @@
 
     <section id="reports" class="section">
       <div style="margin-bottom: 30px;">
-        <h2 style="font-family: 'Cormorant Garamond', serif; font-size: 36px; color: var(--gold-primary);">Daily Gold Summary</h2>
-      </div>
-      
-      <div style="background: var(--bg-card); border-radius: 12px; padding: 15px 20px; border: 1px solid var(--border-color); margin-bottom: 20px;">
-        <h3 style="color: var(--gold-primary); margin-bottom: 8px; font-size: 16px;">📈 Net Gold Trend</h3>
-        <div style="text-align:center;margin-bottom:8px;"><span id="reportsDateRange" style="font-size:13px;color:var(--text-secondary);"></span></div>
-        <div style="max-height:200px;"><canvas id="reportsChart"></canvas></div>
+        <h2 style="font-family: 'Cormorant Garamond', serif; font-size: 36px; color: var(--gold-primary);">Wealth (Daily Gold Summary)</h2>
       </div>
       
       <div class="table-container">
@@ -933,6 +928,65 @@
         </table>
       </div>
     </section>
+
+    <section id="usersetting" class="section">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+        <h2 style="font-family: 'Cormorant Garamond', serif; font-size: 36px; color: var(--gold-primary);">User Setting</h2>
+        <button class="btn-primary" onclick="openAddUserModal()">+ Add User</button>
+      </div>
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Role</th>
+              <th>Name</th>
+              <th>Username</th>
+              <th>Password</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="userSettingTable">
+            <tr><td colspan="5" style="text-align:center;padding:40px;">Loading...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <div id="addUserModal" class="modal">
+      <div class="modal-content" style="max-width:450px;">
+        <div class="modal-header">
+          <h2 class="modal-title" id="addUserModalTitle">Add User</h2>
+          <span class="close" onclick="closeModal('addUserModal')">&times;</span>
+        </div>
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label">Role</label>
+            <select id="userFormRole" class="form-input">
+              <option value="Admin">Admin</option>
+              <option value="Manager">Manager</option>
+              <option value="Teller">Teller</option>
+              <option value="Sales" selected>Sales</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Name</label>
+            <input type="text" id="userFormName" class="form-input" placeholder="Display name">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Username</label>
+            <input type="text" id="userFormUsername" class="form-input" placeholder="Login username">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Password</label>
+            <input type="text" id="userFormPass" class="form-input" placeholder="Password">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-secondary" onclick="closeModal('addUserModal')">Cancel</button>
+          <button class="btn-primary" onclick="saveUser()">Save</button>
+        </div>
+      </div>
+    </div>
   </div>
 
   <div id="pricingModal" class="modal">
@@ -2052,6 +2106,7 @@
   <script src="js/accounting.js?v=117"></script>
   <script src="js/diff.js?v=117"></script>
   <script src="js/reports.js?v=117"></script>
+  <script src="js/usersetting.js?v=117"></script>
   <script src="js/stockold.js?v=117"></script>
   <script src="js/stocknew.js?v=117"></script>
   <script src="js/wac.js?v=117"></script>
