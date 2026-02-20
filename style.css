@@ -254,6 +254,13 @@ header {
   color: var(--gold-primary);
 }
 
+#historysell {
+  margin-left: -30px;
+  margin-right: -30px;
+  padding-left: 10px;
+  padding-right: 10px;
+}
+
 .section {
   display: none;
 }
