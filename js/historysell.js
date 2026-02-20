@@ -104,7 +104,7 @@ async function loadHistorySell() {
       tbody.innerHTML = all.map(function(r) {
         var typeColors = { 'SELL': '#4caf50', 'TRADE-IN': '#2196f3', 'EXCHANGE': '#9c27b0', 'SWITCH': '#ff9800', 'FREE EX': '#00bcd4', 'WITHDRAW': '#f44336' };
         var color = typeColors[r.type] || '#888';
-        var actions = '-';
+        var actions = '';
         if (r.status === 'COMPLETED' || r.status === 'PAID') {
           var detail = encodeURIComponent(JSON.stringify([
             ['Type', r.type], ['Transaction ID', r.id], ['Phone', r.phone],
@@ -125,6 +125,11 @@ async function loadHistorySell() {
           actions = '<span style="color:var(--text-secondary);font-size:12px;">Pending</span>';
         } else if (r.status === 'READY') {
           actions = '<span style="color:var(--text-secondary);font-size:12px;">Ready</span>';
+        }
+        if (r.status !== 'COMPLETED' && r.status !== 'PARTIAL' && r.status !== 'PAID' && (currentUser.role === 'Admin' || currentUser.role === 'Manager')) {
+          var sheetMap = { 'SELL': 'Sells', 'TRADE-IN': 'Tradeins', 'EXCHANGE': 'Exchanges', 'SWITCH': 'Switches', 'FREE EX': 'FreeExchanges', 'WITHDRAW': 'Withdraws' };
+          var sheet = sheetMap[r.type] || '';
+          actions += ' <button class="btn-action" onclick="deleteTransaction(\'' + r.id + '\',\'' + sheet + '\',\'' + r.type + '\')" style="background:#f44336;margin-left:4px;">🗑️</button>';
         }
         var dim = 'style="color:var(--text-secondary);"';
         return '<tr>' +

@@ -382,7 +382,15 @@ function viewTransactionDetail(type, jsonData) {
     html += '<td style="padding:8px 12px;font-weight:600;">' + item[1] + '</td>';
     html += '</tr>';
   });
-  html += '</table></div>';
+  html += '</table>';
+
+  var status = '';
+  row.forEach(function(item) { if (item[0] === 'Status') status = item[1]; });
+  if (status === 'COMPLETED' || status === 'PAID') {
+    html += '<div style="text-align:center;margin-top:20px;"><button class="btn-primary" onclick="printBill(\'' + encodeURIComponent(JSON.stringify(row)) + '\',\'' + type + '\')" style="background:#d4af37;border-color:#d4af37;">🖨️ Print Bill</button></div>';
+  }
+
+  html += '</div>';
 
   var modal = document.getElementById('viewDetailModal');
   if (!modal) {
@@ -394,4 +402,72 @@ function viewTransactionDetail(type, jsonData) {
   }
   document.getElementById('viewDetailContent').innerHTML = html;
   openModal('viewDetailModal');
+}
+
+async function deleteTransaction(id, sheetName, type) {
+  if (!confirm('ยืนยันลบรายการ ' + id + ' ?')) return;
+  try {
+    showLoading();
+    var result = await callAppsScript('DELETE_TRANSACTION', { id: id, sheet: sheetName, type: type });
+    if (result.success) {
+      alert('✅ ลบสำเร็จ');
+      if (typeof loadHistorySell === 'function') loadHistorySell();
+      if (typeof loadBuybacks === 'function') loadBuybacks();
+    } else {
+      alert('❌ ' + result.message);
+    }
+    hideLoading();
+  } catch(e) {
+    alert('❌ ' + e.message);
+    hideLoading();
+  }
+}
+
+function printBill(encodedData, type) {
+  var data = JSON.parse(decodeURIComponent(encodedData));
+  var txId = '', phone = '', total = '', date = '', sale = '';
+  var items = [];
+  data.forEach(function(item) {
+    if (item[0] === 'Transaction ID') txId = item[1];
+    if (item[0] === 'Phone') phone = item[1];
+    if (item[0] === 'Total') total = item[1];
+    if (item[0] === 'Date') date = item[1];
+    if (item[0] === 'Sale') sale = item[1];
+  });
+
+  var detailRows = '';
+  data.forEach(function(item) {
+    if (item[0] === 'Transaction ID' || item[0] === 'Status') return;
+    detailRows += '<tr><td style="padding:6px 10px;color:#666;font-size:12px;border-bottom:1px solid #eee;">' + item[0] + '</td><td style="padding:6px 10px;font-weight:600;font-size:12px;text-align:right;border-bottom:1px solid #eee;">' + item[1] + '</td></tr>';
+  });
+
+  var printWin = window.open('', '_blank', 'width=400,height=600');
+  printWin.document.write('<!DOCTYPE html><html><head><title>Bill ' + txId + '</title><style>' +
+    '@page { size: 148mm 210mm; margin: 8mm; }' +
+    'body { font-family: "Segoe UI", Arial, sans-serif; margin: 0; padding: 15px; color: #333; max-width: 380px; margin: 0 auto; }' +
+    '.header { text-align: center; border-bottom: 3px double #d4af37; padding-bottom: 12px; margin-bottom: 12px; }' +
+    '.logo { font-size: 22px; font-weight: 700; color: #d4af37; letter-spacing: 2px; }' +
+    '.sub { font-size: 11px; color: #888; margin-top: 4px; }' +
+    '.bill-type { display: inline-block; background: #d4af37; color: #fff; padding: 4px 16px; border-radius: 20px; font-size: 13px; font-weight: 700; margin: 10px 0; letter-spacing: 1px; }' +
+    '.info { display: flex; justify-content: space-between; font-size: 11px; color: #666; margin-bottom: 10px; padding: 0 5px; }' +
+    'table { width: 100%; border-collapse: collapse; }' +
+    '.total-row { background: #fffbf0; }' +
+    '.total-row td { padding: 10px !important; font-size: 16px !important; font-weight: 700 !important; color: #d4af37 !important; border-top: 2px solid #d4af37 !important; border-bottom: none !important; }' +
+    '.footer { text-align: center; margin-top: 15px; padding-top: 12px; border-top: 1px dashed #ccc; font-size: 10px; color: #999; }' +
+    '.ref { font-size: 10px; color: #aaa; margin-top: 8px; text-align: center; }' +
+    '</style></head><body>' +
+    '<div class="header">' +
+    '<div class="logo">GOLD SHOP</div>' +
+    '<div class="sub">ร้านทอง</div>' +
+    '</div>' +
+    '<div style="text-align:center;"><span class="bill-type">' + type.toUpperCase() + '</span></div>' +
+    '<div class="info"><span>Ref: ' + txId + '</span><span>' + date + '</span></div>' +
+    '<div class="info"><span>Phone: ' + phone + '</span><span>Sale: ' + sale + '</span></div>' +
+    '<table>' + detailRows + '</table>' +
+    '<table><tr class="total-row"><td style="text-align:right;">Total</td><td style="text-align:right;">' + total + '</td></tr></table>' +
+    '<div class="ref">Thank you for your purchase</div>' +
+    '<div class="footer">Printed: ' + new Date().toLocaleString('th-TH') + '</div>' +
+    '</body></html>');
+  printWin.document.close();
+  setTimeout(function() { printWin.print(); }, 300);
 }
