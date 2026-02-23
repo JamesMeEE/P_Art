@@ -410,4 +410,4 @@ async function confirmStockInNew() {
       await loadStockNew();
     } else { alert('❌ ' + result.message); }
   } catch(e) { hideLoading(); alert('❌ ' + e.message); }
-}
+} 
