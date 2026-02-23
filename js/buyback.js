@@ -189,7 +189,6 @@ async function calculateBuyback() {
       addBuybackProduct();
       
       loadBuybacks();
-      loadDashboard();
     } else {
       alert('❌ เกิดข้อผิดพลาด: ' + result.message);
     }

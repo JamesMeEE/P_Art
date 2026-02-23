@@ -151,7 +151,6 @@ async function submitSell() {
       sellCounter = 0;
       addSellProduct();
       loadSells();
-      loadDashboard();
     } else {
       alert('❌ เกิดข้อผิดพลาด: ' + result.message);
     }
@@ -196,7 +195,6 @@ async function reviewSell(sellId) {
     if (result.success) {
       showToast('✅ Transaction reviewed and ready for confirmation!');
       loadSells();
-      loadDashboard();
     } else {
       alert('❌ Error: ' + result.message);
     }

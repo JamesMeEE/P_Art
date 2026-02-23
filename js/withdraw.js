@@ -163,7 +163,6 @@ async function calculateWithdraw() {
       addWithdrawProduct();
       
       loadWithdraws();
-      loadDashboard();
     } else {
       alert('❌ เกิดข้อผิดพลาด: ' + result.message);
     }

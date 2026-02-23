@@ -243,7 +243,6 @@ async function calculateTradein() {
       addTradeinOldGold();
       addTradeinNewGold();
       loadTradeins();
-      loadDashboard();
     } else {
       alert('❌ เกิดข้อผิดพลาด: ' + result.message);
     }

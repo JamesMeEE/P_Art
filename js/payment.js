@@ -427,7 +427,6 @@ async function confirmMultiPayment() {
       currentPaymentData = null;
       paymentItems = { cash: [], bank: [] };
       
-      loadDashboard();
       if (typeof loadSells === 'function') loadSells();
       if (typeof loadTradeins === 'function') loadTradeins();
       if (typeof loadExchanges === 'function') loadExchanges();
