@@ -232,16 +232,14 @@ function showLoading() {
   if (_isSubmitting && !_submitTimeout) {
     _submitTimeout = setTimeout(function() { _isSubmitting = false; hideLoading(); }, 30000);
   }
-  if (_isSubmitting) {
-    var activeModal = document.querySelector('.modal.active');
-    if (activeModal) {
-      activeModal.querySelectorAll('.modal-footer button').forEach(function(btn) {
-        if (!btn.disabled) {
-          btn.disabled = true;
-          btn.dataset.wasEnabled = '1';
-        }
-      });
-    }
+  var activeModal = document.querySelector('.modal.active');
+  if (activeModal) {
+    activeModal.querySelectorAll('.modal-footer button').forEach(function(btn) {
+      if (!btn.disabled) {
+        btn.disabled = true;
+        btn.dataset.wasEnabled = '1';
+      }
+    });
   }
 }
 

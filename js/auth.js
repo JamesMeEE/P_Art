@@ -175,13 +175,11 @@ async function checkOpenShift() {
       document.getElementById('openShiftAmount').value = '';
       _shiftCompleted = false;
       openModal('openShiftModal');
-      lockForShift();
     }
   } catch(e) {
     document.getElementById('openShiftAmount').value = '';
     _shiftCompleted = false;
     openModal('openShiftModal');
-    lockForShift();
   }
 }
 
@@ -201,7 +199,6 @@ async function confirmOpenShift() {
     if (result.success) {
       showToast('✅ เปิดกะสำเร็จ');
       _shiftCompleted = true;
-      unlockShift();
       closeModal('openShiftModal');
     } else {
       alert('❌ ' + result.message);
