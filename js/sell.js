@@ -1,6 +1,6 @@
 async function loadSells() {
   try {
-    showLoading(); disableModalButtons();
+    showLoading();
     const data = await fetchSheetData('Sells!A:L');
     
     let filteredData = data.slice(1);
@@ -63,10 +63,10 @@ async function loadSells() {
       }).join('');
     }
     
-    enableModalButtons(); hideLoading();
+    hideLoading();
   } catch (error) {
     console.error('❌ Error loading sells:', error);
-    enableModalButtons(); hideLoading();
+    hideLoading();
   }
 }
 
@@ -121,7 +121,7 @@ async function submitSell() {
   }
 
   _isSubmitting = true;
-  showLoading(); disableModalButtons();
+  showLoading();
 
   var totalPrice = 0;
   var totalPremium = 0;
@@ -190,7 +190,7 @@ async function reviewSell(sellId) {
   if (!confirm('Approve this sell transaction?')) return;
   
   try {
-    showLoading(); disableModalButtons();
+    showLoading();
     const result = await callAppsScript('REVIEW_SELL', { sellId });
     
     if (result.success) {
@@ -200,10 +200,10 @@ async function reviewSell(sellId) {
     } else {
       alert('❌ Error: ' + result.message);
     }
-    enableModalButtons(); hideLoading();
+    hideLoading();
   } catch (error) {
     alert('❌ Error: ' + error.message);
-    enableModalButtons(); hideLoading();
+    hideLoading();
   }
 }
 
@@ -243,7 +243,7 @@ function calculateSellTotal() {
 
 async function openSellModal() {
   if (currentPricing.sell1Baht === 0) {
-    showLoading(); disableModalButtons();
+    showLoading();
     const data = await fetchSheetData('Pricing!A:C');
     if (data.length > 1) {
       const latestPricing = data[data.length - 1];
@@ -252,7 +252,7 @@ async function openSellModal() {
         buyback1Baht: parseFloat(latestPricing[2]) || 0
       };
     }
-    enableModalButtons(); hideLoading();
+    hideLoading();
   }
   
   if (currentPricing.sell1Baht === 0) {

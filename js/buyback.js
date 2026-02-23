@@ -1,11 +1,11 @@
 async function loadBuybacks() {
   try {
-    showLoading(); disableModalButtons();
+    showLoading();
     const data = await fetchSheetData('Buybacks!A:L');
     
     if (!data || data.length < 2) {
       document.getElementById('buybackTable').innerHTML = '<tr><td colspan="10" style="text-align: center; padding: 40px;">No records</td></tr>';
-      enableModalButtons(); hideLoading();
+      hideLoading();
       return;
     }
     
@@ -85,9 +85,9 @@ async function loadBuybacks() {
       }).join('');
     }
     
-    enableModalButtons(); hideLoading();
+    hideLoading();
   } catch (error) {
-    enableModalButtons(); hideLoading();
+    hideLoading();
   }
 }
 
@@ -168,7 +168,7 @@ async function calculateBuyback() {
 
   try {
     _isSubmitting = true;
-    showLoading(); disableModalButtons();
+    showLoading();
     const result = await callAppsScript('ADD_BUYBACK', {
       phone,
       products: JSON.stringify(products),

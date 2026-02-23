@@ -145,9 +145,9 @@ async function login() {
     return;
   }
 
-  showLoading(); disableModalButtons();
+  showLoading();
   await fetchUsersFromSheet();
-  enableModalButtons(); hideLoading();
+  hideLoading();
 
   if (USERS[username] && USERS[username].password === password) {
     currentUser = { username: username, password: USERS[username].password, role: USERS[username].role, nickname: USERS[username].nickname, sheetRole: USERS[username].sheetRole };
@@ -193,7 +193,7 @@ async function confirmOpenShift() {
   }
   if (!confirm('ยืนยันเปิดกะด้วยเงิน ' + formatNumber(amount) + ' LAK ?')) return;
   try {
-    showLoading(); disableModalButtons();
+    showLoading();
     var result = await callAppsScript('OPEN_SHIFT', {
       user: currentUser.nickname,
       amount: amount
@@ -206,10 +206,10 @@ async function confirmOpenShift() {
     } else {
       alert('❌ ' + result.message);
     }
-    enableModalButtons(); hideLoading();
+    hideLoading();
   } catch(e) {
     alert('❌ ' + e.message);
-    enableModalButtons(); hideLoading();
+    hideLoading();
   }
 }
 

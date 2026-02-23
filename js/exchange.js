@@ -4,7 +4,7 @@ var _exFreeExBillData = null;
 
 async function loadExchanges() {
   try {
-    showLoading(); disableModalButtons();
+    showLoading();
     var data = await fetchSheetData('Exchanges!A:T');
     var filteredData = data.slice(1);
     if (currentUser.role === 'User' || isManager()) {
@@ -63,10 +63,10 @@ async function loadExchanges() {
           '<td>' + actions + '</td></tr>';
       }).join('');
     }
-    enableModalButtons(); hideLoading();
+    hideLoading();
   } catch (e) {
     console.error('loadExchanges error:', e);
-    enableModalButtons(); hideLoading();
+    hideLoading();
   }
 }
 
@@ -158,7 +158,7 @@ async function verifyFreeExBill() {
   if (freeExItems.length === 0) { statusEl.innerHTML = '<span style="color:#f44336;">❌ กรุณาเพิ่มทองเก่า Free Ex</span>'; return; }
 
   try {
-    showLoading(); disableModalButtons();
+    showLoading();
     var sheets = ['Sells!A:M', 'Tradeins!A:O', 'Exchanges!A:T', 'Withdraws!A:J'];
     var results = await Promise.all(sheets.map(function(s) { return fetchSheetData(s); }));
 
@@ -189,7 +189,7 @@ async function verifyFreeExBill() {
       if (bill) break;
     }
 
-    enableModalButtons(); hideLoading();
+    hideLoading();
 
     if (!bill) { statusEl.innerHTML = '<span style="color:#f44336;">❌ ไม่พบบิล ' + billId + '</span>'; return; }
 
@@ -238,7 +238,7 @@ async function verifyFreeExBill() {
     statusEl.innerHTML = '<span style="color:#4caf50;">✅ ตรวจสอบผ่าน — บิล ' + billId + ' (' + billSheet + ')</span>';
 
   } catch(e) {
-    enableModalButtons(); hideLoading();
+    hideLoading();
     statusEl.innerHTML = '<span style="color:#f44336;">❌ ' + e.message + '</span>';
   }
 }
@@ -293,7 +293,7 @@ async function calculateExchangeNew() {
 
   try {
     _isSubmitting = true;
-    showLoading(); disableModalButtons();
+    showLoading();
     var result = await callAppsScript('ADD_EXCHANGE', {
       phone: phone,
       oldGold: JSON.stringify(allOldGold),

@@ -1,6 +1,6 @@
 async function loadTradeins() {
   try {
-    showLoading(); disableModalButtons();
+    showLoading();
     const data = await fetchSheetData('Tradeins!A:N');
     
     let filteredData = data.slice(1);
@@ -66,9 +66,9 @@ async function loadTradeins() {
       }).join('');
     }
     
-    enableModalButtons(); hideLoading();
+    hideLoading();
   } catch (error) {
-    enableModalButtons(); hideLoading();
+    hideLoading();
   }
 }
 
@@ -221,7 +221,7 @@ async function calculateTradein() {
 
   try {
     _isSubmitting = true;
-    showLoading(); disableModalButtons();
+    showLoading();
     const result = await callAppsScript('ADD_TRADEIN', {
       phone,
       oldGold: JSON.stringify(oldGold),
