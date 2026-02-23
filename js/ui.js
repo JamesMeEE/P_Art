@@ -45,43 +45,6 @@ function showSection(sectionId) {
   if (fn && typeof window[fn] === 'function') window[fn]();
 }
 
-function showLoading() {
-  var loader = document.getElementById('loader');
-  if (loader) loader.style.display = 'flex';
-}
-
-function hideLoading() {
-  var loader = document.getElementById('loader');
-  if (loader) loader.style.display = 'none';
-}
-
-function disableModalButtons() {
-  var activeModal = document.querySelector('.modal.active');
-  if (!activeModal) return;
-  activeModal.querySelectorAll('.modal-footer button').forEach(function(btn) {
-    btn.disabled = true;
-    btn.dataset.wasEnabled = '1';
-  });
-}
-
-function enableModalButtons() {
-  document.querySelectorAll('button[data-was-enabled="1"]').forEach(function(btn) {
-    btn.disabled = false;
-    delete btn.dataset.wasEnabled;
-  });
-}
-
-document.addEventListener('mousedown', function(e) {
-  var el = e.target;
-  if (!el.classList || !el.classList.contains('modal') || !el.classList.contains('active')) return;
-  if (el.id === 'openShiftModal') {
-    e.stopImmediatePropagation();
-    e.preventDefault();
-    return false;
-  }
-  el.classList.remove('active');
-}, true);
-
 function showToast(message, duration) {
   duration = duration || 3000;
   var existing = document.getElementById('toastNotification');
