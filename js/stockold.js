@@ -106,7 +106,7 @@ function renderStockOldMovements(moves, prevW, prevC, showRunning) {
   var latestC = todayMovements.length > 0 ? todayMovements[todayMovements.length - 1].c : prevC;
 
   document.getElementById('stockOldGoldG').textContent = formatWeight(latestW) + ' g';
-  document.getElementById('stockOldCostValue').textContent = formatNumber(Math.round(latestC / 1000) * 1000) + ' LAK';
+  document.getElementById('stockOldCostValue').textContent = formatNumber(Math.round(latestC)) + ' LAK';
   window._stockOldLatest = { goldG: latestW, cost: latestC };
 
   var movBody = document.getElementById('stockOldMovementTable');

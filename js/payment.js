@@ -66,7 +66,7 @@ function renderCashPayments() {
 function updateCashAmountOnly(id, value) {
   const item = paymentItems.cash.find(i => i.id === id);
   if (item) {
-    item.amount = parseFloat(value) || 0;
+    item.amount = parseFloat(String(value).replace(/,/g, '')) || 0;
     const lakAmount = item.amount * item.rate;
     const container = document.querySelector(`#cashPaymentsList .payment-item[data-id="${id}"]`);
     if (container && item.currency !== 'LAK') {
@@ -125,7 +125,7 @@ function renderBankPayments() {
 function updateBankAmountOnly(id, value) {
   const item = paymentItems.bank.find(i => i.id === id);
   if (item) {
-    item.amount = parseFloat(value) || 0;
+    item.amount = parseFloat(String(value).replace(/,/g, '')) || 0;
     const lakAmount = item.amount * item.rate;
     const container = document.querySelector(`#bankPaymentsList .payment-item[data-id="${id}"]`);
     if (container && item.currency !== 'LAK') {
@@ -148,7 +148,7 @@ function updateCashCurrency(id, value) {
 function updateCashAmount(id, value) {
   const item = paymentItems.cash.find(i => i.id === id);
   if (item) {
-    item.amount = parseFloat(value) || 0;
+    item.amount = parseFloat(String(value).replace(/,/g, '')) || 0;
     renderCashPayments();
   }
 }
@@ -175,7 +175,7 @@ function updateBankCurrency(id, value) {
 function updateBankAmount(id, value) {
   const item = paymentItems.bank.find(i => i.id === id);
   if (item) {
-    item.amount = parseFloat(value) || 0;
+    item.amount = parseFloat(String(value).replace(/,/g, '')) || 0;
     renderBankPayments();
   }
 }
@@ -188,7 +188,7 @@ function removeBankPayment(id) {
 function updateBankFee(id, value) {
   var item = paymentItems.bank.find(function(i) { return i.id === id; });
   if (item) {
-    item.fee = parseFloat(value) || 0;
+    item.fee = parseFloat(String(value).replace(/,/g, '')) || 0;
     updatePaymentSummary();
   }
 }
@@ -422,7 +422,7 @@ async function confirmMultiPayment() {
     const result = await callAppsScript(action, params);
     
     if (result.success) {
-      alert('✅ ยืนยันการชำระเงินสำเร็จ!');
+      showToast('✅ ยืนยันการชำระเงินสำเร็จ!');
       closeModal('multiPaymentModal');
       currentPaymentData = null;
       paymentItems = { cash: [], bank: [] };

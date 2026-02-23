@@ -182,7 +182,7 @@ async function checkOpenShift() {
 }
 
 async function confirmOpenShift() {
-  var amount = parseInt(document.getElementById('openShiftAmount').value) || 0;
+  var amount = parseInt(document.getElementById('openShiftAmount').value.replace(/,/g, '')) || 0;
   if (amount <= 0) {
     alert('กรุณากรอกจำนวนเงิน');
     return;
@@ -195,7 +195,7 @@ async function confirmOpenShift() {
       amount: amount
     });
     if (result.success) {
-      alert('✅ เปิดกะสำเร็จ');
+      showToast('✅ เปิดกะสำเร็จ');
       closeModal('openShiftModal');
     } else {
       alert('❌ ' + result.message);

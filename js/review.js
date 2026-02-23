@@ -78,7 +78,7 @@ async function submitReviewDecision(decision) {
 
     if (result.success) {
       var msg = decision === 'APPROVE' ? '✅ Approved!' : '❌ Rejected!';
-      alert(msg);
+      if (decision === 'APPROVE') { showToast(msg); } else { alert(msg); }
       closeModal('reviewDecisionModal');
 
       var type = currentReviewData.type;

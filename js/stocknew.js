@@ -95,7 +95,7 @@ function renderStockNewMovements(moves, prevW, prevC) {
   });
 
   document.getElementById('stockNewGoldG').textContent = formatWeight(w) + ' g';
-  document.getElementById('stockNewCostValue').textContent = formatNumber(Math.round(c / 1000) * 1000) + ' LAK';
+  document.getElementById('stockNewCostValue').textContent = formatNumber(Math.round(c)) + ' LAK';
   window._stockNewLatest = { goldG: w, cost: c };
 
   var movBody = document.getElementById('stockNewMovementTable');
@@ -259,7 +259,7 @@ function updateStockInCashCurrency(id, value) {
 function updateStockInCashAmount(id, value) {
   var item = _stockInPayments.cash.find(function(i) { return i.id === id; });
   if (!item) return;
-  item.amount = parseFloat(value) || 0;
+  item.amount = parseFloat(String(value).replace(/,/g, '')) || 0;
   var lakAmount = item.amount * item.rate;
   var container = document.querySelector('#stockInCashList .payment-item[data-id="' + id + '"]');
   if (container && item.currency !== 'LAK') {
@@ -285,7 +285,7 @@ function updateStockInBankCurrency(id, value) {
 function updateStockInBankAmount(id, value) {
   var item = _stockInPayments.bank.find(function(i) { return i.id === id; });
   if (!item) return;
-  item.amount = parseFloat(value) || 0;
+  item.amount = parseFloat(String(value).replace(/,/g, '')) || 0;
   var lakAmount = item.amount * item.rate;
   var container = document.querySelector('#stockInBankList .payment-item[data-id="' + id + '"]');
   if (container && item.currency !== 'LAK') {
@@ -405,7 +405,7 @@ async function confirmStockInNew() {
     });
     hideLoading();
     if (result.success) {
-      alert('✅ ' + result.message);
+      showToast('✅ ' + result.message);
       closeModal('stockInNewModal');
       await loadStockNew();
     } else { alert('❌ ' + result.message); }

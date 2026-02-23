@@ -259,7 +259,7 @@ async function submitCloseWork() {
     showLoading();
     var result = await callAppsScript('SUBMIT_CLOSE', window.currentCloseSummary);
     if (result.success) {
-      alert('✅ ส่ง Close สำเร็จ! รอ Manager อนุมัติ');
+      showToast('✅ ส่ง Close สำเร็จ! รอ Manager อนุมัติ');
       closeModal('closeWorkModal');
       window.currentCloseSummary = null;
     } else {
@@ -426,7 +426,7 @@ async function approveClose() {
       approvedBy: currentUser.nickname
     });
     if (result.success) {
-      alert('✅ อนุมัติ Close สำเร็จ!');
+      showToast('✅ อนุมัติ Close สำเร็จ!');
       closeModal('closeDetailModal');
       currentCloseId = null;
       checkPendingClose();
@@ -451,7 +451,7 @@ async function rejectClose() {
       approvedBy: currentUser.nickname
     });
     if (result.success) {
-      alert('✅ ปฏิเสธ Close สำเร็จ');
+      showToast('✅ ปฏิเสธ Close สำเร็จ');
       closeModal('closeDetailModal');
       currentCloseId = null;
       checkPendingClose();
@@ -523,7 +523,7 @@ async function confirmTransferCashMulti() {
   var transfers = [];
   rows.forEach(function(row) {
     var currency = row.querySelector('select').value;
-    var amount = parseFloat(row.querySelector('input').value) || 0;
+    var amount = parseFloat(row.querySelector('input').value.replace(/,/g, '')) || 0;
     if (amount > 0) transfers.push({ currency: currency, amount: amount });
   });
 
@@ -552,7 +552,7 @@ async function confirmTransferCashMulti() {
     });
 
     if (result.success) {
-      alert('✅ ย้ายเงินเข้าร้านสำเร็จ!');
+      showToast('✅ ย้ายเงินเข้าร้านสำเร็จ!');
       closeModal('transferCashModal');
     } else {
       alert('❌ Error: ' + result.message);
