@@ -45,19 +45,40 @@ function showSection(sectionId) {
   if (fn && typeof window[fn] === 'function') window[fn]();
 }
 
+var _disabledButtons = [];
+
 function showLoading() {
-  const loader = document.getElementById('loader');
+  var loader = document.getElementById('loader');
   if (loader) loader.style.display = 'flex';
+  _disabledButtons = [];
+  document.querySelectorAll('.modal.active button, .modal.active .btn-primary, .modal.active .btn-secondary').forEach(function(btn) {
+    if (!btn.disabled) {
+      btn.disabled = true;
+      btn.dataset.wasEnabled = '1';
+      _disabledButtons.push(btn);
+    }
+  });
 }
 
 function hideLoading() {
-  const loader = document.getElementById('loader');
+  var loader = document.getElementById('loader');
   if (loader) loader.style.display = 'none';
+  _disabledButtons.forEach(function(btn) {
+    if (btn.dataset.wasEnabled) {
+      btn.disabled = false;
+      delete btn.dataset.wasEnabled;
+    }
+  });
+  _disabledButtons = [];
 }
 
 document.addEventListener('click', function(e) {
   if (e.target.classList && e.target.classList.contains('modal') && e.target.classList.contains('active')) {
-    if (e.target.id === 'openShiftModal') return;
+    if (e.target.id === 'openShiftModal') {
+      e.stopPropagation();
+      e.preventDefault();
+      return;
+    }
     e.target.classList.remove('active');
   }
 });

@@ -144,7 +144,7 @@ async function submitSell() {
     });
 
     if (result.success) {
-      alert('✅ สร้างรายการขายสำเร็จ!');
+      showToast('✅ สร้างรายการขายสำเร็จ!');
       closeModal('sellModal');
       document.getElementById('sellPhone').value = '';
       document.getElementById('sellProducts').innerHTML = '';
@@ -194,7 +194,7 @@ async function reviewSell(sellId) {
     const result = await callAppsScript('REVIEW_SELL', { sellId });
     
     if (result.success) {
-      alert('✅ Transaction reviewed and ready for confirmation!');
+      showToast('✅ Transaction reviewed and ready for confirmation!');
       loadSells();
       loadDashboard();
     } else {
@@ -236,7 +236,8 @@ function calculateSellTotal() {
   
   const priceElement = document.getElementById('sellPrice');
   if (priceElement) {
-    priceElement.value = finalTotal;
+    priceElement.value = formatNumber(finalTotal) + ' LAK';
+    priceElement.dataset.rawValue = finalTotal;
   }
 }
 

@@ -178,7 +178,7 @@ async function calculateBuyback() {
     });
     
     if (result.success) {
-      alert('✅ สร้างรายการรับซื้อสำเร็จ! รอ Manager Payment');
+      showToast('✅ สร้างรายการรับซื้อสำเร็จ!');
       closeModal('buybackModal');
       
       document.getElementById('buybackPhone').value = '';

@@ -154,7 +154,7 @@ async function calculateWithdraw() {
     });
     
     if (result.success) {
-      alert('✅ สร้างรายการถอนทองสำเร็จ! รอ Manager Review');
+      showToast('✅ สร้างรายการถอนทองสำเร็จ!');
       closeModal('withdrawModal');
       
       document.getElementById('withdrawPhone').value = '';

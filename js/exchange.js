@@ -310,7 +310,7 @@ async function calculateExchangeNew() {
       user: currentUser.nickname
     });
     if (result.success) {
-      alert('✅ สร้างรายการ Exchange สำเร็จ! รอ Manager Review');
+      showToast('✅ สร้างรายการ Exchange สำเร็จ!');
       closeModal('exchangeModal');
       resetExchangeForm();
       loadExchanges();
