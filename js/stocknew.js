@@ -2,69 +2,85 @@ var stockNewDateFrom = null;
 var stockNewDateTo = null;
 
 async function loadStockNew() {
-  try {
-    showLoading();
-    var isFiltered = stockNewDateFrom && stockNewDateTo;
-    var isToday = false;
-    if (isFiltered) {
-      var td = getTodayDateString();
-      isToday = (stockNewDateFrom === td && stockNewDateTo === td);
-    }
-
-    var stockData = await safeFetch('Stock_New!A:D');
-
-    if (!isFiltered || isToday) {
-      var carry = {}, qtyIn = {}, qtyOut = {};
-      FIXED_PRODUCTS.forEach(function(p) { carry[p.id] = 0; qtyIn[p.id] = 0; qtyOut[p.id] = 0; });
-      if (stockData.length > 1) {
-        var lastRow = stockData[stockData.length - 1];
-        try { carry = JSON.parse(lastRow[1] || '{}'); } catch(e) {}
-        try { qtyIn = JSON.parse(lastRow[2] || '{}'); } catch(e) {}
-        try { qtyOut = JSON.parse(lastRow[3] || '{}'); } catch(e) {}
-      }
-      renderStockNewSummary(carry, qtyIn, qtyOut);
-
-      var moveResult = await callAppsScript('GET_STOCK_MOVES', { sheet: 'StockMove_New' });
-      var prevW = moveResult.data ? moveResult.data.prevW || 0 : 0;
-      var prevC = moveResult.data ? moveResult.data.prevC || 0 : 0;
-      var moves = moveResult.data ? moveResult.data.moves || [] : [];
-      renderStockNewMovements(moves, prevW, prevC);
-    } else {
-      var from = new Date(stockNewDateFrom); from.setHours(0,0,0,0);
-      var to = new Date(stockNewDateTo); to.setHours(23,59,59,999);
-      var carry = {}, qtyIn = {}, qtyOut = {};
-      FIXED_PRODUCTS.forEach(function(p) { carry[p.id] = 0; qtyIn[p.id] = 0; qtyOut[p.id] = 0; });
-      var foundCarry = false;
-      for (var r = 1; r < stockData.length; r++) {
-        var rd = new Date(stockData[r][0]);
-        if (isNaN(rd.getTime())) continue;
-        rd.setHours(0,0,0,0);
-        if (rd >= from && rd <= to) {
-          if (!foundCarry) {
-            try { carry = JSON.parse(stockData[r][1] || '{}'); } catch(e) {}
-            foundCarry = true;
-          }
-          var ri = {}, ro = {};
-          try { ri = JSON.parse(stockData[r][2] || '{}'); } catch(e) {}
-          try { ro = JSON.parse(stockData[r][3] || '{}'); } catch(e) {}
-          FIXED_PRODUCTS.forEach(function(p) { qtyIn[p.id] += (ri[p.id] || 0); qtyOut[p.id] += (ro[p.id] || 0); });
-        }
-      }
-      renderStockNewSummary(carry, qtyIn, qtyOut);
-
-      var moveResult = await callAppsScript('GET_STOCK_MOVES_RANGE', { sheet: 'StockMove_New', dateFrom: stockNewDateFrom, dateTo: stockNewDateTo });
-      var moves = moveResult.data ? moveResult.data.moves || [] : [];
-      var filtered = moves.filter(function(m) { return m.type === 'TRANSFER' || m.type === 'STOCK-IN'; });
-      renderFilteredMoves('stockNewMovementTable', filtered, stockNewDateFrom, stockNewDateTo);
-      document.getElementById('stockNewGoldG').textContent = '-';
-      document.getElementById('stockNewCostValue').textContent = '-';
-    }
-
-    hideLoading();
-  } catch(error) {
-    console.error('Error loading stock new:', error);
-    hideLoading();
+  var isFiltered = stockNewDateFrom && stockNewDateTo;
+  var isToday = false;
+  if (isFiltered) {
+    var td = getTodayDateString();
+    isToday = (stockNewDateFrom === td && stockNewDateTo === td);
   }
+
+  document.getElementById('stockNewSummaryTable').innerHTML = '<tr><td colspan="6" style="text-align:center;padding:20px;">' + _tblSpinner + '</td></tr>';
+  document.getElementById('stockNewMovementTable').innerHTML = '<tr><td colspan="9" style="text-align:center;padding:20px;">' + _tblSpinner + '</td></tr>';
+  document.getElementById('stockNewGoldG').textContent = '...';
+  document.getElementById('stockNewCostValue').textContent = '...';
+
+  if (!isFiltered || isToday) {
+    loadStockNewSummary();
+    loadStockNewMoves();
+  } else {
+    loadStockNewFiltered();
+  }
+}
+
+var _tblSpinner = '<div style="display:inline-block;width:20px;height:20px;border:3px solid var(--border-color);border-top:3px solid var(--gold-primary);border-radius:50%;animation:spin 0.8s linear infinite;"></div>';
+
+async function loadStockNewSummary() {
+  try {
+    var stockData = await safeFetch('Stock_New!A:D');
+    var carry = {}, qtyIn = {}, qtyOut = {};
+    FIXED_PRODUCTS.forEach(function(p) { carry[p.id] = 0; qtyIn[p.id] = 0; qtyOut[p.id] = 0; });
+    if (stockData.length > 1) {
+      var lastRow = stockData[stockData.length - 1];
+      try { carry = JSON.parse(lastRow[1] || '{}'); } catch(e) {}
+      try { qtyIn = JSON.parse(lastRow[2] || '{}'); } catch(e) {}
+      try { qtyOut = JSON.parse(lastRow[3] || '{}'); } catch(e) {}
+    }
+    renderStockNewSummary(carry, qtyIn, qtyOut);
+  } catch(e) { console.error('Error loading stock new summary:', e); }
+}
+
+async function loadStockNewMoves() {
+  try {
+    var moveResult = await callAppsScript('GET_STOCK_MOVES', { sheet: 'StockMove_New' });
+    var prevW = moveResult.data ? moveResult.data.prevW || 0 : 0;
+    var prevC = moveResult.data ? moveResult.data.prevC || 0 : 0;
+    var moves = moveResult.data ? moveResult.data.moves || [] : [];
+    renderStockNewMovements(moves, prevW, prevC);
+  } catch(e) { console.error('Error loading stock new moves:', e); }
+}
+
+async function loadStockNewFiltered() {
+  try {
+    var stockData = await safeFetch('Stock_New!A:D');
+    var from = new Date(stockNewDateFrom); from.setHours(0,0,0,0);
+    var to = new Date(stockNewDateTo); to.setHours(23,59,59,999);
+    var carry = {}, qtyIn = {}, qtyOut = {};
+    FIXED_PRODUCTS.forEach(function(p) { carry[p.id] = 0; qtyIn[p.id] = 0; qtyOut[p.id] = 0; });
+    var foundCarry = false;
+    for (var r = 1; r < stockData.length; r++) {
+      var rd = new Date(stockData[r][0]);
+      if (isNaN(rd.getTime())) continue;
+      rd.setHours(0,0,0,0);
+      if (rd >= from && rd <= to) {
+        if (!foundCarry) {
+          try { carry = JSON.parse(stockData[r][1] || '{}'); } catch(e) {}
+          foundCarry = true;
+        }
+        var ri = {}, ro = {};
+        try { ri = JSON.parse(stockData[r][2] || '{}'); } catch(e) {}
+        try { ro = JSON.parse(stockData[r][3] || '{}'); } catch(e) {}
+        FIXED_PRODUCTS.forEach(function(p) { qtyIn[p.id] += (ri[p.id] || 0); qtyOut[p.id] += (ro[p.id] || 0); });
+      }
+    }
+    renderStockNewSummary(carry, qtyIn, qtyOut);
+
+    var moveResult = await callAppsScript('GET_STOCK_MOVES_RANGE', { sheet: 'StockMove_New', dateFrom: stockNewDateFrom, dateTo: stockNewDateTo });
+    var moves = moveResult.data ? moveResult.data.moves || [] : [];
+    var filtered = moves.filter(function(m) { return m.type === 'TRANSFER' || m.type === 'STOCK-IN'; });
+    renderFilteredMoves('stockNewMovementTable', filtered, stockNewDateFrom, stockNewDateTo);
+    document.getElementById('stockNewGoldG').textContent = '-';
+    document.getElementById('stockNewCostValue').textContent = '-';
+  } catch(e) { console.error('Error loading stock new filtered:', e); }
 }
 
 function renderStockNewSummary(carry, qtyIn, qtyOut) {
@@ -410,4 +426,4 @@ async function confirmStockInNew() {
       await loadStockNew();
     } else { alert('❌ ' + result.message); }
   } catch(e) { hideLoading(); alert('❌ ' + e.message); }
-} 
+}

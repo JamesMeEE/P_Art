@@ -10,68 +10,83 @@ var stockOldDateFrom = null;
 var stockOldDateTo = null;
 
 async function loadStockOld() {
-  try {
-    showLoading();
-    var isFiltered = stockOldDateFrom && stockOldDateTo;
-    var isToday = false;
-    if (isFiltered) {
-      var td = getTodayDateString();
-      isToday = (stockOldDateFrom === td && stockOldDateTo === td);
-    }
-
-    var stockData = await safeFetch('Stock_Old!A:D');
-
-    if (!isFiltered || isToday) {
-      var carry = {}, qtyIn = {}, qtyOut = {};
-      FIXED_PRODUCTS.forEach(function(p) { carry[p.id] = 0; qtyIn[p.id] = 0; qtyOut[p.id] = 0; });
-      if (stockData.length > 1) {
-        var lastRow = stockData[stockData.length - 1];
-        try { carry = JSON.parse(lastRow[1] || '{}'); } catch(e) {}
-        try { qtyIn = JSON.parse(lastRow[2] || '{}'); } catch(e) {}
-        try { qtyOut = JSON.parse(lastRow[3] || '{}'); } catch(e) {}
-      }
-      renderStockOldSummary(carry, qtyIn, qtyOut);
-
-      var moveResult = await callAppsScript('GET_STOCK_MOVES', { sheet: 'StockMove_Old' });
-      var prevW = moveResult.data ? moveResult.data.prevW || 0 : 0;
-      var prevC = moveResult.data ? moveResult.data.prevC || 0 : 0;
-      var moves = moveResult.data ? moveResult.data.moves || [] : [];
-      renderStockOldMovements(moves, prevW, prevC, true);
-    } else {
-      var from = new Date(stockOldDateFrom); from.setHours(0,0,0,0);
-      var to = new Date(stockOldDateTo); to.setHours(23,59,59,999);
-      var carry = {}, qtyIn = {}, qtyOut = {};
-      FIXED_PRODUCTS.forEach(function(p) { carry[p.id] = 0; qtyIn[p.id] = 0; qtyOut[p.id] = 0; });
-      var foundCarry = false;
-      for (var r = 1; r < stockData.length; r++) {
-        var rd = new Date(stockData[r][0]);
-        if (isNaN(rd.getTime())) continue;
-        rd.setHours(0,0,0,0);
-        if (rd >= from && rd <= to) {
-          if (!foundCarry) {
-            try { carry = JSON.parse(stockData[r][1] || '{}'); } catch(e) {}
-            foundCarry = true;
-          }
-          var ri = {}, ro = {};
-          try { ri = JSON.parse(stockData[r][2] || '{}'); } catch(e) {}
-          try { ro = JSON.parse(stockData[r][3] || '{}'); } catch(e) {}
-          FIXED_PRODUCTS.forEach(function(p) { qtyIn[p.id] += (ri[p.id] || 0); qtyOut[p.id] += (ro[p.id] || 0); });
-        }
-      }
-      renderStockOldSummary(carry, qtyIn, qtyOut);
-
-      var moveResult = await callAppsScript('GET_STOCK_MOVES_RANGE', { sheet: 'StockMove_Old', dateFrom: stockOldDateFrom, dateTo: stockOldDateTo });
-      var moves = moveResult.data ? moveResult.data.moves || [] : [];
-      renderFilteredMoves('stockOldMovementTable', moves, stockOldDateFrom, stockOldDateTo);
-      document.getElementById('stockOldGoldG').textContent = '-';
-      document.getElementById('stockOldCostValue').textContent = '-';
-    }
-
-    hideLoading();
-  } catch(error) {
-    console.error('Error loading stock old:', error);
-    hideLoading();
+  var isFiltered = stockOldDateFrom && stockOldDateTo;
+  var isToday = false;
+  if (isFiltered) {
+    var td = getTodayDateString();
+    isToday = (stockOldDateFrom === td && stockOldDateTo === td);
   }
+
+  var _tblSpinnerOld = '<div style="display:inline-block;width:20px;height:20px;border:3px solid var(--border-color);border-top:3px solid var(--gold-primary);border-radius:50%;animation:spin 0.8s linear infinite;"></div>';
+  document.getElementById('stockOldSummaryTable').innerHTML = '<tr><td colspan="6" style="text-align:center;padding:20px;">' + _tblSpinnerOld + '</td></tr>';
+  document.getElementById('stockOldMovementTable').innerHTML = '<tr><td colspan="9" style="text-align:center;padding:20px;">' + _tblSpinnerOld + '</td></tr>';
+  document.getElementById('stockOldGoldG').textContent = '...';
+  document.getElementById('stockOldCostValue').textContent = '...';
+
+  if (!isFiltered || isToday) {
+    loadStockOldSummary();
+    loadStockOldMoves();
+  } else {
+    loadStockOldFiltered();
+  }
+}
+
+async function loadStockOldSummary() {
+  try {
+    var stockData = await safeFetch('Stock_Old!A:D');
+    var carry = {}, qtyIn = {}, qtyOut = {};
+    FIXED_PRODUCTS.forEach(function(p) { carry[p.id] = 0; qtyIn[p.id] = 0; qtyOut[p.id] = 0; });
+    if (stockData.length > 1) {
+      var lastRow = stockData[stockData.length - 1];
+      try { carry = JSON.parse(lastRow[1] || '{}'); } catch(e) {}
+      try { qtyIn = JSON.parse(lastRow[2] || '{}'); } catch(e) {}
+      try { qtyOut = JSON.parse(lastRow[3] || '{}'); } catch(e) {}
+    }
+    renderStockOldSummary(carry, qtyIn, qtyOut);
+  } catch(e) { console.error('Error loading stock old summary:', e); }
+}
+
+async function loadStockOldMoves() {
+  try {
+    var moveResult = await callAppsScript('GET_STOCK_MOVES', { sheet: 'StockMove_Old' });
+    var prevW = moveResult.data ? moveResult.data.prevW || 0 : 0;
+    var prevC = moveResult.data ? moveResult.data.prevC || 0 : 0;
+    var moves = moveResult.data ? moveResult.data.moves || [] : [];
+    renderStockOldMovements(moves, prevW, prevC, true);
+  } catch(e) { console.error('Error loading stock old moves:', e); }
+}
+
+async function loadStockOldFiltered() {
+  try {
+    var stockData = await safeFetch('Stock_Old!A:D');
+    var from = new Date(stockOldDateFrom); from.setHours(0,0,0,0);
+    var to = new Date(stockOldDateTo); to.setHours(23,59,59,999);
+    var carry = {}, qtyIn = {}, qtyOut = {};
+    FIXED_PRODUCTS.forEach(function(p) { carry[p.id] = 0; qtyIn[p.id] = 0; qtyOut[p.id] = 0; });
+    var foundCarry = false;
+    for (var r = 1; r < stockData.length; r++) {
+      var rd = new Date(stockData[r][0]);
+      if (isNaN(rd.getTime())) continue;
+      rd.setHours(0,0,0,0);
+      if (rd >= from && rd <= to) {
+        if (!foundCarry) {
+          try { carry = JSON.parse(stockData[r][1] || '{}'); } catch(e) {}
+          foundCarry = true;
+        }
+        var ri = {}, ro = {};
+        try { ri = JSON.parse(stockData[r][2] || '{}'); } catch(e) {}
+        try { ro = JSON.parse(stockData[r][3] || '{}'); } catch(e) {}
+        FIXED_PRODUCTS.forEach(function(p) { qtyIn[p.id] += (ri[p.id] || 0); qtyOut[p.id] += (ro[p.id] || 0); });
+      }
+    }
+    renderStockOldSummary(carry, qtyIn, qtyOut);
+
+    var moveResult = await callAppsScript('GET_STOCK_MOVES_RANGE', { sheet: 'StockMove_Old', dateFrom: stockOldDateFrom, dateTo: stockOldDateTo });
+    var moves = moveResult.data ? moveResult.data.moves || [] : [];
+    renderFilteredMoves('stockOldMovementTable', moves, stockOldDateFrom, stockOldDateTo);
+    document.getElementById('stockOldGoldG').textContent = '-';
+    document.getElementById('stockOldCostValue').textContent = '-';
+  } catch(e) { console.error('Error loading stock old filtered:', e); }
 }
 
 function renderStockOldSummary(carry, qtyIn, qtyOut) {
@@ -358,7 +373,7 @@ async function confirmTransfer() {
     showLoading();
     var result = await callAppsScript('TRANSFER_OLD_TO_NEW', { items: JSON.stringify(items) });
     if (result.success) {
-      alert('✅ ' + result.message);
+      showToast('✅ ' + result.message);
       closeModal('transferModal');
       await loadStockOld();
     } else { alert('❌ ' + result.message); }
@@ -400,7 +415,7 @@ async function confirmStockOut() {
     showLoading();
     var result = await callAppsScript('STOCK_OUT_OLD', { items: JSON.stringify(items), note: note });
     if (result.success) {
-      alert('✅ ' + result.message);
+      showToast('✅ ' + result.message);
       closeModal('stockOutModal');
       await loadStockOld();
     } else { alert('❌ ' + result.message); }
