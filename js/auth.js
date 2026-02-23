@@ -145,9 +145,9 @@ async function login() {
     return;
   }
 
-  showLoading();
+  showLoading(); disableModalButtons();
   await fetchUsersFromSheet();
-  hideLoading();
+  enableModalButtons(); hideLoading();
 
   if (USERS[username] && USERS[username].password === password) {
     currentUser = { username: username, password: USERS[username].password, role: USERS[username].role, nickname: USERS[username].nickname, sheetRole: USERS[username].sheetRole };
@@ -175,11 +175,13 @@ async function checkOpenShift() {
       document.getElementById('openShiftAmount').value = '';
       _shiftCompleted = false;
       openModal('openShiftModal');
+      lockForShift();
     }
   } catch(e) {
     document.getElementById('openShiftAmount').value = '';
     _shiftCompleted = false;
     openModal('openShiftModal');
+    lockForShift();
   }
 }
 
@@ -191,7 +193,7 @@ async function confirmOpenShift() {
   }
   if (!confirm('ยืนยันเปิดกะด้วยเงิน ' + formatNumber(amount) + ' LAK ?')) return;
   try {
-    showLoading();
+    showLoading(); disableModalButtons();
     var result = await callAppsScript('OPEN_SHIFT', {
       user: currentUser.nickname,
       amount: amount
@@ -199,14 +201,15 @@ async function confirmOpenShift() {
     if (result.success) {
       showToast('✅ เปิดกะสำเร็จ');
       _shiftCompleted = true;
+      unlockShift();
       closeModal('openShiftModal');
     } else {
       alert('❌ ' + result.message);
     }
-    hideLoading();
+    enableModalButtons(); hideLoading();
   } catch(e) {
     alert('❌ ' + e.message);
-    hideLoading();
+    enableModalButtons(); hideLoading();
   }
 }
 

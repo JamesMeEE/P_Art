@@ -67,7 +67,7 @@ async function submitReviewDecision(decision) {
   }
 
   try {
-    showLoading();
+    showLoading(); disableModalButtons();
 
     var result = await callAppsScript(action, {
       id: currentReviewData.id,
@@ -95,10 +95,10 @@ async function submitReviewDecision(decision) {
       alert('❌ Error: ' + result.message);
     }
 
-    hideLoading();
+    enableModalButtons(); hideLoading();
   } catch (error) {
     alert('❌ Error: ' + error.message);
-    hideLoading();
+    enableModalButtons(); hideLoading();
   }
 }
 

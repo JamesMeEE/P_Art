@@ -5,19 +5,19 @@ function showSection(sectionId) {
   document.querySelectorAll('.nav-btn').forEach(btn => {
     btn.classList.remove('active');
   });
-  
+
   const targetSection = document.getElementById(sectionId);
   if (targetSection) {
     targetSection.classList.add('active');
   }
-  
+
   document.querySelectorAll('.nav-btn').forEach(btn => {
     var oc = btn.getAttribute('onclick') || '';
     if (oc.indexOf("'" + sectionId + "'") !== -1) {
       btn.classList.add('active');
     }
   });
-  
+
   if (sectionId !== 'dashboard' && typeof stopDashReportRefresh === 'function') {
     stopDashReportRefresh();
   }
@@ -45,43 +45,42 @@ function showSection(sectionId) {
   if (fn && typeof window[fn] === 'function') window[fn]();
 }
 
-var _disabledButtons = [];
-
 function showLoading() {
   var loader = document.getElementById('loader');
   if (loader) loader.style.display = 'flex';
-  _disabledButtons = [];
-  document.querySelectorAll('.btn-primary, .btn-secondary').forEach(function(btn) {
-    if (!btn.disabled) {
-      btn.disabled = true;
-      btn.dataset.wasEnabled = '1';
-      _disabledButtons.push(btn);
-    }
-  });
 }
 
 function hideLoading() {
   var loader = document.getElementById('loader');
   if (loader) loader.style.display = 'none';
-  _disabledButtons.forEach(function(btn) {
-    if (btn.dataset.wasEnabled) {
-      btn.disabled = false;
-      delete btn.dataset.wasEnabled;
-    }
-  });
-  _disabledButtons = [];
 }
 
-document.addEventListener('click', function(e) {
-  if (e.target.classList && e.target.classList.contains('modal') && e.target.classList.contains('active')) {
-    if (e.target.id === 'openShiftModal') {
-      e.stopPropagation();
-      e.preventDefault();
-      return;
-    }
-    e.target.classList.remove('active');
+function disableModalButtons() {
+  var activeModal = document.querySelector('.modal.active');
+  if (!activeModal) return;
+  activeModal.querySelectorAll('.modal-footer button').forEach(function(btn) {
+    btn.disabled = true;
+    btn.dataset.wasEnabled = '1';
+  });
+}
+
+function enableModalButtons() {
+  document.querySelectorAll('button[data-was-enabled="1"]').forEach(function(btn) {
+    btn.disabled = false;
+    delete btn.dataset.wasEnabled;
+  });
+}
+
+document.addEventListener('mousedown', function(e) {
+  var el = e.target;
+  if (!el.classList || !el.classList.contains('modal') || !el.classList.contains('active')) return;
+  if (el.id === 'openShiftModal') {
+    e.stopImmediatePropagation();
+    e.preventDefault();
+    return false;
   }
-});
+  el.classList.remove('active');
+}, true);
 
 function showToast(message, duration) {
   duration = duration || 3000;

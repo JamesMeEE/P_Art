@@ -1,6 +1,6 @@
 async function loadWithdraws() {
   try {
-    showLoading();
+    showLoading(); disableModalButtons();
     const data = await fetchSheetData('Withdraws!A:J');
     
     let filteredData = data.slice(1);
@@ -64,10 +64,10 @@ async function loadWithdraws() {
       }).join('');
     }
     
-    hideLoading();
+    enableModalButtons(); hideLoading();
   } catch (error) {
     console.error('Error loading withdraws:', error);
-    hideLoading();
+    enableModalButtons(); hideLoading();
   }
 }
 
@@ -144,7 +144,7 @@ async function calculateWithdraw() {
 
   try {
     _isSubmitting = true;
-    showLoading();
+    showLoading(); disableModalButtons();
     const result = await callAppsScript('ADD_WITHDRAW', {
       phone,
       items: JSON.stringify(products),

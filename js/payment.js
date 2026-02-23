@@ -347,7 +347,7 @@ async function confirmMultiPayment() {
         var cashLAK = dbData.length >= 17 ? (parseFloat(dbData[16][0]) || 0) : 0;
         if (cashLAK < change) {
           alert('❌ เงินสด LAK ไม่พอทอน! มี ' + formatNumber(cashLAK) + ' LAK แต่ต้องทอน ' + formatNumber(change) + ' LAK');
-          hideLoading();
+          enableModalButtons(); hideLoading();
           return;
         }
       } else {
@@ -367,21 +367,21 @@ async function confirmMultiPayment() {
         console.log('User Cash LAK balance:', userCashLAK);
         if (userCashLAK < change) {
           alert('❌ เงินสด LAK ของคุณไม่พอทอน! มี ' + formatNumber(userCashLAK) + ' LAK แต่ต้องทอน ' + formatNumber(change) + ' LAK');
-          hideLoading();
+          enableModalButtons(); hideLoading();
           return;
         }
       }
     } catch(e) {
       console.error('Error checking user cash balance:', e);
       alert('❌ ไม่สามารถตรวจสอบยอดเงินได้: ' + e.message);
-      hideLoading();
+      enableModalButtons(); hideLoading();
       return;
     }
   }
 
   try {
     _isSubmitting = true;
-    showLoading();
+    showLoading(); disableModalButtons();
     
     const actionMap = {
       'SELL': 'CONFIRM_SELL_PAYMENT',

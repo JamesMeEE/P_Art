@@ -2,7 +2,7 @@ let currentCloseId = null;
 
 async function openCloseWorkModal() {
   try {
-    showLoading();
+    showLoading(); disableModalButtons();
 
     var today = new Date();
     var todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate());
@@ -16,7 +16,7 @@ async function openCloseWorkModal() {
       return isToday && row[1] === userName && (row[8] === 'PENDING' || row[8] === 'APPROVED');
     });
     if (alreadyClosed) {
-      hideLoading();
+      enableModalButtons(); hideLoading();
       alert('❌ คุณได้ปิดงานวันนี้แล้ว (' + alreadyClosed[0] + ' - ' + alreadyClosed[8] + ')');
       return;
     }
@@ -243,11 +243,11 @@ async function openCloseWorkModal() {
       oldGold: JSON.stringify(oldGoldReceived)
     };
 
-    hideLoading();
+    enableModalButtons(); hideLoading();
     openModal('closeWorkModal');
   } catch (error) {
     console.error('Error opening close work modal:', error);
-    hideLoading();
+    enableModalButtons(); hideLoading();
     alert('❌ Error: ' + error.message);
   }
 }
@@ -256,7 +256,7 @@ async function submitCloseWork() {
   if (!window.currentCloseSummary) return;
 
   try {
-    showLoading();
+    showLoading(); disableModalButtons();
     var result = await callAppsScript('SUBMIT_CLOSE', window.currentCloseSummary);
     if (result.success) {
       showToast('✅ ส่ง Close สำเร็จ! รอ Manager อนุมัติ');
@@ -265,10 +265,10 @@ async function submitCloseWork() {
     } else {
       alert('❌ Error: ' + result.message);
     }
-    hideLoading();
+    enableModalButtons(); hideLoading();
   } catch (error) {
     alert('❌ Error: ' + error.message);
-    hideLoading();
+    enableModalButtons(); hideLoading();
   }
 }
 
@@ -330,7 +330,7 @@ async function checkPendingClose() {
 
 async function openReviewCloseModal() {
   try {
-    showLoading();
+    showLoading(); disableModalButtons();
 
     var closeData = await fetchSheetData('Close!A:K');
     var pendingCloses = closeData.slice(1).filter(function(row) { return row[8] === 'PENDING'; });
@@ -345,18 +345,18 @@ async function openReviewCloseModal() {
         '<table class="data-table" style="width:100%;"><thead><tr><th>ID</th><th>User</th><th>Date</th><th>Time</th><th>Action</th></tr></thead><tbody>' + rows + '</tbody></table>';
     }
 
-    hideLoading();
+    enableModalButtons(); hideLoading();
     openModal('reviewCloseModal');
   } catch (error) {
     console.error('Error opening review close modal:', error);
-    hideLoading();
+    enableModalButtons(); hideLoading();
     alert('❌ Error: ' + error.message);
   }
 }
 
 async function openCloseDetail(closeId) {
   try {
-    showLoading();
+    showLoading(); disableModalButtons();
     currentCloseId = closeId;
 
     var closeData = await fetchSheetData('Close!A:K');
@@ -364,7 +364,7 @@ async function openCloseDetail(closeId) {
 
     if (!closeRecord) {
       alert('ไม่พบข้อมูล');
-      hideLoading();
+      enableModalButtons(); hideLoading();
       return;
     }
 
@@ -407,11 +407,11 @@ async function openCloseDetail(closeId) {
       '</div></div>';
 
     closeModal('reviewCloseModal');
-    hideLoading();
+    enableModalButtons(); hideLoading();
     openModal('closeDetailModal');
   } catch (error) {
     console.error('Error opening close detail:', error);
-    hideLoading();
+    enableModalButtons(); hideLoading();
     alert('❌ Error: ' + error.message);
   }
 }
@@ -420,7 +420,7 @@ async function approveClose() {
   if (!currentCloseId) return;
 
   try {
-    showLoading();
+    showLoading(); disableModalButtons();
     var result = await callAppsScript('APPROVE_CLOSE', {
       closeId: currentCloseId,
       approvedBy: currentUser.nickname
@@ -433,10 +433,10 @@ async function approveClose() {
     } else {
       alert('❌ Error: ' + result.message);
     }
-    hideLoading();
+    enableModalButtons(); hideLoading();
   } catch (error) {
     alert('❌ Error: ' + error.message);
-    hideLoading();
+    enableModalButtons(); hideLoading();
   }
 }
 
@@ -445,7 +445,7 @@ async function rejectClose() {
   if (!confirm('ปฏิเสธการปิดงาน ' + currentCloseId + '?')) return;
 
   try {
-    showLoading();
+    showLoading(); disableModalButtons();
     var result = await callAppsScript('REJECT_CLOSE', {
       closeId: currentCloseId,
       approvedBy: currentUser.nickname
@@ -458,10 +458,10 @@ async function rejectClose() {
     } else {
       alert('❌ Error: ' + result.message);
     }
-    hideLoading();
+    enableModalButtons(); hideLoading();
   } catch (error) {
     alert('❌ Error: ' + error.message);
-    hideLoading();
+    enableModalButtons(); hideLoading();
   }
 }
 
@@ -470,7 +470,7 @@ var _transferCashCounter = 0;
 
 async function openTransferCashModal() {
   try {
-    showLoading();
+    showLoading(); disableModalButtons();
     var userName = currentUser.nickname;
     var userSheetData = await fetchSheetData("'" + userName + "'!A:I");
 
@@ -499,10 +499,10 @@ async function openTransferCashModal() {
     _transferCashCounter = 0;
     addTransferCashRow();
 
-    hideLoading();
+    enableModalButtons(); hideLoading();
     openModal('transferCashModal');
   } catch (e) {
-    hideLoading();
+    enableModalButtons(); hideLoading();
     alert('❌ Error: ' + e.message);
   }
 }
@@ -545,7 +545,7 @@ async function confirmTransferCashMulti() {
   if (!confirm('ยืนยันย้ายเงินเข้าร้าน?\n' + summary)) return;
 
   try {
-    showLoading();
+    showLoading(); disableModalButtons();
     var result = await callAppsScript('TRANSFER_CASH_TO_SHOP', {
       user: currentUser.nickname,
       transfers: JSON.stringify(transfers)
@@ -557,9 +557,9 @@ async function confirmTransferCashMulti() {
     } else {
       alert('❌ Error: ' + result.message);
     }
-    hideLoading();
+    enableModalButtons(); hideLoading();
   } catch (e) {
-    hideLoading();
+    enableModalButtons(); hideLoading();
     alert('❌ Error: ' + e.message);
   }
 }
