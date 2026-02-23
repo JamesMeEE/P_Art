@@ -258,7 +258,10 @@ function openModal(modalId) {
   document.getElementById(modalId).classList.add('active');
 }
 
+var _shiftCompleted = false;
+
 function closeModal(modalId) {
+  if (modalId === 'openShiftModal' && !_shiftCompleted) return;
   document.getElementById(modalId).classList.remove('active');
 }
 
@@ -410,7 +413,7 @@ async function deleteTransaction(id, sheetName, type) {
     showLoading();
     var result = await callAppsScript('DELETE_TRANSACTION', { id: id, sheet: sheetName, type: type });
     if (result.success) {
-      alert('✅ ลบสำเร็จ');
+      showToast('✅ ลบสำเร็จ');
       if (typeof loadHistorySell === 'function') loadHistorySell();
       if (typeof loadBuybacks === 'function') loadBuybacks();
     } else {

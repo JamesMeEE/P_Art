@@ -173,10 +173,12 @@ async function checkOpenShift() {
     var data = await fetchSheetData(sheetName + '!A2:A2');
     if (!data || data.length === 0 || !data[0] || !data[0][0] || String(data[0][0]).trim() === '') {
       document.getElementById('openShiftAmount').value = '';
+      _shiftCompleted = false;
       openModal('openShiftModal');
     }
   } catch(e) {
     document.getElementById('openShiftAmount').value = '';
+    _shiftCompleted = false;
     openModal('openShiftModal');
   }
 }
@@ -196,6 +198,7 @@ async function confirmOpenShift() {
     });
     if (result.success) {
       showToast('✅ เปิดกะสำเร็จ');
+      _shiftCompleted = true;
       closeModal('openShiftModal');
     } else {
       alert('❌ ' + result.message);
