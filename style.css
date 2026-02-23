@@ -502,6 +502,14 @@ tbody tr:hover {
   backdrop-filter: blur(5px);
 }
 
+#openShiftModal.active {
+  pointer-events: none;
+}
+
+#openShiftModal.active > .modal-content {
+  pointer-events: auto;
+}
+
 .modal.active {
   display: flex;
 }
