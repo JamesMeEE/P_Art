@@ -51,7 +51,7 @@ function showLoading() {
   var loader = document.getElementById('loader');
   if (loader) loader.style.display = 'flex';
   _disabledButtons = [];
-  document.querySelectorAll('.modal.active button, .modal.active .btn-primary, .modal.active .btn-secondary').forEach(function(btn) {
+  document.querySelectorAll('.btn-primary, .btn-secondary').forEach(function(btn) {
     if (!btn.disabled) {
       btn.disabled = true;
       btn.dataset.wasEnabled = '1';

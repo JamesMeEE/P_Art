@@ -136,7 +136,7 @@ function calculateBuybackTotal() {
 
   const total = roundTo1000(totalPrice);
   console.log('Buyback Total:', total, 'LAK');
-  document.getElementById('buybackPrice').value = formatNumber(total);
+  document.getElementById('buybackPrice').value = formatNumber(total) + ' LAK';
   
   return total;
 }

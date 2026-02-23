@@ -108,7 +108,7 @@ function calculateWithdrawPremium() {
     }
   });
 
-  document.getElementById('withdrawPremium').value = formatNumber(premium);
+  document.getElementById('withdrawPremium').value = formatNumber(premium) + ' LAK';
 }
 
 async function calculateWithdraw() {

@@ -457,6 +457,15 @@ tbody tr:hover {
   color: var(--gold-primary);
 }
 
+.btn-primary:disabled,
+.btn-secondary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+  pointer-events: none;
+}
+
 .btn-danger {
   padding: 12px 24px;
   border: none;
