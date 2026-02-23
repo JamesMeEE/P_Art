@@ -29,63 +29,36 @@ function isTodayRow(dateValue) {
   return d >= todayStart && d <= todayEnd;
 }
 
+var _boxSpinner = '<div style="display:flex;justify-content:center;align-items:center;padding:20px;"><div style="width:24px;height:24px;border:3px solid var(--border-color);border-top:3px solid var(--gold-primary);border-radius:50%;animation:spin 0.8s linear infinite;"></div></div>';
+
+function setBoxLoading(ids) {
+  ids.forEach(function(id) {
+    var el = document.getElementById(id);
+    if (el) el.innerHTML = _boxSpinner;
+  });
+}
+
 async function loadDashboard() {
+  var today = new Date();
+  var todayStr = formatDateOnly(today);
+  document.getElementById('dashboardDate').textContent = todayStr;
+
+  var salesIds = ['dashSalesBox', 'dashBuybackBox', 'dashWithdrawBox', 'dashNetSellBox'];
+  var dbIds = ['dashPLBox', 'dashWACBox', 'dashNewStockBox', 'dashOldStockBox', 'dashCashBox', 'dashBankBox', 'dashTotalGoldBox', 'dashTotalCashBox'];
+  var reportIds = ['dashReportBox'];
+
+  setBoxLoading(salesIds);
+  setBoxLoading(dbIds);
+  setBoxLoading(reportIds);
+
+  loadDashDB(dbIds);
+  loadDashSales(salesIds);
+  loadDashReport();
+}
+
+async function loadDashDB(ids) {
   try {
-    showLoading();
-
-    var today = new Date();
-    var todayStr = formatDateOnly(today);
-    document.getElementById('dashboardDate').textContent = todayStr;
-
-    var dbPromise = fetchSheetData('_database!A1:G31');
-    var txPromise = Promise.all([
-      fetchSheetData('Sells!A:L'),
-      fetchSheetData('Tradeins!A:N'),
-      fetchSheetData('Exchanges!A:N'),
-      fetchSheetData('Switches!A:N'),
-      fetchSheetData('FreeExchanges!A:L'),
-      fetchSheetData('Buybacks!A:L'),
-      fetchSheetData('Withdraws!A:J')
-    ]);
-
-    var dbData = await dbPromise;
-    var txResults = await txPromise;
-
-    var sellRows = txResults[0].slice(1).filter(function(r) { return isTodayRow(r[9]) && (r[10] === 'COMPLETED' || r[10] === 'PAID'); });
-    var tradeinRows = txResults[1].slice(1).filter(function(r) { return isTodayRow(r[11]) && (r[12] === 'COMPLETED' || r[12] === 'PAID'); });
-    var exchangeRows = txResults[2].slice(1).filter(function(r) { return isTodayRow(r[11]) && (r[12] === 'COMPLETED' || r[12] === 'PAID'); });
-    var switchRows = txResults[3].slice(1).filter(function(r) { return isTodayRow(r[11]) && (r[12] === 'COMPLETED' || r[12] === 'PAID'); });
-    var freeExRows = txResults[4].slice(1).filter(function(r) { return isTodayRow(r[7]) && (r[8] === 'COMPLETED' || r[8] === 'PAID'); });
-    var buybackRows = txResults[5].slice(1).filter(function(r) { return isTodayRow(r[9]) && (r[10] === 'COMPLETED' || r[10] === 'PAID'); });
-    var withdrawRows = txResults[6].slice(1).filter(function(r) { return isTodayRow(r[6]) && (r[7] === 'COMPLETED' || r[7] === 'PAID'); });
-
-    var sellMoney = 0; sellRows.forEach(function(r) { sellMoney += parseFloat(r[3]) || 0; });
-    var tradeinMoney = 0; tradeinRows.forEach(function(r) { tradeinMoney += parseFloat(r[6]) || 0; });
-    var exchangeMoney = 0; exchangeRows.forEach(function(r) { exchangeMoney += parseFloat(r[6]) || 0; });
-    var switchMoney = 0; switchRows.forEach(function(r) { switchMoney += parseFloat(r[6]) || 0; });
-    var freeExMoney = 0; freeExRows.forEach(function(r) { freeExMoney += parseFloat(r[5]) || 0; });
-
-    var salesTotal = sellMoney + tradeinMoney + exchangeMoney + switchMoney + freeExMoney;
-    var salesTotalTx = sellRows.length + tradeinRows.length + exchangeRows.length + switchRows.length + freeExRows.length;
-
-    var salesOldGIn = 0;
-    var salesNewGOut = 0;
-
-    sellRows.forEach(function(r) { salesNewGOut += calcItemsGrams(r[2]); });
-    tradeinRows.forEach(function(r) { salesOldGIn += calcItemsGrams(r[2]); salesNewGOut += calcItemsGrams(r[3]); });
-    exchangeRows.forEach(function(r) { salesOldGIn += calcItemsGrams(r[2]); salesNewGOut += calcItemsGrams(r[3]); });
-    switchRows.forEach(function(r) { salesOldGIn += calcItemsGrams(r[2]); salesNewGOut += calcItemsGrams(r[3]); });
-    freeExRows.forEach(function(r) { salesOldGIn += calcItemsGrams(r[2]); salesNewGOut += calcItemsGrams(r[3]); });
-
-    var bbMoney = 0; buybackRows.forEach(function(r) { bbMoney += parseFloat(r[6]) || parseFloat(r[3]) || 0; });
-    var bbOldGIn = 0; buybackRows.forEach(function(r) { bbOldGIn += calcItemsGrams(r[2]); });
-
-    var wdMoney = 0; withdrawRows.forEach(function(r) { wdMoney += parseFloat(r[4]) || 0; });
-    var wdNewGOut = 0; withdrawRows.forEach(function(r) { wdNewGOut += calcItemsGrams(r[2]); });
-
-    var totalOldGIn = salesOldGIn + bbOldGIn;
-    var totalNewGOut = salesNewGOut + wdNewGOut;
-    var netSellBaht = (totalNewGOut - totalOldGIn) / 15;
+    var dbData = await fetchSheetData('_database!A1:G31');
 
     var todayPL = 0;
     if (dbData.length >= 27) {
@@ -106,48 +79,6 @@ async function loadDashboard() {
       }
     }
 
-    document.getElementById('dashSalesBox').innerHTML =
-      '<h3 style="color:var(--gold-primary);margin-bottom:8px;">💰 SALES</h3>' +
-      '<p style="font-size:18px;margin:3px 0;font-weight:bold;">' + formatNumber(Math.round(salesTotal)) + ' <span style="font-size:12px;">LAK</span></p>' +
-      '<p style="font-size:11px;color:var(--text-secondary);margin:2px 0;">Tx: <b>' + salesTotalTx + '</b></p>' +
-      '<div style="border-top:1px solid var(--border-color);margin:6px 0;padding-top:6px;font-size:11px;color:var(--text-secondary);line-height:1.6;">' +
-      'Sell: ' + formatNumber(Math.round(sellMoney)) + ' (' + sellRows.length + ')<br>' +
-      'Trade-in: ' + formatNumber(Math.round(tradeinMoney)) + ' (' + tradeinRows.length + ')<br>' +
-      'Exchange: ' + formatNumber(Math.round(exchangeMoney)) + ' (' + exchangeRows.length + ')<br>' +
-      'Switch: ' + formatNumber(Math.round(switchMoney)) + ' (' + switchRows.length + ')<br>' +
-      'Free Ex: ' + formatNumber(Math.round(freeExMoney)) + ' (' + freeExRows.length + ')' +
-      '</div>' +
-      '<div style="border-top:1px solid var(--border-color);margin:6px 0;padding-top:6px;font-size:12px;">' +
-      '<span style="color:#ff9800;">◀ Old In: ' + salesOldGIn.toFixed(2) + ' g</span><br>' +
-      '<span style="color:#4caf50;">▶ New Out: ' + salesNewGOut.toFixed(2) + ' g</span>' +
-      '</div>';
-
-    document.getElementById('dashBuybackBox').innerHTML =
-      '<h3 style="color:var(--gold-primary);margin-bottom:8px;">🔄 BUYBACK</h3>' +
-      '<p style="font-size:18px;margin:3px 0;font-weight:bold;">' + formatNumber(Math.round(bbMoney)) + ' <span style="font-size:12px;">LAK</span></p>' +
-      '<p style="font-size:11px;color:var(--text-secondary);margin:2px 0;">Tx: <b>' + buybackRows.length + '</b></p>' +
-      '<div style="border-top:1px solid var(--border-color);margin:6px 0;padding-top:6px;font-size:12px;">' +
-      '<span style="color:#ff9800;">◀ Old In: ' + bbOldGIn.toFixed(2) + ' g</span>' +
-      '</div>';
-
-    document.getElementById('dashWithdrawBox').innerHTML =
-      '<h3 style="color:var(--gold-primary);margin-bottom:8px;">📤 WITHDRAW</h3>' +
-      '<p style="font-size:18px;margin:3px 0;font-weight:bold;">' + formatNumber(Math.round(wdMoney)) + ' <span style="font-size:12px;">LAK</span></p>' +
-      '<p style="font-size:11px;color:var(--text-secondary);margin:2px 0;">Tx: <b>' + withdrawRows.length + '</b></p>' +
-      '<div style="border-top:1px solid var(--border-color);margin:6px 0;padding-top:6px;font-size:12px;">' +
-      '<span style="color:#4caf50;">▶ New Out: ' + wdNewGOut.toFixed(2) + ' g</span>' +
-      '</div>';
-
-    var netColor = netSellBaht >= 0 ? '#4caf50' : '#f44336';
-    document.getElementById('dashNetSellBox').innerHTML =
-      '<h3 style="color:var(--gold-primary);margin-bottom:8px;">⚖ NET SELL</h3>' +
-      '<p style="font-size:24px;margin:8px 0;font-weight:bold;color:' + netColor + ';">' + netSellBaht.toFixed(2) + ' <span style="font-size:13px;">บาท</span></p>' +
-      '<div style="border-top:1px solid var(--border-color);margin:6px 0;padding-top:6px;font-size:11px;color:var(--text-secondary);line-height:1.6;">' +
-      'New Out ทั้งหมด: ' + totalNewGOut.toFixed(2) + ' g<br>' +
-      'Old In ทั้งหมด: ' + totalOldGIn.toFixed(2) + ' g<br>' +
-      'Net: ' + (totalNewGOut - totalOldGIn).toFixed(2) + ' g ÷ 15' +
-      '</div>';
-
     document.getElementById('dashPLBox').innerHTML =
       '<h3 style="color:var(--gold-primary);margin-bottom:10px;">📈 P/L</h3>' +
       '<p style="font-size:24px;font-weight:bold;color:' + (todayPL >= 0 ? '#4caf50' : '#f44336') + ';margin:10px 0;">' + formatNumber(Math.round(todayPL)) + ' <span style="font-size:12px;">LAK</span></p>';
@@ -158,8 +89,6 @@ async function loadDashboard() {
       '<p style="font-size:20px;font-weight:bold;margin:2px 0;">' + formatNumber(Math.round(wacPerG)) + ' <span style="font-size:12px;">LAK</span></p>' +
       '<p style="font-size:12px;color:var(--text-secondary);margin:8px 0 2px 0;">ราคา/บาท</p>' +
       '<p style="font-size:20px;font-weight:bold;margin:2px 0;">' + formatNumber(Math.round(wacPerBaht)) + ' <span style="font-size:12px;">LAK</span></p>';
-
-    await refreshDashReport();
 
     var newStock = { pieces: 0, goldG: 0 };
     var oldStock = { pieces: 0, goldG: 0 };
@@ -230,13 +159,100 @@ async function loadDashboard() {
       '<p style="font-size:18px;margin:5px 0;">' + formatNumber(totalCashLAK) + ' <span style="font-size:12px;">LAK</span></p>' +
       '<p style="font-size:18px;margin:3px 0;">' + formatNumber(totalCashTHB) + ' <span style="font-size:12px;">THB</span></p>' +
       '<p style="font-size:18px;margin:3px 0;">' + formatNumber(totalCashUSD) + ' <span style="font-size:12px;">USD</span></p>';
-
-    startDashReportRefresh();
-    hideLoading();
-  } catch(error) {
-    console.error('Error loading dashboard:', error);
-    hideLoading();
+  } catch(e) {
+    console.error('Error loading dashboard DB:', e);
   }
+}
+
+async function loadDashSales(ids) {
+  try {
+    var txResults = await Promise.all([
+      fetchSheetData('Sells!A:L'),
+      fetchSheetData('Tradeins!A:N'),
+      fetchSheetData('Exchanges!A:T'),
+      fetchSheetData('Buybacks!A:L'),
+      fetchSheetData('Withdraws!A:J')
+    ]);
+
+    var sellRows = txResults[0].slice(1).filter(function(r) { return isTodayRow(r[9]) && (r[10] === 'COMPLETED' || r[10] === 'PAID'); });
+    var tradeinRows = txResults[1].slice(1).filter(function(r) { return isTodayRow(r[11]) && (r[12] === 'COMPLETED' || r[12] === 'PAID'); });
+    var exchangeRows = txResults[2].slice(1).filter(function(r) { return isTodayRow(r[11]) && (r[12] === 'COMPLETED' || r[12] === 'PAID'); });
+    var buybackRows = txResults[3].slice(1).filter(function(r) { return isTodayRow(r[9]) && (r[10] === 'COMPLETED' || r[10] === 'PAID'); });
+    var withdrawRows = txResults[4].slice(1).filter(function(r) { return isTodayRow(r[6]) && (r[7] === 'COMPLETED' || r[7] === 'PAID'); });
+
+    var sellMoney = 0; sellRows.forEach(function(r) { sellMoney += parseFloat(r[3]) || 0; });
+    var tradeinMoney = 0; tradeinRows.forEach(function(r) { tradeinMoney += parseFloat(r[6]) || 0; });
+    var exchangeMoney = 0; exchangeRows.forEach(function(r) { exchangeMoney += parseFloat(r[6]) || 0; });
+
+    var salesTotal = sellMoney + tradeinMoney + exchangeMoney;
+    var salesTotalTx = sellRows.length + tradeinRows.length + exchangeRows.length;
+
+    var salesOldGIn = 0;
+    var salesNewGOut = 0;
+
+    sellRows.forEach(function(r) { salesNewGOut += calcItemsGrams(r[2]); });
+    tradeinRows.forEach(function(r) { salesOldGIn += calcItemsGrams(r[2]); salesNewGOut += calcItemsGrams(r[3]); });
+    exchangeRows.forEach(function(r) { salesOldGIn += calcItemsGrams(r[2]); salesNewGOut += calcItemsGrams(r[3]); });
+
+    var bbMoney = 0; buybackRows.forEach(function(r) { bbMoney += parseFloat(r[6]) || parseFloat(r[3]) || 0; });
+    var bbOldGIn = 0; buybackRows.forEach(function(r) { bbOldGIn += calcItemsGrams(r[2]); });
+
+    var wdMoney = 0; withdrawRows.forEach(function(r) { wdMoney += parseFloat(r[4]) || 0; });
+    var wdNewGOut = 0; withdrawRows.forEach(function(r) { wdNewGOut += calcItemsGrams(r[2]); });
+
+    var totalOldGIn = salesOldGIn + bbOldGIn;
+    var totalNewGOut = salesNewGOut + wdNewGOut;
+    var netSellBaht = (totalNewGOut - totalOldGIn) / 15;
+
+    document.getElementById('dashSalesBox').innerHTML =
+      '<h3 style="color:var(--gold-primary);margin-bottom:8px;">💰 SALES</h3>' +
+      '<p style="font-size:18px;margin:3px 0;font-weight:bold;">' + formatNumber(Math.round(salesTotal)) + ' <span style="font-size:12px;">LAK</span></p>' +
+      '<p style="font-size:11px;color:var(--text-secondary);margin:2px 0;">Tx: <b>' + salesTotalTx + '</b></p>' +
+      '<div style="border-top:1px solid var(--border-color);margin:6px 0;padding-top:6px;font-size:11px;color:var(--text-secondary);line-height:1.6;">' +
+      'Sell: ' + formatNumber(Math.round(sellMoney)) + ' (' + sellRows.length + ')<br>' +
+      'Trade-in: ' + formatNumber(Math.round(tradeinMoney)) + ' (' + tradeinRows.length + ')<br>' +
+      'Exchange: ' + formatNumber(Math.round(exchangeMoney)) + ' (' + exchangeRows.length + ')' +
+      '</div>' +
+      '<div style="border-top:1px solid var(--border-color);margin:6px 0;padding-top:6px;font-size:12px;">' +
+      '<span style="color:#ff9800;">◀ Old In: ' + salesOldGIn.toFixed(2) + ' g</span><br>' +
+      '<span style="color:#4caf50;">▶ New Out: ' + salesNewGOut.toFixed(2) + ' g</span>' +
+      '</div>';
+
+    document.getElementById('dashBuybackBox').innerHTML =
+      '<h3 style="color:var(--gold-primary);margin-bottom:8px;">🔄 BUYBACK</h3>' +
+      '<p style="font-size:18px;margin:3px 0;font-weight:bold;">' + formatNumber(Math.round(bbMoney)) + ' <span style="font-size:12px;">LAK</span></p>' +
+      '<p style="font-size:11px;color:var(--text-secondary);margin:2px 0;">Tx: <b>' + buybackRows.length + '</b></p>' +
+      '<div style="border-top:1px solid var(--border-color);margin:6px 0;padding-top:6px;font-size:12px;">' +
+      '<span style="color:#ff9800;">◀ Old In: ' + bbOldGIn.toFixed(2) + ' g</span>' +
+      '</div>';
+
+    document.getElementById('dashWithdrawBox').innerHTML =
+      '<h3 style="color:var(--gold-primary);margin-bottom:8px;">📤 WITHDRAW</h3>' +
+      '<p style="font-size:18px;margin:3px 0;font-weight:bold;">' + formatNumber(Math.round(wdMoney)) + ' <span style="font-size:12px;">LAK</span></p>' +
+      '<p style="font-size:11px;color:var(--text-secondary);margin:2px 0;">Tx: <b>' + withdrawRows.length + '</b></p>' +
+      '<div style="border-top:1px solid var(--border-color);margin:6px 0;padding-top:6px;font-size:12px;">' +
+      '<span style="color:#4caf50;">▶ New Out: ' + wdNewGOut.toFixed(2) + ' g</span>' +
+      '</div>';
+
+    var netColor = netSellBaht >= 0 ? '#4caf50' : '#f44336';
+    document.getElementById('dashNetSellBox').innerHTML =
+      '<h3 style="color:var(--gold-primary);margin-bottom:8px;">⚖ NET SELL</h3>' +
+      '<p style="font-size:24px;margin:8px 0;font-weight:bold;color:' + netColor + ';">' + netSellBaht.toFixed(2) + ' <span style="font-size:13px;">บาท</span></p>' +
+      '<div style="border-top:1px solid var(--border-color);margin:6px 0;padding-top:6px;font-size:11px;color:var(--text-secondary);line-height:1.6;">' +
+      'New Out ทั้งหมด: ' + totalNewGOut.toFixed(2) + ' g<br>' +
+      'Old In ทั้งหมด: ' + totalOldGIn.toFixed(2) + ' g<br>' +
+      'Net: ' + (totalNewGOut - totalOldGIn).toFixed(2) + ' g ÷ 15' +
+      '</div>';
+  } catch(e) {
+    console.error('Error loading dashboard sales:', e);
+  }
+}
+
+async function loadDashReport() {
+  try {
+    await refreshDashReport();
+    startDashReportRefresh();
+  } catch(e) {}
 }
 
 async function refreshDashReport() {
