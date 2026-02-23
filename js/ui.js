@@ -55,12 +55,11 @@ function hideLoading() {
   if (loader) loader.style.display = 'none';
 }
 
-document.querySelectorAll('.modal').forEach(modal => {
-  modal.addEventListener('click', function(e) {
-    if (e.target === modal && modal.id !== 'openShiftModal') {
-      modal.classList.remove('active');
-    }
-  });
+document.addEventListener('click', function(e) {
+  if (e.target.classList && e.target.classList.contains('modal') && e.target.classList.contains('active')) {
+    if (e.target.id === 'openShiftModal') return;
+    e.target.classList.remove('active');
+  }
 });
 
 function showToast(message, duration) {
