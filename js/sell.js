@@ -1,6 +1,7 @@
 async function loadSells() {
   try {
-    showLoading();
+    var tbody = document.getElementById('sellTable');
+    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:30px;"><div style="display:inline-block;width:24px;height:24px;border:3px solid var(--border-color);border-top:3px solid var(--gold-primary);border-radius:50%;animation:spin 0.8s linear infinite;"></div></td></tr>';
     const data = await fetchSheetData('Sells!A:L');
     
     let filteredData = data.slice(1);
@@ -19,7 +20,6 @@ async function loadSells() {
       filteredData.sort((a, b) => new Date(b[9]) - new Date(a[9]));
     }
     
-    const tbody = document.getElementById('sellTable');
     if (filteredData.length === 0) {
       tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 40px;">No records</td></tr>';
     } else {
@@ -62,11 +62,8 @@ async function loadSells() {
         `;
       }).join('');
     }
-    
-    hideLoading();
   } catch (error) {
     console.error('❌ Error loading sells:', error);
-    hideLoading();
   }
 }
 
@@ -144,6 +141,7 @@ async function submitSell() {
     });
 
     if (result.success) {
+      endSubmit();
       showToast('✅ สร้างรายการขายสำเร็จ!');
       closeModal('sellModal');
       document.getElementById('sellPhone').value = '';
@@ -153,8 +151,8 @@ async function submitSell() {
       loadSells();
     } else {
       alert('❌ เกิดข้อผิดพลาด: ' + result.message);
+      endSubmit();
     }
-    endSubmit();
   } catch (error) {
     alert('❌ เกิดข้อผิดพลาด: ' + error.message);
     endSubmit();

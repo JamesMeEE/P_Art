@@ -1,6 +1,7 @@
 async function loadWithdraws() {
   try {
-    showLoading();
+    var tbody = document.getElementById('withdrawTable');
+    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:30px;"><div style="display:inline-block;width:24px;height:24px;border:3px solid var(--border-color);border-top:3px solid var(--gold-primary);border-radius:50%;animation:spin 0.8s linear infinite;"></div></td></tr>';
     const data = await fetchSheetData('Withdraws!A:J');
     
     let filteredData = data.slice(1);
@@ -63,11 +64,8 @@ async function loadWithdraws() {
         `;
       }).join('');
     }
-    
-    hideLoading();
   } catch (error) {
     console.error('Error loading withdraws:', error);
-    hideLoading();
   }
 }
 
@@ -154,6 +152,7 @@ async function calculateWithdraw() {
     });
     
     if (result.success) {
+      endSubmit();
       showToast('✅ สร้างรายการถอนทองสำเร็จ!');
       closeModal('withdrawModal');
       
@@ -165,8 +164,8 @@ async function calculateWithdraw() {
       loadWithdraws();
     } else {
       alert('❌ เกิดข้อผิดพลาด: ' + result.message);
+      endSubmit();
     }
-    endSubmit();
   } catch (error) {
     alert('❌ เกิดข้อผิดพลาด: ' + error.message);
     endSubmit();

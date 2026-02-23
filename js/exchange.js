@@ -4,7 +4,8 @@ var _exFreeExBillData = null;
 
 async function loadExchanges() {
   try {
-    showLoading();
+    var tbody = document.getElementById('exchangeTable');
+    tbody.innerHTML = '<tr><td colspan="10" style="text-align:center;padding:30px;"><div style="display:inline-block;width:24px;height:24px;border:3px solid var(--border-color);border-top:3px solid var(--gold-primary);border-radius:50%;animation:spin 0.8s linear infinite;"></div></td></tr>';
     var data = await fetchSheetData('Exchanges!A:T');
     var filteredData = data.slice(1);
     if (currentUser.role === 'User' || isManager()) {
@@ -63,10 +64,8 @@ async function loadExchanges() {
           '<td>' + actions + '</td></tr>';
       }).join('');
     }
-    hideLoading();
   } catch (e) {
     console.error('loadExchanges error:', e);
-    hideLoading();
   }
 }
 
@@ -310,14 +309,15 @@ async function calculateExchangeNew() {
       user: currentUser.nickname
     });
     if (result.success) {
+      endSubmit();
       showToast('✅ สร้างรายการ Exchange สำเร็จ!');
       closeModal('exchangeModal');
       resetExchangeForm();
       loadExchanges();
     } else {
       alert('❌ ' + result.message);
+      endSubmit();
     }
-    endSubmit();
   } catch(e) {
     alert('❌ ' + e.message);
     endSubmit();

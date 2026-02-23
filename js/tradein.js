@@ -1,6 +1,7 @@
 async function loadTradeins() {
   try {
-    showLoading();
+    var tbody = document.getElementById('tradeinTable');
+    tbody.innerHTML = '<tr><td colspan="10" style="text-align:center;padding:30px;"><div style="display:inline-block;width:24px;height:24px;border:3px solid var(--border-color);border-top:3px solid var(--gold-primary);border-radius:50%;animation:spin 0.8s linear infinite;"></div></td></tr>';
     const data = await fetchSheetData('Tradeins!A:N');
     
     let filteredData = data.slice(1);
@@ -65,10 +66,7 @@ async function loadTradeins() {
         `;
       }).join('');
     }
-    
-    hideLoading();
   } catch (error) {
-    hideLoading();
   }
 }
 
@@ -233,6 +231,7 @@ async function calculateTradein() {
     });
     
     if (result.success) {
+      endSubmit();
       showToast('✅ สร้างรายการแลกเปลี่ยนสำเร็จ!');
       closeModal('tradeinModal');
       document.getElementById('tradeinPhone').value = '';
@@ -245,8 +244,8 @@ async function calculateTradein() {
       loadTradeins();
     } else {
       alert('❌ เกิดข้อผิดพลาด: ' + result.message);
+      endSubmit();
     }
-    endSubmit();
   } catch (error) {
     alert('❌ เกิดข้อผิดพลาด: ' + error.message);
     endSubmit();
