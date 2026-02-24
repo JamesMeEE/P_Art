@@ -2,6 +2,11 @@ function isManager() {
   return currentUser && (currentUser.role === 'Manager' || currentUser.role === 'Admin');
 }
 
+function getGoldWeight(productId) {
+  var weights = { 'G01': 150, 'G02': 75, 'G03': 30, 'G04': 15, 'G05': 7.5, 'G06': 3.75, 'G07': 1 };
+  return weights[productId] || 0;
+}
+
 function formatNumber(num) {
   var n = typeof num === 'string' ? parseFloat(num.replace(/,/g, '')) : num;
   return new Intl.NumberFormat('en-US').format(Math.round(n));

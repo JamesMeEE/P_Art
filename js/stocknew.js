@@ -169,11 +169,11 @@ function addStockNewProduct(containerId) {
   var row = document.createElement('div');
   row.className = 'product-row';
   row.style.cssText = 'display:flex;gap:10px;margin-bottom:10px;align-items:center;';
-  row.innerHTML = '<select class="form-input" style="flex:1;">' +
+  row.innerHTML = '<select class="form-input" style="flex:1;" onchange="updateStockInWeight()">' +
     FIXED_PRODUCTS.map(function(p) { return '<option value="' + p.id + '">' + p.name + '</option>'; }).join('') +
     '</select>' +
-    '<input type="number" class="form-input" placeholder="Quantity" min="1" style="width:150px;">' +
-    '<button class="btn-danger" onclick="this.parentElement.remove()" style="padding:8px 15px;">Remove</button>';
+    '<input type="number" class="form-input" placeholder="Quantity" min="1" style="width:150px;" oninput="updateStockInWeight()">' +
+    '<button class="btn-danger" onclick="this.parentElement.remove();updateStockInWeight()" style="padding:8px 15px;">Remove</button>';
   container.appendChild(row);
 }
 
@@ -182,12 +182,44 @@ var _stockInPayments = { cash: [], bank: [] };
 function openStockInNewModal() {
   document.getElementById('stockInNewProducts').innerHTML = '';
   document.getElementById('stockInNewNote').value = '';
+  document.getElementById('stockInCostInput').value = '';
+  document.getElementById('stockInTotalWeight').textContent = '0.00 g';
+  document.getElementById('stockInRemain').textContent = '0 LAK';
+  document.getElementById('stockInRemain').style.color = 'var(--gold-primary)';
   _stockInPayments = { cash: [], bank: [] };
   document.getElementById('stockInCashList').innerHTML = '';
   document.getElementById('stockInBankList').innerHTML = '';
-  document.getElementById('stockInTotalCost').textContent = '0 LAK';
   addStockNewProduct('stockInNewProducts');
   openModal('stockInNewModal');
+}
+
+function getStockInCostValue() {
+  var raw = document.getElementById('stockInCostInput').value.replace(/,/g, '');
+  return parseFloat(raw) || 0;
+}
+
+function onStockInCostInput(el) {
+  var raw = el.value.replace(/,/g, '');
+  var num = parseFloat(raw) || 0;
+  var pos = el.selectionStart;
+  var oldLen = el.value.length;
+  if (raw && !isNaN(num) && num > 0) {
+    el.value = new Intl.NumberFormat('en-US').format(num);
+  }
+  var newLen = el.value.length;
+  el.setSelectionRange(pos + (newLen - oldLen), pos + (newLen - oldLen));
+  updateStockInRemain();
+}
+
+function updateStockInWeight() {
+  var rows = document.querySelectorAll('#stockInNewProducts .product-row');
+  var totalG = 0;
+  rows.forEach(function(row) {
+    var pid = row.querySelector('select').value;
+    var qty = parseInt(row.querySelector('input').value) || 0;
+    totalG += (getGoldWeight(pid) || 0) * qty;
+  });
+  document.getElementById('stockInTotalWeight').textContent = totalG.toFixed(2) + ' g';
 }
 
 function getStockInRate(currency) {
@@ -229,7 +261,7 @@ function renderStockInCash() {
       '<button class="btn-secondary" style="padding:8px 12px;background:#f44336;color:white;" onclick="removeStockInCash(' + item.id + ')">✕</button>' +
       '</div>' + rateHtml + '</div>';
   }).join('');
-  updateStockInTotal();
+  updateStockInRemain();
 }
 
 function renderStockInBank() {
@@ -261,7 +293,7 @@ function renderStockInBank() {
       '<input type="number" class="form-input" placeholder="Amount" value="' + (item.amount || '') + '" style="flex:1;" oninput="updateStockInBankAmount(' + item.id + ',this.value)">' +
       '</div>' + rateHtml + '</div>';
   }).join('');
-  updateStockInTotal();
+  updateStockInRemain();
 }
 
 function updateStockInCashCurrency(id, value) {
@@ -282,7 +314,7 @@ function updateStockInCashAmount(id, value) {
     var lakSpan = container.querySelector('.lak-display');
     if (lakSpan) lakSpan.textContent = '= ' + formatNumber(lakAmount) + ' LAK';
   }
-  updateStockInTotal();
+  updateStockInRemain();
 }
 
 function updateStockInBankName(id, value) {
@@ -308,7 +340,7 @@ function updateStockInBankAmount(id, value) {
     var lakSpan = container.querySelector('.lak-display');
     if (lakSpan) lakSpan.textContent = '= ' + formatNumber(lakAmount) + ' LAK';
   }
-  updateStockInTotal();
+  updateStockInRemain();
 }
 
 function removeStockInCash(id) {
@@ -321,11 +353,21 @@ function removeStockInBank(id) {
   renderStockInBank();
 }
 
-function updateStockInTotal() {
-  var total = 0;
-  _stockInPayments.cash.forEach(function(i) { total += i.amount * i.rate; });
-  _stockInPayments.bank.forEach(function(i) { total += i.amount * i.rate; });
-  document.getElementById('stockInTotalCost').textContent = formatNumber(Math.round(total)) + ' LAK';
+function updateStockInRemain() {
+  var cost = getStockInCostValue();
+  var totalPaid = 0;
+  _stockInPayments.cash.forEach(function(i) { totalPaid += i.amount * i.rate; });
+  _stockInPayments.bank.forEach(function(i) { totalPaid += i.amount * i.rate; });
+  var remain = cost - Math.round(totalPaid);
+  var el = document.getElementById('stockInRemain');
+  el.textContent = formatNumber(Math.round(remain)) + ' LAK';
+  if (remain === 0 && cost > 0) {
+    el.style.color = '#4caf50';
+  } else if (remain < 0) {
+    el.style.color = '#f44336';
+  } else {
+    el.style.color = 'var(--gold-primary)';
+  }
 }
 
 async function confirmStockInNew() {
@@ -339,21 +381,32 @@ async function confirmStockInNew() {
     }
     if (items.length === 0) { alert('กรุณาเพิ่มสินค้า'); return; }
 
+    var costInput = getStockInCostValue();
+    if (!costInput || costInput <= 0) { alert('กรุณากรอกต้นทุน'); return; }
+
     var payments = [];
-    var totalCost = 0;
+    var totalPaid = 0;
     _stockInPayments.cash.forEach(function(c) {
       if (c.amount > 0) {
         payments.push({ method: 'Cash', bank: '', currency: c.currency, amount: c.amount });
-        totalCost += c.amount * c.rate;
+        totalPaid += c.amount * c.rate;
       }
     });
     _stockInPayments.bank.forEach(function(b) {
       if (b.amount > 0) {
         payments.push({ method: 'Bank', bank: b.bank, currency: b.currency, amount: b.amount });
-        totalCost += b.amount * b.rate;
+        totalPaid += b.amount * b.rate;
       }
     });
     if (payments.length === 0) { alert('กรุณาเพิ่มการชำระเงิน'); return; }
+
+    totalPaid = Math.round(totalPaid);
+    var costRound = Math.round(costInput);
+
+    if (totalPaid !== costRound) {
+      alert('❌ ยอดจ่าย (' + formatNumber(totalPaid) + ' LAK) ไม่ตรงกับต้นทุน (' + formatNumber(costRound) + ' LAK)\nยอดจ่ายต้องเท่ากับต้นทุนที่กรอก');
+      return;
+    }
 
     showLoading();
     var dbData = await fetchSheetData('_database!A1:G31');
@@ -408,14 +461,14 @@ async function confirmStockInNew() {
       return;
     }
 
-    if (!confirm('ยืนยัน Stock In (NEW) ' + items.length + ' รายการ ต้นทุน ' + formatNumber(Math.round(totalCost)) + ' LAK?')) return;
+    if (!confirm('ยืนยัน Stock In (NEW) ' + items.length + ' รายการ ต้นทุน ' + formatNumber(costRound) + ' LAK?')) return;
 
     var note = document.getElementById('stockInNewNote').value.trim();
     showLoading();
     var result = await callAppsScript('STOCK_IN_NEW', {
       items: JSON.stringify(items),
       note: note,
-      cost: Math.round(totalCost),
+      cost: costRound,
       payments: JSON.stringify(payments),
       user: currentUser.nickname
     });

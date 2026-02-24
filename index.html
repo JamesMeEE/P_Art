@@ -2049,7 +2049,7 @@
     
     var vt = document.getElementById('versionTime');
     if (vt) {
-      vt.textContent = 'v.24/02 15:40';
+      vt.textContent = 'v.24/02 15:49';
     }
     
     const dateInputs = document.querySelectorAll('input[type="date"]');
@@ -2079,7 +2079,17 @@
         <button class="btn-secondary" onclick="addStockNewProduct('stockInNewProducts')" style="margin-top:10px;">+ Add Product</button>
       </div>
 
-      <div style="margin: 20px;">
+      <div style="margin:10px 20px;padding:12px;background:rgba(212,175,55,0.08);border-radius:8px;border:1px solid rgba(212,175,55,0.2);display:flex;justify-content:space-between;align-items:center;">
+        <span style="font-size:13px;color:var(--text-secondary);">น้ำหนักรวม</span>
+        <span style="font-size:18px;font-weight:bold;color:var(--gold-primary);" id="stockInTotalWeight">0.00 g</span>
+      </div>
+
+      <div class="form-group" style="margin:10px 20px 0 20px;">
+        <label class="form-label">ต้นทุนรวม (LAK)</label>
+        <input type="text" class="form-input" id="stockInCostInput" placeholder="กรอกต้นทุน" oninput="onStockInCostInput(this)" style="font-size:18px;font-weight:bold;text-align:right;">
+      </div>
+
+      <div style="margin: 15px 20px;">
         <div style="background: rgba(76, 175, 80, 0.1); padding: 15px; border-radius: 8px; border: 1px solid #4caf50; margin-bottom: 15px;">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
             <h3 style="color: #4caf50; margin: 0;">💵 Cash</h3>
@@ -2098,8 +2108,8 @@
       </div>
 
       <div style="margin: 0 20px 15px 20px; padding: 15px; background: var(--bg-dark); border-radius: 8px; text-align: center;">
-        <div style="font-size: 12px; color: var(--text-secondary);">รวมต้นทุน</div>
-        <div style="font-size: 22px; font-weight: bold; color: var(--gold-primary);" id="stockInTotalCost">0 LAK</div>
+        <div style="font-size: 12px; color: var(--text-secondary);">Remain (ยอดที่ยังจ่ายไม่ครบ)</div>
+        <div style="font-size: 22px; font-weight: bold;" id="stockInRemain">0 LAK</div>
       </div>
 
       <div class="form-group" style="margin:0 20px 15px 20px;">
