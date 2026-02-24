@@ -121,10 +121,10 @@ async function loadDashDB(ids) {
       bank.THB = (parseFloat(dbData[19][1]) || 0) + (parseFloat(dbData[22][1]) || 0);
       bank.USD = (parseFloat(dbData[19][2]) || 0) + (parseFloat(dbData[22][2]) || 0);
     }
-    if (dbData.length >= 17 && dbData[16].length >= 13) {
-      bank.LAK += parseFloat(dbData[16][10]) || 0;
-      bank.THB += parseFloat(dbData[16][11]) || 0;
-      bank.USD += parseFloat(dbData[16][12]) || 0;
+    if (dbData.length >= 17) {
+      bank.LAK += parseFloat(dbData[16][4]) || 0;
+      bank.THB += parseFloat(dbData[16][5]) || 0;
+      bank.USD += parseFloat(dbData[16][6]) || 0;
     }
 
     document.getElementById('dashNewStockBox').innerHTML =
