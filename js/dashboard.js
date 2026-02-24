@@ -58,7 +58,7 @@ async function loadDashboard() {
 
 async function loadDashDB(ids) {
   try {
-    var dbData = await fetchSheetData('_database!A1:G31');
+    var dbData = await fetchSheetData('_database!A1:M31');
 
     var todayPL = 0;
     if (dbData.length >= 27) {
@@ -120,6 +120,11 @@ async function loadDashDB(ids) {
       bank.LAK = (parseFloat(dbData[19][0]) || 0) + (parseFloat(dbData[22][0]) || 0);
       bank.THB = (parseFloat(dbData[19][1]) || 0) + (parseFloat(dbData[22][1]) || 0);
       bank.USD = (parseFloat(dbData[19][2]) || 0) + (parseFloat(dbData[22][2]) || 0);
+    }
+    if (dbData.length >= 18 && dbData[17].length >= 13) {
+      bank.LAK += parseFloat(dbData[17][10]) || 0;
+      bank.THB += parseFloat(dbData[17][11]) || 0;
+      bank.USD += parseFloat(dbData[17][12]) || 0;
     }
 
     document.getElementById('dashNewStockBox').innerHTML =
@@ -266,7 +271,7 @@ async function refreshDashReport() {
     var diffSign = diff >= 0 ? '+' : '';
 
     document.getElementById('dashReportBox').innerHTML =
-      '<h3 style="color:var(--gold-primary);margin-bottom:8px;">📋 Report</h3>' +
+      '<h3 style="color:var(--gold-primary);margin-bottom:8px;">📋 Wealth</h3>' +
       '<p style="font-size:11px;color:var(--text-secondary);margin:0;">ส่วนต่างทอง</p>' +
       '<p style="font-size:26px;font-weight:bold;color:' + diffColor + ';margin:4px 0;">' + diffSign + diff.toFixed(2) + ' g</p>' +
       '<div style="border-top:1px solid var(--border-color);margin-top:8px;padding-top:8px;">' +

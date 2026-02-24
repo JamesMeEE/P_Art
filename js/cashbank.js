@@ -64,7 +64,15 @@ async function loadCashBank() {
       });
     }
 
-    renderCashBankTable(_cashbankAllRows);
+    var cbStart = document.getElementById('cbStartDate');
+    var cbEnd = document.getElementById('cbEndDate');
+    if (!cbStart.value && !cbEnd.value) {
+      var today = new Date();
+      var todayStr = today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0') + '-' + String(today.getDate()).padStart(2, '0');
+      cbStart.value = todayStr;
+      cbEnd.value = todayStr;
+    }
+    filterCashBankByDate();
     hideLoading();
   } catch (error) {
     console.error('Error loading cashbank:', error);
@@ -157,7 +165,7 @@ async function submitCash() {
     });
 
     if (result.success) {
-      alert('✅ Transaction added successfully!');
+      showToast('✅ Transaction added successfully!');
       closeModal('cashModal');
       document.getElementById('cashAmount').value = '';
       document.getElementById('cashNote').value = '';
@@ -196,7 +204,7 @@ async function submitBank() {
     });
 
     if (result.success) {
-      alert('✅ Transaction added successfully!');
+      showToast('✅ Transaction added successfully!');
       closeModal('bankModal');
       document.getElementById('bankAmount').value = '';
       document.getElementById('bankNote').value = '';
@@ -235,7 +243,7 @@ async function submitOtherIncome() {
     });
 
     if (result.success) {
-      alert('✅ Transaction added successfully!');
+      showToast('✅ Transaction added successfully!');
       closeModal('otherIncomeModal');
       document.getElementById('otherIncomeAmount').value = '';
       document.getElementById('otherIncomeNote').value = '';
@@ -274,7 +282,7 @@ async function submitOtherExpense() {
     });
 
     if (result.success) {
-      alert('✅ Transaction added successfully!');
+      showToast('✅ Transaction added successfully!');
       closeModal('otherExpenseModal');
       document.getElementById('otherExpenseAmount').value = '';
       document.getElementById('otherExpenseNote').value = '';

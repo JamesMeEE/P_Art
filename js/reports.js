@@ -54,9 +54,9 @@ async function loadReports() {
       return `
       <tr>
         <td style="text-align: center;">${formatDateOnly(row[0])}</td>
-        <td style="text-align: center;">${carry.toFixed(2)}</td>
-        <td style="text-align: center;">${net.toFixed(2)}</td>
-        <td style="text-align: center; color: ${diffColor}; font-weight: bold;">${diffSign}${diff.toFixed(2)}</td>
+        <td style="text-align: center;">${formatNumber(carry.toFixed(2))}</td>
+        <td style="text-align: center;">${formatNumber(net.toFixed(2))}</td>
+        <td style="text-align: center; color: ${diffColor}; font-weight: bold;">${diffSign}${formatNumber(diff.toFixed(2))}</td>
       </tr>
     `}).join('');
     

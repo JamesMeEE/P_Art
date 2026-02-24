@@ -20,76 +20,75 @@ async function loadHistorySell() {
     var results = await Promise.all([
       fetchSheetData('Sells!A:L'),
       fetchSheetData('Tradeins!A:N'),
-      fetchSheetData('Exchanges!A:N'),
-      fetchSheetData('Switches!A:N'),
-      fetchSheetData('FreeExchanges!A:L'),
+      fetchSheetData('Exchanges!A:T'),
       fetchSheetData('Withdraws!A:J')
     ]);
 
     var all = [];
 
     results[0].slice(1).forEach(function(r) {
+      var sPaid = parseFloat(r[5]) || 0;
+      var sChange = parseFloat(r[8]) || 0;
       all.push({
         type: 'SELL', id: r[0], phone: r[1],
         oldGold: '-', newGold: formatItemsForTable(r[2]),
         difference: '-', exchangeFee: '-', switchFee: '-',
         premium: formatNumber(calculatePremiumFromItems(r[2])),
         total: parseFloat(r[3]) || 0,
+        paid: sPaid > 0 ? formatNumber(sPaid) + ' ' + (r[6] || 'LAK') : '-',
+        change: sChange > 0 ? formatNumber(sChange) + ' LAK' : '-',
         status: r[10] || '', sale: r[11] || '', date: r[9], raw: r
       });
     });
 
     results[1].slice(1).forEach(function(r) {
+      var tPaid = parseFloat(r[7]) || 0;
+      var tChange = parseFloat(r[10]) || 0;
       all.push({
         type: 'TRADE-IN', id: r[0], phone: r[1],
         oldGold: formatItemsForTable(r[2]), newGold: formatItemsForTable(r[3]),
         difference: formatNumber(parseFloat(r[4]) || 0), exchangeFee: '-', switchFee: '-',
         premium: formatNumber(calculatePremiumFromItems(r[3])),
         total: parseFloat(r[6]) || 0,
+        paid: tPaid > 0 ? formatNumber(tPaid) + ' ' + (r[8] || 'LAK') : '-',
+        change: tChange > 0 ? formatNumber(tChange) + ' LAK' : '-',
         status: r[12] || '', sale: r[13] || '', date: r[11], raw: r
       });
     });
 
     results[2].slice(1).forEach(function(r) {
+      var switchOld = r[14] || '';
+      var switchFeeVal = parseFloat(r[15]) || 0;
+      var freeExOld = r[16] || '';
+      var exType = 'EXCHANGE';
+      if (switchOld) exType = 'SWITCH';
+      else if (freeExOld) exType = 'FREE EX';
+      var ePaid = parseFloat(r[7]) || 0;
+      var eChange = parseFloat(r[10]) || 0;
       all.push({
-        type: 'EXCHANGE', id: r[0], phone: r[1],
+        type: exType, id: r[0], phone: r[1],
         oldGold: formatItemsForTable(r[2]), newGold: formatItemsForTable(r[3]),
-        difference: '-', exchangeFee: formatNumber(parseFloat(r[4]) || 0), switchFee: '-',
+        difference: '-',
+        exchangeFee: exType === 'EXCHANGE' ? formatNumber(parseFloat(r[4]) || 0) : '-',
+        switchFee: switchFeeVal > 0 ? formatNumber(switchFeeVal) : '-',
         premium: formatNumber(parseFloat(r[5]) || 0),
         total: parseFloat(r[6]) || 0,
+        paid: ePaid > 0 ? formatNumber(ePaid) + ' ' + (r[8] || 'LAK') : '-',
+        change: eChange > 0 ? formatNumber(eChange) + ' LAK' : '-',
         status: r[12] || '', sale: r[13] || '', date: r[11], raw: r
       });
     });
 
     results[3].slice(1).forEach(function(r) {
-      all.push({
-        type: 'SWITCH', id: r[0], phone: r[1],
-        oldGold: formatItemsForTable(r[2]), newGold: formatItemsForTable(r[3]),
-        difference: '-', exchangeFee: '-', switchFee: formatNumber(parseFloat(r[4]) || 0),
-        premium: formatNumber(parseFloat(r[5]) || 0),
-        total: parseFloat(r[6]) || 0,
-        status: r[12] || '', sale: r[13] || '', date: r[11], raw: r
-      });
-    });
-
-    results[4].slice(1).forEach(function(r) {
-      all.push({
-        type: 'FREE EX', id: r[0], phone: r[1],
-        oldGold: formatItemsForTable(r[2]), newGold: formatItemsForTable(r[3]),
-        difference: '-', exchangeFee: '-', switchFee: '-',
-        premium: formatNumber(parseFloat(r[4]) || 0),
-        total: parseFloat(r[5]) || 0,
-        status: r[8] || '', sale: r[9] || '', date: r[7], raw: r
-      });
-    });
-
-    results[5].slice(1).forEach(function(r) {
+      var wPaid = parseFloat(r[5]) || 0;
       all.push({
         type: 'WITHDRAW', id: r[0], phone: r[1],
         oldGold: '-', newGold: formatItemsForTable(r[2]),
         difference: '-', exchangeFee: '-', switchFee: '-',
         premium: formatNumber(parseFloat(r[3]) || 0),
         total: parseFloat(r[4]) || 0,
+        paid: wPaid > 0 ? formatNumber(wPaid) + ' LAK' : '-',
+        change: '-',
         status: r[7] || '', sale: r[8] || '', date: r[6], raw: r
       });
     });
@@ -112,6 +111,7 @@ async function loadHistorySell() {
             ['Difference', r.difference], ['Exchange Fee', r.exchangeFee],
             ['Switch Fee', r.switchFee], ['Premium', r.premium],
             ['Total', formatNumber(r.total) + ' LAK'],
+            ['Customer Paid', r.paid || '-'], ['Change', r.change || '-'],
             ['Date', formatDateTime(r.date)], ['Status', r.status], ['Sale', r.sale]
           ]));
           actions = '<button class="btn-action" onclick="viewTransactionDetail(\'' + r.type + '\',\'' + detail + '\')" style="background:#555;">👁 View</button>';
@@ -126,7 +126,7 @@ async function loadHistorySell() {
         } else if (r.status === 'READY') {
           actions = '<span style="color:var(--text-secondary);font-size:12px;">Ready</span>';
         }
-        if (r.status !== 'COMPLETED' && r.status !== 'PARTIAL' && r.status !== 'PAID' && (currentUser.role === 'Admin' || currentUser.role === 'Manager')) {
+        if (r.status !== 'COMPLETED' && r.status !== 'PARTIAL' && r.status !== 'PAID' && currentUser.role === 'Admin') {
           var sheetMap = { 'SELL': 'Sells', 'TRADE-IN': 'Tradeins', 'EXCHANGE': 'Exchanges', 'SWITCH': 'Switches', 'FREE EX': 'FreeExchanges', 'WITHDRAW': 'Withdraws' };
           var sheet = sheetMap[r.type] || '';
           actions += ' <button class="btn-action" onclick="deleteTransaction(\'' + r.id + '\',\'' + sheet + '\',\'' + r.type + '\')" style="background:#f44336;margin-left:4px;">🗑️</button>';

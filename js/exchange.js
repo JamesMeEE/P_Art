@@ -47,7 +47,10 @@ async function loadExchanges() {
             actions = '<span style="color:var(--text-secondary);">Waiting</span>';
           }
         } else {
-          var detail = encodeURIComponent(JSON.stringify([['Transaction ID', row[0]], ['Phone', row[1]], ['Old Gold (Exchange)', formatItemsForTable(row[2])], ['New Gold', formatItemsForTable(row[3])], ['Exchange Fee', formatNumber(exFee) + ' LAK'], ['Switch Old Gold', formatItemsForTable(row[14] ? row[15] : '')], ['Switch Fee', formatNumber(switchFee) + ' LAK'], ['Free Ex Old Gold', formatItemsForTable(row[17] || '')], ['Free Ex Bill', row[18] || '-'], ['Premium', formatNumber(premium) + ' LAK'], ['Total', formatNumber(total) + ' LAK'], ['Date', formatDateTime(row[11])], ['Status', status], ['Sale', sale]]));
+          var exPaid = parseFloat(row[7]) || 0;
+          var exChange = parseFloat(row[10]) || 0;
+          var exPayInfo = exPaid > 0 ? formatNumber(exPaid) + ' ' + (row[8] || 'LAK') : '-';
+          var detail = encodeURIComponent(JSON.stringify([['Transaction ID', row[0]], ['Phone', row[1]], ['Old Gold (Exchange)', formatItemsForTable(row[2])], ['New Gold', formatItemsForTable(row[3])], ['Exchange Fee', formatNumber(exFee) + ' LAK'], ['Switch Old Gold', formatItemsForTable(row[14] ? row[15] : '')], ['Switch Fee', formatNumber(switchFee) + ' LAK'], ['Free Ex Old Gold', formatItemsForTable(row[17] || '')], ['Free Ex Bill', row[18] || '-'], ['Premium', formatNumber(premium) + ' LAK'], ['Total', formatNumber(total) + ' LAK'], ['Customer Paid', exPayInfo], ['Change', exChange > 0 ? formatNumber(exChange) + ' LAK' : '-'], ['Date', formatDateTime(row[11])], ['Status', status], ['Sale', sale]]));
           actions = '<button class="btn-action" onclick="viewTransactionDetail(\'Exchange\',\'' + detail + '\')" style="background:#555;">👁 View</button>';
         }
         return '<tr>' +

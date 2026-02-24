@@ -304,6 +304,10 @@ async function confirmMultiPayment() {
       alert('❌ กรุณากรอกจำนวนเงินที่จ่าย');
       return;
     }
+    if (totalPaid > total) {
+      alert('❌ ยอดจ่ายเกิน Total Amount!\nจ่าย: ' + formatNumber(Math.round(totalPaid)) + ' LAK\nTotal: ' + formatNumber(Math.round(total)) + ' LAK\n\nยอดจ่ายต้องน้อยกว่าหรือเท่ากับ Total เท่านั้น');
+      return;
+    }
   } else {
     if (totalPaid < total) {
       alert('❌ ยอดชำระยังไม่ครบ! ขาดอีก ' + formatNumber(total - totalPaid) + ' LAK');

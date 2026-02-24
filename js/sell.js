@@ -44,7 +44,10 @@ async function loadSells() {
             actions = '<span style="color: var(--text-secondary);">Waiting for confirmation</span>';
           }
         } else {
-          var detail = encodeURIComponent(JSON.stringify([['Transaction ID', row[0]], ['Phone', row[1]], ['Items', formatItemsForTable(row[2])], ['Total', formatNumber(row[3]) + ' LAK'], ['Date', formatDateTime(row[9])], ['Status', status], ['Sale', row[11]]]));
+          var paid = parseFloat(row[5]) || 0;
+          var changeLak = parseFloat(row[8]) || 0;
+          var payInfo = paid > 0 ? formatNumber(paid) + ' ' + (row[6] || 'LAK') : '-';
+          var detail = encodeURIComponent(JSON.stringify([['Transaction ID', row[0]], ['Phone', row[1]], ['Items', formatItemsForTable(row[2])], ['Total', formatNumber(row[3]) + ' LAK'], ['Customer Paid', payInfo], ['Change', changeLak > 0 ? formatNumber(changeLak) + ' LAK' : '-'], ['Date', formatDateTime(row[9])], ['Status', status], ['Sale', row[11]]]));
           actions = '<button class="btn-action" onclick="viewTransactionDetail(\'Sell\',\'' + detail + '\')" style="background:#555;">👁 View</button>';
         }
         
