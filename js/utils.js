@@ -3,7 +3,8 @@ function isManager() {
 }
 
 function formatNumber(num) {
-  return new Intl.NumberFormat('en-US').format(Math.round(num));
+  var n = typeof num === 'string' ? parseFloat(num.replace(/,/g, '')) : num;
+  return new Intl.NumberFormat('en-US').format(Math.round(n));
 }
 
 function formatWeight(num) {

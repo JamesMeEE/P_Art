@@ -262,7 +262,7 @@ async function loadCurrentPricing() {
     if (pricingData.length > 1) {
       const latestPricing = pricingData[pricingData.length - 1];
       currentPricing = {
-        sell1Baht: parseFloat(latestPricing[1]) || 0,
+        sell1Baht: parseFloat(String(latestPricing[1]).replace(/,/g, '')) || 0,
         buyback1Baht: 0
       };
       

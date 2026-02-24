@@ -9,7 +9,7 @@ async function loadProducts() {
     if (pricingData.length > 1) {
       const latestPricing = pricingData[pricingData.length - 1];
       currentPricing = {
-        sell1Baht: parseFloat(latestPricing[1]) || 0,
+        sell1Baht: parseFloat(String(latestPricing[1]).replace(/,/g, '')) || 0,
         buyback1Baht: 0
       };
       
@@ -147,7 +147,7 @@ async function updatePricing() {
     });
     
     if (result.success) {
-      alert('✅ อัพเดตราคาสำเร็จ!');
+      showToast('✅ อัพเดตราคาสำเร็จ!');
       closeModal('pricingModal');
       document.getElementById('sell1BahtPrice').value = '';
       loadProducts();

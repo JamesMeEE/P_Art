@@ -342,7 +342,7 @@ async function loadCurrentPricingForExchange() {
     var pricingData = await fetchSheetData('Pricing!A:B');
     if (pricingData.length > 1) {
       var latestPricing = pricingData[pricingData.length - 1];
-      currentPricing = { sell1Baht: parseFloat(latestPricing[1]) || 0, buyback1Baht: 0 };
+      currentPricing = { sell1Baht: parseFloat(String(latestPricing[1]).replace(/,/g, '')) || 0, buyback1Baht: 0 };
       return true;
     }
     return false;
