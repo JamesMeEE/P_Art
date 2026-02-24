@@ -27,13 +27,16 @@ async function openCloseWorkModal() {
       fetchSheetData('Exchanges!A:T'),
       fetchSheetData('Buybacks!A:L'),
       fetchSheetData('Withdraws!A:J'),
-      fetchSheetData("'" + userName + "'!A:I"),
-      fetchSheetData("'" + userName + "_Gold'!A:F")
+      fetchSheetData("'" + userName + "'!A:I")
     ]);
 
     var sells = txResults[0], tradeins = txResults[1], exchanges = txResults[2];
     var buybacks = txResults[3], withdraws = txResults[4];
-    var userSheetData = txResults[5], userGoldData = txResults[6];
+    var userSheetData = txResults[5];
+    var userGoldData = [];
+    try { userGoldData = await fetchSheetData(userName + '_Gold!A:F'); } catch(e) {
+      try { userGoldData = await fetchSheetData("'" + userName + "_Gold'!A:F"); } catch(e2) {}
+    }
 
     var isMyToday = function(dateVal, createdBy) {
       var d = parseSheetDate(dateVal);

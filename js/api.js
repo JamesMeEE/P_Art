@@ -44,14 +44,15 @@ async function fetchExchangeRates() {
     var prData = await fetchSheetData('PriceRate!A:E');
     if (prData.length > 1) {
       var last = prData[prData.length - 1];
+      var p = function(v) { return parseFloat(String(v).replace(/,/g, '')) || 0; };
       currentExchangeRates = {
         LAK: 1,
-        THB_Sell: parseFloat(last[1]) || 0,
-        USD_Sell: parseFloat(last[2]) || 0,
-        THB_Buy: parseFloat(last[3]) || 0,
-        USD_Buy: parseFloat(last[4]) || 0,
-        THB: parseFloat(last[1]) || 0,
-        USD: parseFloat(last[2]) || 0
+        THB_Sell: p(last[1]),
+        USD_Sell: p(last[2]),
+        THB_Buy: p(last[3]),
+        USD_Buy: p(last[4]),
+        THB: p(last[1]),
+        USD: p(last[2])
       };
     }
   } catch(e) {
