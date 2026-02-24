@@ -27,16 +27,13 @@ async function openCloseWorkModal() {
       fetchSheetData('Exchanges!A:T'),
       fetchSheetData('Buybacks!A:L'),
       fetchSheetData('Withdraws!A:J'),
-      fetchSheetData("'" + userName + "'!A:I")
+      fetchSheetData("'" + userName + "'!A:I"),
+      fetchSheetData("'" + userName + "_Gold'!A:F")
     ]);
 
     var sells = txResults[0], tradeins = txResults[1], exchanges = txResults[2];
     var buybacks = txResults[3], withdraws = txResults[4];
-    var userSheetData = txResults[5];
-    var userGoldData = [];
-    try { userGoldData = await fetchSheetData(userName + '_Gold!A:F'); } catch(e) {
-      try { userGoldData = await fetchSheetData("'" + userName + "_Gold'!A:F"); } catch(e2) {}
-    }
+    var userSheetData = txResults[5], userGoldData = txResults[6];
 
     var isMyToday = function(dateVal, createdBy) {
       var d = parseSheetDate(dateVal);
@@ -144,7 +141,7 @@ async function openCloseWorkModal() {
         '<td style="padding:5px 10px;">' + (productNames[pid]) + '</td>' +
         '<td style="padding:5px 10px;text-align:center;font-weight:bold;">' + newGoldOut[pid] + '</td>' +
         '<td style="padding:5px 10px;">' + (productNames[pid]) + '</td>' +
-        '<td style="padding:5px 10px;text-align:center;font-weight:bold;">' + (oldGoldReceived[pid] || 0) + '</td>' +
+        '<td style="padding:5px 10px;text-align:center;font-weight:bold;">' + (oldGoldIn[pid]) + '</td>' +
         '</tr>';
     }).join('');
 
