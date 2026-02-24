@@ -384,18 +384,30 @@ function getTodayDateString() {
   return `${year}-${month}-${day}`;
 }
 
-function viewTransactionDetail(type, jsonData) {
+async function viewTransactionDetail(type, jsonData) {
   var row = JSON.parse(decodeURIComponent(jsonData));
+
+  var txId = '';
+  row.forEach(function(item) { if (item[0] === 'Transaction ID') txId = item[1]; });
+
   var html = '<div style="padding:20px;">';
   html += '<h3 style="color:var(--gold-primary);margin-bottom:15px;">' + type.toUpperCase() + ' Detail</h3>';
   html += '<table style="width:100%;border-collapse:collapse;">';
   row.forEach(function(item) {
+    if (item[0] === 'Customer Paid' || item[0] === 'Change') return;
     html += '<tr style="border-bottom:1px solid var(--border-color);">';
     html += '<td style="padding:8px 12px;color:var(--text-secondary);white-space:nowrap;">' + item[0] + '</td>';
     html += '<td style="padding:8px 12px;font-weight:600;">' + item[1] + '</td>';
     html += '</tr>';
   });
   html += '</table>';
+
+  if (txId) {
+    html += '<div id="paymentDetailSection" style="margin-top:15px;padding:12px;background:rgba(212,175,55,0.08);border-radius:8px;border:1px solid rgba(212,175,55,0.2);">';
+    html += '<div style="font-size:12px;color:var(--gold-primary);margin-bottom:8px;font-weight:bold;">💳 รายละเอียดการชำระเงิน</div>';
+    html += '<div style="text-align:center;padding:10px;"><div style="display:inline-block;width:18px;height:18px;border:2px solid var(--border-color);border-top:2px solid var(--gold-primary);border-radius:50%;animation:spin 0.8s linear infinite;"></div></div>';
+    html += '</div>';
+  }
 
   var status = '';
   row.forEach(function(item) { if (item[0] === 'Status') status = item[1]; });
@@ -415,6 +427,63 @@ function viewTransactionDetail(type, jsonData) {
   }
   document.getElementById('viewDetailContent').innerHTML = html;
   openModal('viewDetailModal');
+
+  if (txId) {
+    try {
+      var cbData = await fetchSheetData('CashBank!A:I');
+      var payments = cbData.slice(1).filter(function(r) {
+        return r[6] && String(r[6]).indexOf(txId) !== -1;
+      });
+
+      var section = document.getElementById('paymentDetailSection');
+      if (!section) return;
+
+      if (payments.length === 0) {
+        section.innerHTML = '<div style="font-size:12px;color:var(--gold-primary);margin-bottom:8px;font-weight:bold;">💳 รายละเอียดการชำระเงิน</div>' +
+          '<p style="font-size:12px;color:var(--text-secondary);">ไม่พบข้อมูลการชำระเงิน</p>';
+        return;
+      }
+
+      var payHtml = '<div style="font-size:12px;color:var(--gold-primary);margin-bottom:8px;font-weight:bold;">💳 รายละเอียดการชำระเงิน</div>';
+      payments.forEach(function(p) {
+        var amt = parseFloat(p[2]) || 0;
+        var cur = p[3] || 'LAK';
+        var method = p[4] || '';
+        var bank = p[5] || '';
+        var note = p[6] || '';
+        var isChange = note.toLowerCase().indexOf('change') !== -1;
+        var isFee = note.toLowerCase().indexOf('fee') !== -1;
+
+        var icon = '💵';
+        var label = '';
+        if (isChange) {
+          icon = '💰';
+          label = 'เงินทอน';
+        } else if (isFee) {
+          icon = '🏦';
+          label = 'ค่าธรรมเนียม ' + bank;
+        } else if (method === 'Bank') {
+          icon = '🏦';
+          label = bank + ' (' + cur + ')';
+        } else {
+          icon = '💵';
+          label = 'เงินสด (' + cur + ')';
+        }
+
+        var color = isChange ? '#ff9800' : isFee ? '#f44336' : '#4caf50';
+        var sign = amt < 0 ? '' : '+';
+        payHtml += '<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.05);">';
+        payHtml += '<span style="font-size:13px;">' + icon + ' ' + label + '</span>';
+        payHtml += '<span style="font-size:13px;font-weight:bold;color:' + color + ';">' + sign + formatNumber(amt) + ' ' + cur + '</span>';
+        payHtml += '</div>';
+      });
+
+      section.innerHTML = payHtml;
+    } catch(e) {
+      var section = document.getElementById('paymentDetailSection');
+      if (section) section.innerHTML = '<div style="font-size:12px;color:var(--gold-primary);margin-bottom:8px;font-weight:bold;">💳 รายละเอียดการชำระเงิน</div><p style="font-size:12px;color:#f44336;">โหลดข้อมูลไม่สำเร็จ</p>';
+    }
+  }
 }
 
 async function deleteTransaction(id, sheetName, type) {
