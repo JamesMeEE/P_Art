@@ -28,7 +28,7 @@ async function loadExchanges() {
         var oldGold = formatItemsForTable(row[2]);
         var newGold = formatItemsForTable(row[3]);
         var exFee = parseFloat(row[4]) || 0;
-        var switchFee = parseFloat(row[14]) || 0;
+        var switchFee = row.length > 15 ? (parseFloat(row[15]) || 0) : 0;
         var premium = parseFloat(row[5]) || 0;
         var total = row[6];
         var status = row[12] || '';
@@ -50,7 +50,7 @@ async function loadExchanges() {
           var exPaid = parseFloat(row[7]) || 0;
           var exChange = parseFloat(row[10]) || 0;
           var exPayInfo = exPaid > 0 ? formatNumber(exPaid) + ' ' + (row[8] || 'LAK') : '-';
-          var detail = encodeURIComponent(JSON.stringify([['Transaction ID', row[0]], ['Phone', row[1]], ['Old Gold (Exchange)', formatItemsForTable(row[2])], ['New Gold', formatItemsForTable(row[3])], ['Exchange Fee', formatNumber(exFee) + ' LAK'], ['Switch Old Gold', formatItemsForTable(row[14] ? row[15] : '')], ['Switch Fee', formatNumber(switchFee) + ' LAK'], ['Free Ex Old Gold', formatItemsForTable(row[17] || '')], ['Free Ex Bill', row[18] || '-'], ['Premium', formatNumber(premium) + ' LAK'], ['Total', formatNumber(total) + ' LAK'], ['Customer Paid', exPayInfo], ['Change', exChange > 0 ? formatNumber(exChange) + ' LAK' : '-'], ['Date', formatDateTime(row[11])], ['Status', status], ['Sale', sale]]));
+          var detail = encodeURIComponent(JSON.stringify([['Transaction ID', row[0]], ['Phone', row[1]], ['Old Gold (Exchange)', formatItemsForTable(row[2])], ['New Gold', formatItemsForTable(row[3])], ['Exchange Fee', formatNumber(exFee) + ' LAK'], ['Switch Old Gold', formatItemsForTable(row[14] || '')], ['Switch Fee', formatNumber(switchFee) + ' LAK'], ['Free Ex Old Gold', formatItemsForTable(row[16] || '')], ['Free Ex Bill', row[17] || '-'], ['Premium', formatNumber(premium) + ' LAK'], ['Total', formatNumber(total) + ' LAK'], ['Customer Paid', exPayInfo], ['Change', exChange > 0 ? formatNumber(exChange) + ' LAK' : '-'], ['Date', formatDateTime(row[11])], ['Status', status], ['Sale', sale]]));
           actions = '<button class="btn-action" onclick="viewTransactionDetail(\'Exchange\',\'' + detail + '\')" style="background:#555;">👁 View</button>';
         }
         return '<tr>' +

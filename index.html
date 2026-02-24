@@ -663,6 +663,7 @@
               <th style="background: #2d2d2d !important; color: #d4af37 !important; border: 1px solid rgba(212, 175, 55, 0.5) !important; text-transform: uppercase !important; font-weight: 700 !important; padding: 14px 8px !important; font-size: 13px !important; text-align: center !important;">Transaction ID</th>
               <th style="background: #2d2d2d !important; color: #d4af37 !important; border: 1px solid rgba(212, 175, 55, 0.5) !important; text-transform: uppercase !important; font-weight: 700 !important; padding: 14px 8px !important; font-size: 13px !important; text-align: center !important;">DIFFERENCE</th>
               <th style="background: #2d2d2d !important; color: #d4af37 !important; border: 1px solid rgba(212, 175, 55, 0.5) !important; text-transform: uppercase !important; font-weight: 700 !important; padding: 14px 8px !important; font-size: 13px !important; text-align: center !important;">EXCHANGE</th>
+              <th style="background: #2d2d2d !important; color: #d4af37 !important; border: 1px solid rgba(212, 175, 55, 0.5) !important; text-transform: uppercase !important; font-weight: 700 !important; padding: 14px 8px !important; font-size: 13px !important; text-align: center !important;">SWITCH</th>
               <th style="background: #2d2d2d !important; color: #d4af37 !important; border: 1px solid rgba(212, 175, 55, 0.5) !important; text-transform: uppercase !important; font-weight: 700 !important; padding: 14px 8px !important; font-size: 13px !important; text-align: center !important;">PREMIUM</th>
               <th style="background: #2d2d2d !important; color: #d4af37 !important; border: 1px solid rgba(212, 175, 55, 0.5) !important; text-transform: uppercase !important; font-weight: 700 !important; padding: 14px 8px !important; font-size: 13px !important; text-align: center !important;">Cost(ส่วนต่าง)</th>
               <th style="background: #2d2d2d !important; color: #d4af37 !important; border: 1px solid rgba(212, 175, 55, 0.5) !important; text-transform: uppercase !important; font-weight: 700 !important; padding: 14px 8px !important; font-size: 13px !important; text-align: center !important;">Cost(ทองเก่า)</th>
@@ -670,11 +671,11 @@
             </tr>
           </thead>
           <tbody id="diffTable">
-            <tr><td colspan="7" style="text-align: center; padding: 40px;">No records</td></tr>
+            <tr><td colspan="8" style="text-align: center; padding: 40px;">No records</td></tr>
           </tbody>
           <tfoot>
             <tr id="diffTotalRow" style="background: #2d2d2d !important; border-top: 2px solid #d4af37;">
-              <td colspan="6" style="text-align:right;font-weight:bold;font-size:16px;">Total Diff:</td>
+              <td colspan="7" style="text-align:right;font-weight:bold;font-size:16px;">Total Diff:</td>
               <td style="font-weight:bold;font-size:18px;">0 LAK</td>
             </tr>
           </tfoot>
@@ -2048,7 +2049,7 @@
     
     var vt = document.getElementById('versionTime');
     if (vt) {
-      vt.textContent = 'v.24/02 15:00';
+      vt.textContent = 'v.24/02 15:17';
     }
     
     const dateInputs = document.querySelectorAll('input[type="date"]');

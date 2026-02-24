@@ -24,9 +24,7 @@ async function openCloseWorkModal() {
     var txResults = await Promise.all([
       fetchSheetData('Sells!A:L'),
       fetchSheetData('Tradeins!A:N'),
-      fetchSheetData('Exchanges!A:N'),
-      fetchSheetData('Switches!A:N'),
-      fetchSheetData('FreeExchanges!A:L'),
+      fetchSheetData('Exchanges!A:T'),
       fetchSheetData('Buybacks!A:L'),
       fetchSheetData('Withdraws!A:J'),
       fetchSheetData("'" + userName + "'!A:I"),
@@ -34,9 +32,8 @@ async function openCloseWorkModal() {
     ]);
 
     var sells = txResults[0], tradeins = txResults[1], exchanges = txResults[2];
-    var switches = txResults[3], freeExs = txResults[4];
-    var buybacks = txResults[5], withdraws = txResults[6];
-    var userSheetData = txResults[7], userGoldData = txResults[8];
+    var buybacks = txResults[3], withdraws = txResults[4];
+    var userSheetData = txResults[5], userGoldData = txResults[6];
 
     var isMyToday = function(dateVal, createdBy) {
       var d = parseSheetDate(dateVal);
@@ -78,26 +75,6 @@ async function openCloseWorkModal() {
     exchanges.slice(1).forEach(function(r) {
       if (isMyToday(r[11], r[13]) && (r[12] === 'COMPLETED' || r[12] === 'PAID')) {
         sellMoney += parseFloat(r[6]) || 0;
-        sellGoldG += calcG(r[3]);
-        sellCount++;
-        addItems(r[3], newGoldOut);
-        addItems(r[2], oldGoldIn);
-      }
-    });
-
-    switches.slice(1).forEach(function(r) {
-      if (isMyToday(r[11], r[13]) && (r[12] === 'COMPLETED' || r[12] === 'PAID')) {
-        sellMoney += parseFloat(r[6]) || 0;
-        sellGoldG += calcG(r[3]);
-        sellCount++;
-        addItems(r[3], newGoldOut);
-        addItems(r[2], oldGoldIn);
-      }
-    });
-
-    freeExs.slice(1).forEach(function(r) {
-      if (isMyToday(r[7], r[9]) && (r[8] === 'COMPLETED' || r[8] === 'PAID')) {
-        sellMoney += parseFloat(r[5]) || 0;
         sellGoldG += calcG(r[3]);
         sellCount++;
         addItems(r[3], newGoldOut);
@@ -240,7 +217,7 @@ async function openCloseWorkModal() {
       cashLAK: moneyGrid.Cash.LAK,
       cashTHB: moneyGrid.Cash.THB,
       cashUSD: moneyGrid.Cash.USD,
-      oldGold: JSON.stringify(oldGoldReceived)
+      oldGold: JSON.stringify(oldGoldIn)
     };
 
     hideLoading();
