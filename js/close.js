@@ -141,7 +141,7 @@ async function openCloseWorkModal() {
         '<td style="padding:5px 10px;">' + (productNames[pid]) + '</td>' +
         '<td style="padding:5px 10px;text-align:center;font-weight:bold;">' + newGoldOut[pid] + '</td>' +
         '<td style="padding:5px 10px;">' + (productNames[pid]) + '</td>' +
-        '<td style="padding:5px 10px;text-align:center;font-weight:bold;">' + (oldGoldIn[pid]) + '</td>' +
+        '<td style="padding:5px 10px;text-align:center;font-weight:bold;">' + (oldGoldReceived[pid] || 0) + '</td>' +
         '</tr>';
     }).join('');
 
@@ -217,7 +217,7 @@ async function openCloseWorkModal() {
       cashLAK: moneyGrid.Cash.LAK,
       cashTHB: moneyGrid.Cash.THB,
       cashUSD: moneyGrid.Cash.USD,
-      oldGold: JSON.stringify(oldGoldIn)
+      oldGold: JSON.stringify(oldGoldReceived)
     };
 
     hideLoading();
