@@ -57,19 +57,14 @@ async function loadHistorySell() {
     });
 
     results[2].slice(1).forEach(function(r) {
-      var switchOld = r[14] || '';
       var switchFeeVal = parseFloat(r[15]) || 0;
-      var freeExOld = r[16] || '';
-      var exType = 'EXCHANGE';
-      if (switchOld) exType = 'SWITCH';
-      else if (freeExOld) exType = 'FREE EX';
       var ePaid = parseFloat(r[7]) || 0;
       var eChange = parseFloat(r[10]) || 0;
       all.push({
-        type: exType, id: r[0], phone: r[1],
+        type: 'EXCHANGE', id: r[0], phone: r[1],
         oldGold: formatItemsForTable(r[2]), newGold: formatItemsForTable(r[3]),
         difference: '-',
-        exchangeFee: exType === 'EXCHANGE' ? formatNumber(parseFloat(r[4]) || 0) : '-',
+        exchangeFee: formatNumber(parseFloat(r[4]) || 0),
         switchFee: switchFeeVal > 0 ? formatNumber(switchFeeVal) : '-',
         premium: formatNumber(parseFloat(r[5]) || 0),
         total: parseFloat(r[6]) || 0,
