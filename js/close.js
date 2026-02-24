@@ -84,7 +84,7 @@ async function openCloseWorkModal() {
 
     var bbMoney = 0, bbGoldG = 0, bbCount = 0;
     buybacks.slice(1).forEach(function(r) {
-      if (isMyToday(r[9], r[11]) && (r[10] === 'COMPLETED' || r[10] === 'PAID')) {
+      if (isMyToday(r[9], r[11]) && (r[10] === 'COMPLETED' || r[10] === 'PAID' || r[10] === 'PARTIAL')) {
         bbMoney += parseFloat(r[6]) || parseFloat(r[3]) || 0;
         bbGoldG += calcG(r[2]);
         bbCount++;
@@ -124,24 +124,28 @@ async function openCloseWorkModal() {
     }
 
     var oldGoldReceived = {};
+    console.log('userGoldData length:', userGoldData ? userGoldData.length : 'null');
+    console.log('userGoldData:', JSON.stringify(userGoldData));
     if (userGoldData && userGoldData.length > 1) {
       for (var gi = 1; gi < userGoldData.length; gi++) {
         var gr = userGoldData[gi];
         var pid = String(gr[0] || '').trim();
         var gqty = parseFloat(gr[1]) || 0;
+        console.log('Gold row', gi, ':', pid, gqty);
         if (pid && gqty > 0) {
           if (!oldGoldReceived[pid]) oldGoldReceived[pid] = 0;
           oldGoldReceived[pid] += gqty;
         }
       }
     }
+    console.log('oldGoldReceived:', JSON.stringify(oldGoldReceived));
 
     var goldTableRows = pids.map(function(pid) {
       return '<tr>' +
         '<td style="padding:5px 10px;">' + (productNames[pid]) + '</td>' +
         '<td style="padding:5px 10px;text-align:center;font-weight:bold;">' + newGoldOut[pid] + '</td>' +
         '<td style="padding:5px 10px;">' + (productNames[pid]) + '</td>' +
-        '<td style="padding:5px 10px;text-align:center;font-weight:bold;">' + (oldGoldIn[pid]) + '</td>' +
+        '<td style="padding:5px 10px;text-align:center;font-weight:bold;">' + (oldGoldReceived[pid] || 0) + '</td>' +
         '</tr>';
     }).join('');
 
