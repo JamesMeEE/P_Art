@@ -291,7 +291,7 @@ function calculateSellPrice(productId, sell1Baht) {
     case 'G06': price = (sell1Baht / 4); break;
     case 'G07': price = (sell1Baht / 15) + 120000; break;
   }
-  return price;
+  return Math.round(price / 1000) * 1000;
 }
 
 function calculateBuybackPrice(productId, sell1Baht) {
