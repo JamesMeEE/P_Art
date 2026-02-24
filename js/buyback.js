@@ -39,7 +39,7 @@ async function loadBuybacks() {
       filteredData.sort(function(a, b) { return new Date(b[cDate]) - new Date(a[cDate]); });
     }
     
-    const tbody = document.getElementById('buybackTable');
+    tbody = document.getElementById('buybackTable');
     if (filteredData.length === 0) {
       tbody.innerHTML = '<tr><td colspan="10" style="text-align: center; padding: 40px;">No records</td></tr>';
     } else {

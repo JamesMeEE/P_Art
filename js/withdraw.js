@@ -20,7 +20,7 @@ async function loadWithdraws() {
       filteredData.sort((a, b) => new Date(b[6]) - new Date(a[6]));
     }
     
-    const tbody = document.getElementById('withdrawTable');
+    tbody = document.getElementById('withdrawTable');
     if (filteredData.length === 0) {
       tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 40px;">No records</td></tr>';
     } else {

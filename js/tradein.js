@@ -20,7 +20,7 @@ async function loadTradeins() {
       filteredData.sort((a, b) => new Date(b[11]) - new Date(a[11]));
     }
     
-    const tbody = document.getElementById('tradeinTable');
+    tbody = document.getElementById('tradeinTable');
     if (filteredData.length === 0) {
       tbody.innerHTML = '<tr><td colspan="10" style="text-align: center; padding: 40px;">No records</td></tr>';
     } else {
