@@ -144,7 +144,8 @@ function toggleOtherExpenseBank() {
 
 async function submitCash() {
   const type = document.getElementById('cashType').value;
-  const amount = document.getElementById('cashAmount').value;
+  const amountEl = document.getElementById('cashAmount');
+  const amount = amountEl.numericValue || parseFloat(String(amountEl.value).replace(/,/g, '')) || 0;
   const currency = document.getElementById('cashCurrency').value;
   const note = document.getElementById('cashNote').value;
 
@@ -183,7 +184,8 @@ async function submitCash() {
 async function submitBank() {
   const type = document.getElementById('bankType').value;
   const bank = document.getElementById('bankName').value;
-  const amount = document.getElementById('bankAmount').value;
+  const amountEl = document.getElementById('bankAmount');
+  const amount = amountEl.numericValue || parseFloat(String(amountEl.value).replace(/,/g, '')) || 0;
   const currency = document.getElementById('bankCurrency').value;
   const note = document.getElementById('bankNote').value;
 
@@ -222,7 +224,8 @@ async function submitBank() {
 async function submitOtherIncome() {
   const method = document.getElementById('otherIncomeMethod').value;
   const bank = method === 'BANK' ? document.getElementById('otherIncomeBank').value : '';
-  const amount = document.getElementById('otherIncomeAmount').value;
+  const amountEl = document.getElementById('otherIncomeAmount');
+  const amount = amountEl.numericValue || parseFloat(String(amountEl.value).replace(/,/g, '')) || 0;
   const currency = document.getElementById('otherIncomeCurrency').value;
   const note = document.getElementById('otherIncomeNote').value;
 
@@ -261,7 +264,8 @@ async function submitOtherIncome() {
 async function submitOtherExpense() {
   const method = document.getElementById('otherExpenseMethod').value;
   const bank = method === 'BANK' ? document.getElementById('otherExpenseBank').value : '';
-  const amount = document.getElementById('otherExpenseAmount').value;
+  const amountEl = document.getElementById('otherExpenseAmount');
+  const amount = amountEl.numericValue || parseFloat(String(amountEl.value).replace(/,/g, '')) || 0;
   const currency = document.getElementById('otherExpenseCurrency').value;
   const note = document.getElementById('otherExpenseNote').value;
 
