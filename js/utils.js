@@ -7,6 +7,18 @@ function getGoldWeight(productId) {
   return weights[productId] || 0;
 }
 
+function mergeItems(items) {
+  var map = {};
+  items.forEach(function(item) {
+    if (map[item.productId]) {
+      map[item.productId].qty += item.qty;
+    } else {
+      map[item.productId] = { productId: item.productId, qty: item.qty };
+    }
+  });
+  return Object.keys(map).map(function(k) { return map[k]; });
+}
+
 function formatNumber(num) {
   var n = typeof num === 'string' ? parseFloat(num.replace(/,/g, '')) : num;
   return new Intl.NumberFormat('en-US').format(Math.round(n));
