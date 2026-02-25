@@ -146,7 +146,7 @@ async function calculateWithdraw() {
     showLoading();
     const result = await callAppsScript('ADD_WITHDRAW', {
       phone,
-      items: JSON.stringify(products),
+      items: JSON.stringify(mergeItems(products)),
       premium,
       total,
       user: currentUser.nickname
