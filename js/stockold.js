@@ -132,7 +132,7 @@ function renderStockOldMovements(moves, prevW, prevC, showRunning) {
       '<td colspan="4" style="font-style:italic;color:var(--gold-primary);">📌 ยกมา</td>' +
       '<td style="font-weight:bold;">' + formatWeight(prevW) + '</td>' +
       '<td colspan="2"></td>' +
-      '<td style="font-weight:bold;">' + formatNumber(Math.round(prevC / 1000) * 1000) + '</td>' +
+      '<td style="font-weight:bold;">' + formatNumber(Math.round(prevC)) + '</td>' +
       '<td></td></tr>';
   }
 
@@ -147,7 +147,7 @@ function renderStockOldMovements(moves, prevW, prevC, showRunning) {
       '<td style="font-weight:bold;">' + formatWeight(m.w) + '</td>' +
       '<td style="color:#4caf50;">' + (m.priceIn > 0 ? formatNumber(m.priceIn) : '-') + '</td>' +
       '<td style="color:#f44336;">' + (m.priceOut > 0 ? formatNumber(m.priceOut) : '-') + '</td>' +
-      '<td style="font-weight:bold;">' + formatNumber(Math.round(m.c / 1000) * 1000) + '</td>' +
+      '<td style="font-weight:bold;">' + formatNumber(Math.round(m.c)) + '</td>' +
       '<td><button class="btn-action" onclick="viewBillDetail(\'' + m.id + '\',\'' + m.type + '\')">📋</button></td>' +
       '</tr>'; }).join('');
     movBody.innerHTML = rows;
@@ -310,14 +310,14 @@ function renderFilteredMoves(tableId, moves, from, to) {
       '<td style="font-weight:bold;">' + formatWeight(w) + '</td>' +
       '<td style="color:#4caf50;">' + (pIn > 0 ? formatNumber(pIn) : '-') + '</td>' +
       '<td style="color:#f44336;">' + (pOut > 0 ? formatNumber(pOut) : '-') + '</td>' +
-      '<td style="font-weight:bold;">' + formatNumber(Math.round(c / 1000) * 1000) + '</td>' +
+      '<td style="font-weight:bold;">' + formatNumber(Math.round(c)) + '</td>' +
       '<td><button class="btn-action" onclick="viewBillDetail(\'' + m.id + '\',\'' + m.type + '\')">📋</button></td>' +
       '</tr>';
   });
   rows += '<tr style="background:rgba(212,175,55,0.1);font-weight:bold;">' +
     '<td colspan="4" style="text-align:right;">รวมทั้งหมด</td>' +
     '<td>' + formatWeight(w) + '</td><td colspan="2"></td>' +
-    '<td>' + formatNumber(Math.round(c / 1000) * 1000) + '</td><td></td></tr>';
+    '<td>' + formatNumber(Math.round(c)) + '</td><td></td></tr>';
   movBody.innerHTML = rows;
 }
 
