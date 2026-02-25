@@ -159,9 +159,9 @@ async function confirmTransfer() {
     if (items.length === 0) { alert('กรุณาเพิ่มสินค้าอย่างน้อย 1 รายการ'); return; }
     if (!confirm('ยืนยันการโอนทองเก่าไปทองใหม่ ' + items.length + ' รายการ?')) return;
     showLoading();
-    const result = await executeGoogleScript('TRANSFER_OLD_TO_NEW', { items: JSON.stringify(items) });
+    const result = await executeGoogleScript('TRANSFER_OLD_TO_NEW', { items: JSON.stringify(mergeItems(items)) });
     if (result.success) {
-      alert('✅ ' + result.message);
+      showToast('✅ ' + result.message);
       closeModal('transferModal');
       if (typeof loadStockOld === 'function') await loadStockOld();
       if (typeof loadPendingTransferCount === 'function') loadPendingTransferCount();
@@ -233,12 +233,12 @@ async function confirmStockIn() {
     showLoading();
     
     const result = await executeGoogleScript('STOCK_IN', {
-      items: JSON.stringify(items),
+      items: JSON.stringify(mergeItems(items)),
       note: note
     });
     
     if (result.success) {
-      alert('✅ ' + result.message);
+      showToast('✅ ' + result.message);
       closeModal('stockInModal');
       await loadInventory();
     } else {
@@ -293,9 +293,9 @@ async function confirmStockOut() {
     const note = document.getElementById('stockOutNote').value.trim();
     if (!confirm('ยืนยันการ Stock Out (OLD) ' + items.length + ' รายการ?')) return;
     showLoading();
-    const result = await executeGoogleScript('STOCK_OUT_OLD', { items: JSON.stringify(items), note: note });
+    const result = await executeGoogleScript('STOCK_OUT_OLD', { items: JSON.stringify(mergeItems(items)), note: note });
     if (result.success) {
-      alert('✅ ' + result.message);
+      showToast('✅ ' + result.message);
       closeModal('stockOutModal');
       if (typeof loadStockOld === 'function') await loadStockOld();
     } else {
