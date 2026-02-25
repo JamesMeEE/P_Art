@@ -225,8 +225,8 @@ async function calculateTradein() {
     showLoading();
     const result = await callAppsScript('ADD_TRADEIN', {
       phone,
-      oldGold: JSON.stringify(oldGold),
-      newGold: JSON.stringify(newGold),
+      oldGold: JSON.stringify(mergeItems(oldGold)),
+      newGold: JSON.stringify(mergeItems(newGold)),
       difference,
       premium,
       total,
