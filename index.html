@@ -924,8 +924,9 @@
           <input type="number" id="openShiftAmount" class="form-input" placeholder="0" min="0" step="1000">
         </div>
       </div>
-      <div class="modal-footer">
-        <button class="btn-primary" onclick="confirmOpenShift()" style="width:100%;">ยืนยันเปิดกะ</button>
+      <div class="modal-footer" style="display:flex;gap:10px;">
+        <button class="btn-secondary" onclick="logout()" style="flex:1;">Log out</button>
+        <button class="btn-primary" onclick="confirmOpenShift()" style="flex:1;">ยืนยันเปิดกะ</button>
       </div>
     </div>
   </div>
@@ -2049,7 +2050,7 @@
     
     var vt = document.getElementById('versionTime');
     if (vt) {
-      vt.textContent = 'v.25/02 16:05';
+      vt.textContent = 'v.25/02 22:33';
     }
     
     const dateInputs = document.querySelectorAll('input[type="date"]');
