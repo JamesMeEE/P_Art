@@ -466,7 +466,7 @@ async function confirmStockInNew() {
     var note = document.getElementById('stockInNewNote').value.trim();
     showLoading();
     var result = await callAppsScript('STOCK_IN_NEW', {
-      items: JSON.stringify(items),
+      items: JSON.stringify(mergeItems(items)),
       note: note,
       cost: costRound,
       payments: JSON.stringify(payments),
