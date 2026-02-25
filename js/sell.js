@@ -139,7 +139,7 @@ async function submitSell() {
   try {
     var result = await callAppsScript('ADD_SELL', {
       phone: phone,
-      items: JSON.stringify(items),
+      items: JSON.stringify(mergeItems(items)),
       total: totalPrice
     });
 
