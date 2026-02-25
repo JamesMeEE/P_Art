@@ -298,14 +298,14 @@ async function calculateExchangeNew() {
     showLoading();
     var result = await callAppsScript('ADD_EXCHANGE', {
       phone: phone,
-      oldGold: JSON.stringify(allOldGold),
-      newGold: JSON.stringify(newGold),
+      oldGold: JSON.stringify(mergeItems(allOldGold)),
+      newGold: JSON.stringify(mergeItems(newGold)),
       exchangeFee: exchangeFee,
       premium: premium,
       total: total,
-      switchOldGold: JSON.stringify(oldSwitch),
+      switchOldGold: JSON.stringify(mergeItems(oldSwitch)),
       switchFee: switchFee,
-      freeExOldGold: JSON.stringify(oldFreeEx),
+      freeExOldGold: JSON.stringify(mergeItems(oldFreeEx)),
       freeExBillId: freeExBillId,
       freeExPremiumDeduct: freeExPremiumDeduct,
       freeExBillSheet: _exFreeExBillData ? _exFreeExBillData.sheet : '',
