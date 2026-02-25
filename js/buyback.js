@@ -168,7 +168,7 @@ async function calculateBuyback() {
     showLoading();
     const result = await callAppsScript('ADD_BUYBACK', {
       phone,
-      products: JSON.stringify(products),
+      products: JSON.stringify(mergeItems(products)),
       price,
       fee,
       user: currentUser.nickname
