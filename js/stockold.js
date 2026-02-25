@@ -371,7 +371,7 @@ async function confirmTransfer() {
     if (items.length === 0) { alert('กรุณาเพิ่มสินค้าอย่างน้อย 1 รายการ'); return; }
     if (!confirm('ยืนยันการโอนทองเก่าไปทองใหม่ ' + items.length + ' รายการ?')) return;
     showLoading();
-    var result = await callAppsScript('TRANSFER_OLD_TO_NEW', { items: JSON.stringify(items) });
+    var result = await callAppsScript('TRANSFER_OLD_TO_NEW', { items: JSON.stringify(mergeItems(items)) });
     if (result.success) {
       showToast('✅ ' + result.message);
       closeModal('transferModal');
@@ -413,7 +413,7 @@ async function confirmStockOut() {
     var note = document.getElementById('stockOutNote').value.trim();
     if (!confirm('ยืนยันการ Stock Out (OLD) ' + items.length + ' รายการ?')) return;
     showLoading();
-    var result = await callAppsScript('STOCK_OUT_OLD', { items: JSON.stringify(items), note: note });
+    var result = await callAppsScript('STOCK_OUT_OLD', { items: JSON.stringify(mergeItems(items)), note: note });
     if (result.success) {
       showToast('✅ ' + result.message);
       closeModal('stockOutModal');
