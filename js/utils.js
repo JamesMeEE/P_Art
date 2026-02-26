@@ -262,6 +262,12 @@ function hideLoading() {
   document.getElementById('loading').classList.remove('active');
   _isSubmitting = false;
   if (_submitTimeout) { clearTimeout(_submitTimeout); _submitTimeout = null; }
+  var activeModal = document.querySelector('.modal.active');
+  if (activeModal) {
+    activeModal.querySelectorAll('.modal-footer button').forEach(function(btn) {
+      btn.disabled = false;
+    });
+  }
 }
 
 function startSubmit() {
@@ -452,6 +458,24 @@ async function viewTransactionDetail(type, jsonData) {
       var payments = cbData.slice(1).filter(function(r) {
         return r[6] && String(r[6]).indexOf(txId) !== -1;
       });
+
+      if (payments.length === 0) {
+        var allSheets = await fetchSheetData('_database!A2:I2');
+        var salesUsers = ['Sales1', 'Sales2', 'Sales3', 'Sales4', 'Sales5'];
+        for (var su = 0; su < salesUsers.length; su++) {
+          try {
+            var uData = await fetchSheetData("'" + salesUsers[su] + "'!A:I");
+            if (uData && uData.length > 1) {
+              var found = uData.slice(1).filter(function(r) {
+                return r[6] && String(r[6]).indexOf(txId) !== -1;
+              });
+              if (found.length > 0) {
+                payments = payments.concat(found);
+              }
+            }
+          } catch(e2) {}
+        }
+      }
 
       var section = document.getElementById('paymentDetailSection');
       if (!section) return;
