@@ -235,7 +235,7 @@ function addStockInCash() {
 }
 
 function addStockInBank() {
-  _stockInPayments.bank.push({ id: Date.now(), bank: 'BCEL', currency: 'LAK', amount: 0, rate: 1 });
+  _stockInPayments.bank.push({ id: Date.now(), bank: 'BCEL', currency: 'LAK', amount: 0, rate: 1, fee: 0 });
   renderStockInBank();
 }
 
@@ -291,6 +291,10 @@ function renderStockInBank() {
       '</div>' +
       '<div style="display:flex;gap:10px;align-items:center;">' +
       '<input type="number" class="form-input" placeholder="Amount" value="' + (item.amount || '') + '" style="flex:1;" oninput="updateStockInBankAmount(' + item.id + ',this.value)">' +
+      '</div>' +
+      '<div style="display:flex;gap:10px;align-items:center;margin-top:8px;">' +
+      '<span style="font-size:12px;color:var(--text-secondary);white-space:nowrap;">Fee (LAK)</span>' +
+      '<input type="number" class="form-input" placeholder="0" value="' + (item.fee || '') + '" style="flex:1;" oninput="updateStockInBankFee(' + item.id + ',this.value)">' +
       '</div>' + rateHtml + '</div>';
   }).join('');
   updateStockInRemain();
@@ -343,6 +347,11 @@ function updateStockInBankAmount(id, value) {
   updateStockInRemain();
 }
 
+function updateStockInBankFee(id, value) {
+  var item = _stockInPayments.bank.find(function(i) { return i.id === id; });
+  if (item) item.fee = parseFloat(String(value).replace(/,/g, '')) || 0;
+}
+
 function removeStockInCash(id) {
   _stockInPayments.cash = _stockInPayments.cash.filter(function(i) { return i.id !== id; });
   renderStockInCash();
@@ -386,6 +395,7 @@ async function confirmStockInNew() {
 
     var payments = [];
     var totalPaid = 0;
+    var totalFee = 0;
     _stockInPayments.cash.forEach(function(c) {
       if (c.amount > 0) {
         payments.push({ method: 'Cash', bank: '', currency: c.currency, amount: c.amount });
@@ -394,8 +404,9 @@ async function confirmStockInNew() {
     });
     _stockInPayments.bank.forEach(function(b) {
       if (b.amount > 0) {
-        payments.push({ method: 'Bank', bank: b.bank, currency: b.currency, amount: b.amount });
+        payments.push({ method: 'Bank', bank: b.bank, currency: b.currency, amount: b.amount, fee: b.fee || 0 });
         totalPaid += b.amount * b.rate;
+        totalFee += b.fee || 0;
       }
     });
     if (payments.length === 0) { alert('กรุณาเพิ่มการชำระเงิน'); return; }
@@ -461,15 +472,16 @@ async function confirmStockInNew() {
       return;
     }
 
-    if (!confirm('ยืนยัน Stock In (NEW) ' + items.length + ' รายการ ต้นทุน ' + formatNumber(costRound) + ' LAK?')) return;
+    if (!confirm('ยืนยัน Stock In (NEW) ' + items.length + ' รายการ ต้นทุน ' + formatNumber(costRound) + ' LAK' + (totalFee > 0 ? ' + Fee ' + formatNumber(totalFee) + ' LAK' : '') + '?')) return;
 
     var note = document.getElementById('stockInNewNote').value.trim();
     showLoading();
     var result = await callAppsScript('STOCK_IN_NEW', {
       items: JSON.stringify(mergeItems(items)),
       note: note,
-      cost: costRound,
+      cost: costRound + Math.round(totalFee),
       payments: JSON.stringify(payments),
+      fee: Math.round(totalFee),
       user: currentUser.nickname
     });
     hideLoading();
