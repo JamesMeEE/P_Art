@@ -292,6 +292,7 @@ function updatePaymentSummary() {
 async function confirmMultiPayment() {
   if (_isSubmitting) return;
   if (!currentPaymentData) return;
+  _isSubmitting = true;
   
   let totalPaid = 0;
   paymentItems.cash.forEach(item => { totalPaid += item.amount * item.rate; });
@@ -302,15 +303,18 @@ async function confirmMultiPayment() {
   if (currentPaymentData.type === 'BUYBACK') {
     if (totalPaid <= 0) {
       alert('❌ กรุณากรอกจำนวนเงินที่จ่าย');
+      _isSubmitting = false;
       return;
     }
     if (totalPaid > total) {
       alert('❌ ยอดจ่ายเกิน Total Amount!\nจ่าย: ' + formatNumber(Math.round(totalPaid)) + ' LAK\nTotal: ' + formatNumber(Math.round(total)) + ' LAK\n\nยอดจ่ายต้องน้อยกว่าหรือเท่ากับ Total เท่านั้น');
+      _isSubmitting = false;
       return;
     }
   } else {
     if (totalPaid < total) {
       alert('❌ ยอดชำระยังไม่ครบ! ขาดอีก ' + formatNumber(total - totalPaid) + ' LAK');
+      _isSubmitting = false;
       return;
     }
   }
@@ -341,6 +345,7 @@ async function confirmMultiPayment() {
 
       if (maxChangeLAK > 0 && change > maxChangeLAK) {
         alert('❌ เงินทอนเกินกำหนด!\n\nเงินทอน: ' + formatNumber(change) + ' LAK\nเกินกำหนดสูงสุด: ' + maxLabel + '\n\nกรุณาปรับยอดชำระให้เงินทอนไม่เกิน ' + maxLabel);
+        _isSubmitting = false;
         return;
       }
     }
@@ -351,6 +356,7 @@ async function confirmMultiPayment() {
         var cashLAK = dbData.length >= 17 ? (parseFloat(dbData[16][0]) || 0) : 0;
         if (cashLAK < change) {
           alert('❌ เงินสด LAK ไม่พอทอน! มี ' + formatNumber(cashLAK) + ' LAK แต่ต้องทอน ' + formatNumber(change) + ' LAK');
+          _isSubmitting = false;
           hideLoading();
           return;
         }
@@ -371,6 +377,7 @@ async function confirmMultiPayment() {
         console.log('User Cash LAK balance:', userCashLAK);
         if (userCashLAK < change) {
           alert('❌ เงินสด LAK ของคุณไม่พอทอน! มี ' + formatNumber(userCashLAK) + ' LAK แต่ต้องทอน ' + formatNumber(change) + ' LAK');
+          _isSubmitting = false;
           hideLoading();
           return;
         }
@@ -378,13 +385,13 @@ async function confirmMultiPayment() {
     } catch(e) {
       console.error('Error checking user cash balance:', e);
       alert('❌ ไม่สามารถตรวจสอบยอดเงินได้: ' + e.message);
+      _isSubmitting = false;
       hideLoading();
       return;
     }
   }
 
   try {
-    _isSubmitting = true;
     showLoading();
     
     const actionMap = {
