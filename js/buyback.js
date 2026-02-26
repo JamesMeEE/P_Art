@@ -62,7 +62,7 @@ async function loadBuybacks() {
           } else {
             actions = '<span style="color: var(--text-secondary);">Waiting for payment</span>';
           }
-          if (currentUser.role === 'Admin' || currentUser.role === 'Manager') {
+          if (currentUser.role === 'Admin') {
             actions += ' <button class="btn-action" onclick="deleteTransaction(\'' + row[0] + '\',\'Buybacks\',\'BUYBACK\')" style="background:#f44336;margin-left:4px;">🗑️</button>';
           }
         } else {
