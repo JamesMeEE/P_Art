@@ -6,7 +6,7 @@ async function fetchSheetData(range) {
   if (_sheetCache[range] && (now - _sheetCache[range].time) < _cacheTTL) {
     return _sheetCache[range].data;
   }
-  const url = `https://sheets.googleapis.com/v4/spreadsheets/${CONFIG.SHEET_ID}/values/${range}?key=${CONFIG.API_KEY}`;
+  const url = `https://sheets.googleapis.com/v4/spreadsheets/${CONFIG.SHEET_ID}/values/${encodeURIComponent(range)}?key=${CONFIG.API_KEY}`;
   const response = await fetch(url);
   const data = await response.json();
   var result = data.values || [];
