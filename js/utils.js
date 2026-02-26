@@ -456,13 +456,17 @@ async function viewTransactionDetail(type, jsonData) {
     try {
       var payments = [];
       var salesNames = [];
-      if (typeof USERS === 'object') {
-        Object.keys(USERS).forEach(function(u) {
-          if (USERS[u].sheetRole === 'Sales' && USERS[u].nickname) {
-            salesNames.push(USERS[u].nickname);
+      try {
+        var userData = await fetchSheetData('_database!A33:D100');
+        if (userData && userData.length > 1) {
+          for (var ui = 1; ui < userData.length; ui++) {
+            if (String(userData[ui][0] || '').trim() === 'Sales') {
+              var sName = String(userData[ui][1] || '').trim();
+              if (sName) salesNames.push(sName);
+            }
           }
-        });
-      }
+        }
+      } catch(e3) {}
 
       for (var su = 0; su < salesNames.length; su++) {
         try {
