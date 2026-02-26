@@ -145,7 +145,7 @@ async function loadAccounting() {
     var bbCostLAK = wacPerG * bb.oldGoldG;
 
     var gpDiff = 0;
-    if (diffData && diffData.length > 1) { diffData.slice(1).forEach(function(row) { var date = parseSheetDate(row[8]); if (date && date >= dayStart && date <= dayEnd) { gpDiff += parseFloat(row[7]) || 0; } }); }
+    if (diffData && diffData.length > 1) { diffData.slice(1).forEach(function(row) { var date = parseSheetDate(row[9]); if (date && date >= dayStart && date <= dayEnd) { gpDiff += parseFloat(row[8]) || 0; } }); }
     var pl = gpDiff - otherExpenseLAK;
 
     var netColor = netResult.netBaht >= 0 ? '#4caf50' : '#f44336';
