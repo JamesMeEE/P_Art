@@ -60,10 +60,37 @@ async function loadDashDB(ids) {
   try {
     var dbData = await fetchSheetData('_database!A1:M31');
 
-    var todayPL = 0;
-    if (dbData.length >= 27) {
-      todayPL = parseFloat(dbData[26][6]) || 0;
-    }
+    var today = new Date();
+    var dayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    var dayEnd = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 23, 59, 59);
+
+    var gpDiff = 0;
+    var otherExpenseLAK = 0;
+    try {
+      var diffData = await fetchSheetData('Diff!A:J');
+      if (diffData && diffData.length > 1) {
+        diffData.slice(1).forEach(function(row) {
+          var date = parseSheetDate(row[9]);
+          if (date && date >= dayStart && date <= dayEnd) { gpDiff += parseFloat(row[8]) || 0; }
+        });
+      }
+    } catch(e) {}
+    try {
+      var cbData = await fetchSheetData('CashBank!A:I');
+      if (cbData && cbData.length > 1) {
+        cbData.slice(1).forEach(function(row) {
+          var date = parseSheetDate(row[7]);
+          if (date && date >= dayStart && date <= dayEnd && row[1] === 'OTHER_EXPENSE') {
+            var amt = parseFloat(row[2]) || 0;
+            var cur = row[3];
+            if (cur === 'THB') amt = amt * (currentExchangeRates?.THB_Sell || 0);
+            else if (cur === 'USD') amt = amt * (currentExchangeRates?.USD_Sell || 0);
+            otherExpenseLAK += Math.abs(amt);
+          }
+        });
+      }
+    } catch(e) {}
+    var todayPL = gpDiff - otherExpenseLAK;
 
     var wacPerG = 0, wacPerBaht = 0;
     if (dbData.length >= 31) {
