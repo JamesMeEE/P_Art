@@ -211,6 +211,16 @@ async function cancelPendingClose(closeId) {
     if (result.success) {
       showToast('✅ ยกเลิกปิดกะสำเร็จ');
       if (_closePollingInterval) { clearInterval(_closePollingInterval); _closePollingInterval = null; }
+
+      var modal = document.getElementById('closeWorkModal');
+      if (modal) modal.onclick = null;
+
+      var cancelBtn = document.getElementById('closeWorkCancelBtn');
+      if (cancelBtn) { cancelBtn.style.display = 'inline-block'; cancelBtn.textContent = 'Cancel'; cancelBtn.style.background = ''; cancelBtn.style.color = ''; cancelBtn.onclick = function() { closeModal('closeWorkModal'); }; }
+
+      var submitBtn = document.getElementById('closeWorkSubmitBtn');
+      if (submitBtn) { submitBtn.style.background = '#c62828'; submitBtn.style.color = '#fff'; submitBtn.textContent = 'Submit Close'; submitBtn.disabled = false; submitBtn.onclick = function() { submitCloseWork(); }; }
+
       closeModal('closeWorkModal');
     } else {
       alert('❌ ' + result.message);
