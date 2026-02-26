@@ -233,6 +233,8 @@ async function openCloseWorkModal() {
   }
 }
 
+var _closePollingInterval = null;
+
 async function submitCloseWork() {
   if (!window.currentCloseSummary) return;
 
@@ -241,8 +243,24 @@ async function submitCloseWork() {
     var result = await callAppsScript('SUBMIT_CLOSE', window.currentCloseSummary);
     if (result.success) {
       showToast('✅ ส่ง Close สำเร็จ! รอ Manager อนุมัติ');
-      closeModal('closeWorkModal');
+
+      var cancelBtn = document.getElementById('closeWorkCancelBtn');
+      if (cancelBtn) cancelBtn.style.display = 'none';
+
+      var submitBtn = document.getElementById('closeWorkSubmitBtn');
+      if (submitBtn) {
+        submitBtn.onclick = null;
+        submitBtn.style.background = '#d4af37';
+        submitBtn.style.color = '#000';
+        submitBtn.textContent = '⏳ รอ Manager ยืนยัน...';
+        submitBtn.disabled = true;
+      }
+
+      var modal = document.getElementById('closeWorkModal');
+      if (modal) modal.onclick = function(e) { e.stopImmediatePropagation(); };
+
       window.currentCloseSummary = null;
+      startClosePolling();
     } else {
       alert('❌ Error: ' + result.message);
     }
@@ -251,6 +269,41 @@ async function submitCloseWork() {
     alert('❌ Error: ' + error.message);
     hideLoading();
   }
+}
+
+function startClosePolling() {
+  if (_closePollingInterval) clearInterval(_closePollingInterval);
+  _closePollingInterval = setInterval(async function() {
+    try {
+      var closeData = await fetchSheetData('Close!A:K');
+      var userName = currentUser.nickname;
+      var today = new Date();
+      var todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+      var todayEnd = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 23, 59, 59);
+
+      var myClose = closeData.slice(1).find(function(row) {
+        var d = parseSheetDate(row[2]);
+        return d && d >= todayStart && d <= todayEnd && row[1] === userName;
+      });
+
+      if (myClose && myClose[8] === 'APPROVED') {
+        clearInterval(_closePollingInterval);
+        _closePollingInterval = null;
+
+        var submitBtn = document.getElementById('closeWorkSubmitBtn');
+        if (submitBtn) {
+          submitBtn.style.background = '#4caf50';
+          submitBtn.style.color = '#fff';
+          submitBtn.textContent = '✅ ตกลง';
+          submitBtn.disabled = false;
+          submitBtn.onclick = function() {
+            closeModal('closeWorkModal');
+            logout();
+          };
+        }
+      }
+    } catch(e) {}
+  }, 5000);
 }
 
 var _autoRefreshInterval = null;
