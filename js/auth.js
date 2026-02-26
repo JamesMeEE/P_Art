@@ -131,6 +131,7 @@ function enterApp() {
 
   fetchExchangeRates();
   checkPendingClose();
+  if (typeof checkAndResumePendingClose === 'function') checkAndResumePendingClose();
   callAppsScript('INIT_STOCK').catch(function(){});
   startAutoRefresh();
   startInactivityWatch();
