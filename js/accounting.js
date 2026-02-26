@@ -55,7 +55,7 @@ async function loadAccounting() {
       fetchSheetData('Withdraws!A:J'),
       fetchSheetData('CashBank!A:I'),
       fetchSheetData('_database!A1:G31'),
-      fetchSheetData('Diff!A:I')
+      fetchSheetData('Diff!A:J')
     ]);
 
     var sells = results[0], tradeins = results[1], exchanges = results[2];
