@@ -454,27 +454,28 @@ async function viewTransactionDetail(type, jsonData) {
 
   if (txId) {
     try {
-      var cbData = await fetchSheetData('CashBank!A:I');
-      var payments = cbData.slice(1).filter(function(r) {
-        return r[6] && String(r[6]).indexOf(txId) !== -1;
-      });
+      var payments = [];
+      var salesUsers = ['Sales1', 'Sales2', 'Sales3', 'Sales4', 'Sales5'];
+      for (var su = 0; su < salesUsers.length; su++) {
+        try {
+          var uData = await fetchSheetData("'" + salesUsers[su] + "'!A:I");
+          if (uData && uData.length > 1) {
+            var found = uData.slice(1).filter(function(r) {
+              return r[6] && String(r[6]).indexOf(txId) !== -1;
+            });
+            if (found.length > 0) {
+              payments = payments.concat(found);
+            }
+          }
+        } catch(e2) {}
+        if (payments.length > 0) break;
+      }
 
       if (payments.length === 0) {
-        var allSheets = await fetchSheetData('_database!A2:I2');
-        var salesUsers = ['Sales1', 'Sales2', 'Sales3', 'Sales4', 'Sales5'];
-        for (var su = 0; su < salesUsers.length; su++) {
-          try {
-            var uData = await fetchSheetData("'" + salesUsers[su] + "'!A:I");
-            if (uData && uData.length > 1) {
-              var found = uData.slice(1).filter(function(r) {
-                return r[6] && String(r[6]).indexOf(txId) !== -1;
-              });
-              if (found.length > 0) {
-                payments = payments.concat(found);
-              }
-            }
-          } catch(e2) {}
-        }
+        var cbData = await fetchSheetData('CashBank!A:I');
+        payments = cbData.slice(1).filter(function(r) {
+          return r[6] && String(r[6]).indexOf(txId) !== -1;
+        });
       }
 
       var section = document.getElementById('paymentDetailSection');
