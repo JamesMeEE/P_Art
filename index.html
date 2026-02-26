@@ -1833,8 +1833,8 @@
         <p style="color: var(--text-secondary); text-align: center;">Loading summary...</p>
       </div>
       <div class="modal-footer">
-        <button class="btn-secondary" onclick="closeModal('closeWorkModal')">Cancel</button>
-        <button class="btn-primary" style="background: #c62828;" onclick="submitCloseWork()">Submit Close</button>
+        <button id="closeWorkCancelBtn" class="btn-secondary" onclick="closeModal('closeWorkModal')">Cancel</button>
+        <button id="closeWorkSubmitBtn" class="btn-primary" style="background: #c62828;" onclick="submitCloseWork()">Submit Close</button>
       </div>
     </div>
   </div>
@@ -2042,7 +2042,7 @@
       }
       
       modal.addEventListener('click', function(e) {
-        if (e.target === modal && modal.id !== 'openShiftModal') {
+        if (e.target === modal && modal.id !== 'openShiftModal' && !(modal.id === 'closeWorkModal' && _closePollingInterval)) {
           modal.classList.remove('active');
         }
       });
@@ -2050,7 +2050,7 @@
     
     var vt = document.getElementById('versionTime');
     if (vt) {
-      vt.textContent = 'v.25/02 22:33';
+      vt.textContent = 'v.26/02 17:54';
     }
     
     const dateInputs = document.querySelectorAll('input[type="date"]');
