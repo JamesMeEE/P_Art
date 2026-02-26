@@ -1,5 +1,79 @@
 let currentCloseId = null;
 
+async function checkAndResumePendingClose() {
+  if (!currentUser || isManager()) return;
+  try {
+    var today = new Date();
+    var todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    var todayEnd = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 23, 59, 59);
+    var userName = currentUser.nickname;
+
+    var closeHistory = await fetchSheetData('Close!A:K');
+    var myPending = closeHistory.slice(1).find(function(row) {
+      var d = parseSheetDate(row[2]);
+      var isToday = d && d >= todayStart && d <= todayEnd;
+      return isToday && row[1] === userName && row[8] === 'PENDING';
+    });
+
+    if (myPending) {
+      document.getElementById('closeWorkSummary').innerHTML =
+        '<div style="text-align:center;padding:40px 20px;">' +
+        '<p style="font-size:18px;color:var(--gold-primary);margin-bottom:10px;">📋 รายการปิดกะ ' + myPending[0] + '</p>' +
+        '<p style="color:var(--text-secondary);">ส่งปิดกะแล้ว รอ Manager ยืนยัน</p></div>';
+
+      var cancelBtn = document.getElementById('closeWorkCancelBtn');
+      if (cancelBtn) cancelBtn.style.display = 'none';
+
+      var submitBtn = document.getElementById('closeWorkSubmitBtn');
+      if (submitBtn) {
+        submitBtn.onclick = null;
+        submitBtn.style.background = '#d4af37';
+        submitBtn.style.color = '#000';
+        submitBtn.textContent = '⏳ รอ Manager ยืนยัน...';
+        submitBtn.disabled = true;
+      }
+
+      openModal('closeWorkModal');
+
+      var modal = document.getElementById('closeWorkModal');
+      if (modal) modal.onclick = function(e) { e.stopImmediatePropagation(); };
+
+      startClosePolling();
+      return;
+    }
+
+    var myApproved = closeHistory.slice(1).find(function(row) {
+      var d = parseSheetDate(row[2]);
+      var isToday = d && d >= todayStart && d <= todayEnd;
+      return isToday && row[1] === userName && row[8] === 'APPROVED';
+    });
+
+    if (myApproved) {
+      document.getElementById('closeWorkSummary').innerHTML =
+        '<div style="text-align:center;padding:40px 20px;">' +
+        '<p style="font-size:18px;color:#4caf50;margin-bottom:10px;">✅ Manager ยืนยันแล้ว</p>' +
+        '<p style="color:var(--text-secondary);">รายการ ' + myApproved[0] + '</p></div>';
+
+      var cancelBtn = document.getElementById('closeWorkCancelBtn');
+      if (cancelBtn) cancelBtn.style.display = 'none';
+
+      var submitBtn = document.getElementById('closeWorkSubmitBtn');
+      if (submitBtn) {
+        submitBtn.style.background = '#4caf50';
+        submitBtn.style.color = '#fff';
+        submitBtn.textContent = '✅ ตกลง';
+        submitBtn.disabled = false;
+        submitBtn.onclick = function() {
+          closeModal('closeWorkModal');
+          logout();
+        };
+      }
+
+      openModal('closeWorkModal');
+    }
+  } catch(e) {}
+}
+
 async function openCloseWorkModal() {
   try {
     showLoading();
