@@ -472,8 +472,16 @@ async function submitCloseWork() {
     if (result.success) {
       showToast('✅ ส่ง Close สำเร็จ! รอ Manager อนุมัติ');
 
+      var closeId = (result.data && result.data.closeId) || '';
+
       var cancelBtn = document.getElementById('closeWorkCancelBtn');
-      if (cancelBtn) cancelBtn.style.display = 'none';
+      if (cancelBtn) {
+        cancelBtn.style.display = 'inline-block';
+        cancelBtn.textContent = '❌ ยกเลิกปิดกะ';
+        cancelBtn.style.background = '#f44336';
+        cancelBtn.style.color = '#fff';
+        cancelBtn.onclick = function() { cancelPendingClose(closeId); };
+      }
 
       var submitBtn = document.getElementById('closeWorkSubmitBtn');
       if (submitBtn) {
