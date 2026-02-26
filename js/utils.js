@@ -455,20 +455,28 @@ async function viewTransactionDetail(type, jsonData) {
   if (txId) {
     try {
       var payments = [];
-      var salesUsers = ['Sales1', 'Sales2', 'Sales3', 'Sales4', 'Sales5'];
-      for (var su = 0; su < salesUsers.length; su++) {
+      var salesNames = [];
+      if (typeof USERS === 'object') {
+        Object.keys(USERS).forEach(function(u) {
+          if (USERS[u].sheetRole === 'Sales' && USERS[u].nickname) {
+            salesNames.push(USERS[u].nickname);
+          }
+        });
+      }
+
+      for (var su = 0; su < salesNames.length; su++) {
         try {
-          var uData = await fetchSheetData("'" + salesUsers[su] + "'!A:I");
+          var uData = await fetchSheetData("'" + salesNames[su] + "'!A:I");
           if (uData && uData.length > 1) {
             var found = uData.slice(1).filter(function(r) {
               return r[6] && String(r[6]).indexOf(txId) !== -1;
             });
             if (found.length > 0) {
               payments = payments.concat(found);
+              break;
             }
           }
         } catch(e2) {}
-        if (payments.length > 0) break;
       }
 
       if (payments.length === 0) {
