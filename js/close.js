@@ -430,7 +430,7 @@ async function openCloseWorkModal() {
       '<tr style="border-bottom:1px solid var(--border-color);"><th style="padding:5px 10px;text-align:left;color:var(--text-secondary);font-size:12px;">Product</th><th style="padding:5px 10px;text-align:center;color:var(--text-secondary);font-size:12px;">Unit</th>' +
       '<th style="padding:5px 10px;text-align:left;color:var(--text-secondary);font-size:12px;visibility:hidden;">-</th><th style="padding:5px 10px;text-align:center;color:var(--text-secondary);font-size:12px;visibility:hidden;">-</th></tr>' +
       pids.map(function(pid) {
-        return '<tr><td style="padding:4px 10px;">' + productNames[pid] + '</td><td style="padding:4px 10px;text-align:center;font-weight:bold;">' + oldGoldIn[pid] + '</td>' +
+        return '<tr><td style="padding:4px 10px;">' + productNames[pid] + '</td><td style="padding:4px 10px;text-align:center;font-weight:bold;">' + (oldGoldReceived[pid] || 0) + '</td>' +
           '<td style="visibility:hidden;">-</td><td style="visibility:hidden;">-</td></tr>';
       }).join('') +
       '</table></div>' +
