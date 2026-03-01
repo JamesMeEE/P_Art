@@ -532,6 +532,9 @@ function startClosePolling() {
         clearInterval(_closePollingInterval);
         _closePollingInterval = null;
 
+        var cancelBtn = document.getElementById('closeWorkCancelBtn');
+        if (cancelBtn) cancelBtn.style.display = 'none';
+
         var submitBtn = document.getElementById('closeWorkSubmitBtn');
         if (submitBtn) {
           submitBtn.style.background = '#4caf50';
@@ -539,6 +542,8 @@ function startClosePolling() {
           submitBtn.textContent = '✅ ตกลง';
           submitBtn.disabled = false;
           submitBtn.onclick = function() {
+            var modal = document.getElementById('closeWorkModal');
+            if (modal) modal.onclick = null;
             closeModal('closeWorkModal');
             logout();
           };
