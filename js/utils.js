@@ -1,3 +1,10 @@
+function getTodayLocalStr() {
+  var d = new Date();
+  var offset = 7 * 60;
+  var local = new Date(d.getTime() + offset * 60000);
+  return local.toISOString().split('T')[0];
+}
+
 function isManager() {
   return currentUser && (currentUser.role === 'Manager' || currentUser.role === 'Admin');
 }
