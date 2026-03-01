@@ -47,7 +47,6 @@ async function checkAndResumePendingClose() {
 
     var sellMoney = 0, sellGoldG = 0, sellCount = 0;
     var newGoldOut = { G01: 0, G02: 0, G03: 0, G04: 0, G05: 0, G06: 0, G07: 0 };
-    var oldGoldIn = { G01: 0, G02: 0, G03: 0, G04: 0, G05: 0, G06: 0, G07: 0 };
 
     var addItems = function(jsonStr, target) {
       try { JSON.parse(jsonStr).forEach(function(item) { if (target[item.productId] !== undefined) target[item.productId] += item.qty; }); } catch(e) {}
@@ -65,20 +64,45 @@ async function checkAndResumePendingClose() {
     });
     tradeins.slice(1).forEach(function(r) {
       if (isMyToday(r[11], r[13]) && (r[12] === 'COMPLETED' || r[12] === 'PAID')) {
-        sellMoney += parseFloat(r[6]) || 0; sellGoldG += calcG(r[3]); sellCount++; addItems(r[3], newGoldOut); addItems(r[2], oldGoldIn);
+        sellMoney += parseFloat(r[6]) || 0; sellGoldG += calcG(r[3]); sellCount++; addItems(r[3], newGoldOut);
       }
     });
     exchanges.slice(1).forEach(function(r) {
       if (isMyToday(r[11], r[13]) && (r[12] === 'COMPLETED' || r[12] === 'PAID')) {
-        sellMoney += parseFloat(r[6]) || 0; sellGoldG += calcG(r[3]); sellCount++; addItems(r[3], newGoldOut); addItems(r[2], oldGoldIn);
+        sellMoney += parseFloat(r[6]) || 0; sellGoldG += calcG(r[3]); sellCount++; addItems(r[3], newGoldOut);
       }
     });
-    var bbMoney = 0, bbGoldG = 0, bbCount = 0;
-    buybacks.slice(1).forEach(function(r) {
-      if (isMyToday(r[9], r[11]) && (r[10] === 'COMPLETED' || r[10] === 'PAID' || r[10] === 'PARTIAL')) {
-        bbMoney += parseFloat(r[6]) || parseFloat(r[3]) || 0; bbGoldG += calcG(r[2]); bbCount++; addItems(r[2], oldGoldIn);
+
+    var bbGoldG = 0, bbCount = 0;
+    var oldGoldReceived = {};
+    var bbRefIds = {};
+    if (userGoldData && userGoldData.length > 1) {
+      for (var gi = 1; gi < userGoldData.length; gi++) {
+        var gr = userGoldData[gi];
+        var pid = String(gr[0] || '').trim();
+        var gqty = parseFloat(gr[1]) || 0;
+        var gType = String(gr[2] || '').trim();
+        var gRef = String(gr[3] || '').trim();
+        if (pid && gqty > 0) {
+          oldGoldReceived[pid] = (oldGoldReceived[pid] || 0) + gqty;
+          if (gType === 'BUYBACK') {
+            bbGoldG += (getGoldWeight(pid) || 0) * gqty;
+            if (gRef) bbRefIds[gRef] = true;
+          }
+        }
       }
-    });
+    }
+    bbCount = Object.keys(bbRefIds).length;
+
+    var bbMoney = 0;
+    if (bbCount > 0) {
+      buybacks.slice(1).forEach(function(r) {
+        if (bbRefIds[r[0]]) {
+          bbMoney += parseFloat(r[6]) || parseFloat(r[3]) || 0;
+        }
+      });
+    }
+
     withdraws.slice(1).forEach(function(r) {
       if (isMyToday(r[6], r[8]) && (r[7] === 'COMPLETED' || r[7] === 'PAID')) { addItems(r[2], newGoldOut); }
     });
@@ -101,16 +125,6 @@ async function checkAndResumePendingClose() {
           else if (bank === 'LDB') moneyGrid.LDB[currency] += amount;
           else moneyGrid.Other[currency] += amount;
         }
-      }
-    }
-
-    var oldGoldReceived = {};
-    if (userGoldData && userGoldData.length > 1) {
-      for (var gi = 1; gi < userGoldData.length; gi++) {
-        var gr = userGoldData[gi];
-        var pid = String(gr[0] || '').trim();
-        var gqty = parseFloat(gr[1]) || 0;
-        if (pid && gqty > 0) { oldGoldReceived[pid] = (oldGoldReceived[pid] || 0) + gqty; }
       }
     }
 
@@ -270,7 +284,6 @@ async function openCloseWorkModal() {
 
     var sellMoney = 0, sellGoldG = 0, sellCount = 0;
     var newGoldOut = { G01: 0, G02: 0, G03: 0, G04: 0, G05: 0, G06: 0, G07: 0 };
-    var oldGoldIn = { G01: 0, G02: 0, G03: 0, G04: 0, G05: 0, G06: 0, G07: 0 };
 
     var addItems = function(jsonStr, target) {
       try { JSON.parse(jsonStr).forEach(function(item) { if (target[item.productId] !== undefined) target[item.productId] += item.qty; }); } catch(e) {}
@@ -296,7 +309,6 @@ async function openCloseWorkModal() {
         sellGoldG += calcG(r[3]);
         sellCount++;
         addItems(r[3], newGoldOut);
-        addItems(r[2], oldGoldIn);
       }
     });
 
@@ -306,19 +318,39 @@ async function openCloseWorkModal() {
         sellGoldG += calcG(r[3]);
         sellCount++;
         addItems(r[3], newGoldOut);
-        addItems(r[2], oldGoldIn);
       }
     });
 
-    var bbMoney = 0, bbGoldG = 0, bbCount = 0;
-    buybacks.slice(1).forEach(function(r) {
-      if (isMyToday(r[9], r[11]) && (r[10] === 'COMPLETED' || r[10] === 'PAID' || r[10] === 'PARTIAL')) {
-        bbMoney += parseFloat(r[6]) || parseFloat(r[3]) || 0;
-        bbGoldG += calcG(r[2]);
-        bbCount++;
-        addItems(r[2], oldGoldIn);
+    var bbGoldG = 0, bbCount = 0;
+    var oldGoldReceived = {};
+    var bbRefIds = {};
+    if (userGoldData && userGoldData.length > 1) {
+      for (var gi = 1; gi < userGoldData.length; gi++) {
+        var gr = userGoldData[gi];
+        var pid = String(gr[0] || '').trim();
+        var gqty = parseFloat(gr[1]) || 0;
+        var gType = String(gr[2] || '').trim();
+        var gRef = String(gr[3] || '').trim();
+        if (pid && gqty > 0) {
+          oldGoldReceived[pid] = (oldGoldReceived[pid] || 0) + gqty;
+          if (gType === 'BUYBACK') {
+            bbGoldG += (getGoldWeight(pid) || 0) * gqty;
+            if (gRef) bbRefIds[gRef] = true;
+          }
+        }
       }
-    });
+    }
+    bbCount = Object.keys(bbRefIds).length;
+
+    var bbMoney = 0;
+    if (bbCount > 0) {
+      var buybacks = txResults[3];
+      buybacks.slice(1).forEach(function(r) {
+        if (bbRefIds[r[0]]) {
+          bbMoney += parseFloat(r[6]) || parseFloat(r[3]) || 0;
+        }
+      });
+    }
 
     withdraws.slice(1).forEach(function(r) {
       if (isMyToday(r[6], r[8]) && (r[7] === 'COMPLETED' || r[7] === 'PAID')) {
@@ -350,32 +382,6 @@ async function openCloseWorkModal() {
         }
       }
     }
-
-    var oldGoldReceived = {};
-    console.log('userGoldData length:', userGoldData ? userGoldData.length : 'null');
-    console.log('userGoldData:', JSON.stringify(userGoldData));
-    if (userGoldData && userGoldData.length > 1) {
-      for (var gi = 1; gi < userGoldData.length; gi++) {
-        var gr = userGoldData[gi];
-        var pid = String(gr[0] || '').trim();
-        var gqty = parseFloat(gr[1]) || 0;
-        console.log('Gold row', gi, ':', pid, gqty);
-        if (pid && gqty > 0) {
-          if (!oldGoldReceived[pid]) oldGoldReceived[pid] = 0;
-          oldGoldReceived[pid] += gqty;
-        }
-      }
-    }
-    console.log('oldGoldReceived:', JSON.stringify(oldGoldReceived));
-
-    var goldTableRows = pids.map(function(pid) {
-      return '<tr>' +
-        '<td style="padding:5px 10px;">' + (productNames[pid]) + '</td>' +
-        '<td style="padding:5px 10px;text-align:center;font-weight:bold;">' + newGoldOut[pid] + '</td>' +
-        '<td style="padding:5px 10px;">' + (productNames[pid]) + '</td>' +
-        '<td style="padding:5px 10px;text-align:center;font-weight:bold;">' + (oldGoldReceived[pid] || 0) + '</td>' +
-        '</tr>';
-    }).join('');
 
     var moneyRows = [
       { label: '💵 Cash', key: 'Cash' },
