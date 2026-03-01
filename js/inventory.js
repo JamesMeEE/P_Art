@@ -12,7 +12,7 @@ async function loadInventory() {
     
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    const todayStr = today.toISOString().split('T')[0];
+    const todayStr = getTodayLocalStr();
     
     const rows = data.slice(1);
     
