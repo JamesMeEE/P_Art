@@ -189,7 +189,7 @@ async function checkAndResumePendingClose() {
         submitBtn.style.color = '#fff';
         submitBtn.textContent = '✅ ตกลง';
         submitBtn.disabled = false;
-        submitBtn.onclick = function() { closeModal('closeWorkModal'); logout(); };
+        submitBtn.onclick = function() { _closeWorkLocked = false; closeModal('closeWorkModal'); logout(); };
       }
     } else {
       if (cancelBtn) {
@@ -209,6 +209,7 @@ async function checkAndResumePendingClose() {
       startClosePolling();
     }
 
+    _closeWorkLocked = true;
     openModal('closeWorkModal');
     var modal = document.getElementById('closeWorkModal');
     if (modal) modal.onclick = function(e) { e.stopImmediatePropagation(); };
@@ -225,6 +226,7 @@ async function cancelPendingClose(closeId) {
     if (result.success) {
       showToast('✅ ยกเลิกปิดกะสำเร็จ');
       if (_closePollingInterval) { clearInterval(_closePollingInterval); _closePollingInterval = null; }
+      _closeWorkLocked = false;
 
       var modal = document.getElementById('closeWorkModal');
       if (modal) modal.onclick = null;
@@ -478,6 +480,7 @@ async function submitCloseWork() {
     if (result.success) {
       showToast('✅ ส่ง Close สำเร็จ! รอ Manager อนุมัติ');
 
+      _closeWorkLocked = true;
       var closeId = (result.data && result.data.closeId) || '';
 
       var cancelBtn = document.getElementById('closeWorkCancelBtn');
@@ -542,6 +545,7 @@ function startClosePolling() {
           submitBtn.textContent = '✅ ตกลง';
           submitBtn.disabled = false;
           submitBtn.onclick = function() {
+            _closeWorkLocked = false;
             var modal = document.getElementById('closeWorkModal');
             if (modal) modal.onclick = null;
             closeModal('closeWorkModal');
