@@ -479,7 +479,7 @@ async function confirmStockInNew() {
     var result = await callAppsScript('STOCK_IN_NEW', {
       items: JSON.stringify(mergeItems(items)),
       note: note,
-      cost: costRound + Math.round(totalFee),
+      cost: costRound,
       payments: JSON.stringify(payments),
       fee: Math.round(totalFee),
       user: currentUser.nickname
