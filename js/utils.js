@@ -300,9 +300,11 @@ function openModal(modalId) {
 }
 
 var _shiftCompleted = false;
+var _closeWorkLocked = false;
 
 function closeModal(modalId) {
   if (modalId === 'openShiftModal' && !_shiftCompleted) return;
+  if (modalId === 'closeWorkModal' && _closeWorkLocked) return;
   document.getElementById(modalId).classList.remove('active');
 }
 
