@@ -2,7 +2,7 @@ async function loadDiff() {
   try {
     showLoading();
     _diffData = await fetchSheetData('Diff!A:J');
-    var today = new Date().toISOString().split('T')[0];
+    var today = getTodayLocalStr();
     document.getElementById('diffStartDate').value = today;
     document.getElementById('diffEndDate').value = today;
     renderDiffTable(_diffData, today, today);
@@ -91,7 +91,7 @@ function checkDiffFilter() {
 }
 
 async function showTodayDiff() {
-  var today = new Date().toISOString().split('T')[0];
+  var today = getTodayLocalStr();
   document.getElementById('diffStartDate').value = today;
   document.getElementById('diffEndDate').value = today;
   if (!_diffData) {
