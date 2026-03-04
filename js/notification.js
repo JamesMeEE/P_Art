@@ -30,7 +30,9 @@ async function pollNotifications() {
       return;
     }
 
-    var user = currentUser.name;
+    var user = currentUser.nickname || currentUser.username;
+    var username = currentUser.username;
+    var nickname = currentUser.nickname || username;
     var role = currentUser.role;
     var filtered = [];
 
@@ -41,10 +43,10 @@ async function pollNotifications() {
       var createdBy = String(row[6] || '').trim();
       var readBy = String(row[8] || '').trim();
 
-      if (createdBy === user) continue;
+      if (createdBy === nickname || createdBy === username) continue;
 
       var isTarget = false;
-      if (targetUser && targetUser === user) {
+      if (targetUser && (targetUser === nickname || targetUser === username)) {
         isTarget = true;
       } else if (targetRole && targetRole.indexOf(role) >= 0 && !targetUser) {
         isTarget = true;
@@ -52,7 +54,7 @@ async function pollNotifications() {
 
       if (isTarget) {
         var readList = readBy.split(',').map(function(s) { return s.trim(); });
-        var isRead = readList.indexOf(user) >= 0 || !!_markedReadIds[row[0]];
+        var isRead = readList.indexOf(nickname) >= 0 || readList.indexOf(username) >= 0 || !!_markedReadIds[row[0]];
         filtered.push({
           id: row[0],
           type: row[1],
@@ -143,7 +145,7 @@ async function markAllRead() {
   updateNotifBadge();
 
   try {
-    await callAppsScript('MARK_NOTIFICATIONS_READ', { user: currentUser.name });
+    await callAppsScript('MARK_NOTIFICATIONS_READ', { user: currentUser.nickname || currentUser.username });
   } catch(e) {}
 }
 
