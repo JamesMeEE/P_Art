@@ -134,6 +134,7 @@ function enterApp() {
   if (typeof checkAndResumePendingClose === 'function') checkAndResumePendingClose();
   callAppsScript('INIT_STOCK').catch(function(){});
   startAutoRefresh();
+  startNotificationPolling();
   startInactivityWatch();
 }
 
@@ -214,6 +215,7 @@ async function confirmOpenShift() {
 function logout() {
   stopInactivityWatch();
   stopAutoRefresh();
+  stopNotificationPolling();
   currentUser = null;
 
   localStorage.removeItem('currentUser');
