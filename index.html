@@ -49,11 +49,20 @@
       <div class="logo">
         <div class="logo-icon">◆</div>
         <div class="logo-text">
-          <h1>KPV GOLD <span id="versionTime" style="font-size:10px;color:var(--text-secondary);font-weight:300;font-family:monospace;"></span></h1>
+          <h1>KPV GOLD</h1>
           <p>Manager System</p>
         </div>
+        <button onclick="refreshPage()" style="background:none;border:1px solid var(--border-color);color:var(--text-primary);padding:5px 10px;border-radius:6px;cursor:pointer;margin-left:10px;font-size:14px;" title="Refresh">🔄</button>
       </div>
       <div class="user-info">
+        <div id="notifBell" style="position:relative;cursor:pointer;margin-right:15px;" onclick="toggleNotifDropdown()">
+          <span style="font-size:22px;">🔔</span>
+          <span id="notifBadge" style="display:none;position:absolute;top:-5px;right:-8px;background:#f44336;color:#fff;border-radius:50%;min-width:18px;height:18px;font-size:11px;font-weight:bold;align-items:center;justify-content:center;padding:0 4px;">0</span>
+          <div id="notifDropdown" style="display:none;position:absolute;top:35px;right:0;width:320px;max-height:400px;overflow-y:auto;background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:8px;box-shadow:0 4px 20px rgba(0,0,0,0.3);z-index:1000;">
+            <div style="padding:10px 15px;border-bottom:1px solid var(--border-color);font-weight:600;font-size:14px;">การแจ้งเตือน</div>
+            <div id="notifList"></div>
+          </div>
+        </div>
         <button id="reviewCloseBtn" class="btn-secondary manager-only" style="background: #ff9800; color: #000; margin-right: 10px; display: none;" onclick="openReviewCloseModal()">📋 Review Close</button>
         <button id="transferCashBtn" class="btn-secondary" style="background: #2196f3; color: #fff; margin-right: 10px; display: none;" onclick="openTransferCashModal()">💰 ย้ายเงินเข้าร้าน</button>
         <button id="closeWorkBtn" class="btn-secondary" style="background: #c62828; color: #fff; margin-right: 15px;" onclick="openCloseWorkModal()">🔴 CLOSE</button>
@@ -2025,6 +2034,7 @@
   <script src="js/wac.js?v=120"></script>
   <script src="js/close.js?v=120"></script>
   <script src="js/review.js?v=120"></script>
+  <script src="js/notification.js?v=120"></script>
   <script src="js/auth.js?v=120"></script>
   
   <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
@@ -2047,11 +2057,6 @@
         }
       });
     });
-    
-    var vt = document.getElementById('versionTime');
-    if (vt) {
-      vt.textContent = 'v.26/02 18:07';
-    }
     
     const dateInputs = document.querySelectorAll('input[type="date"]');
     dateInputs.forEach(input => {
