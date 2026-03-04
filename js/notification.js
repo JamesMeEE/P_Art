@@ -14,8 +14,16 @@ function stopNotificationPolling() {
 
 async function pollNotifications() {
   try {
-    var data = await fetchSheetData('_notifications!A:I');
-    if (!data || data.length <= 1) {
+    var url = 'https://sheets.googleapis.com/v4/spreadsheets/' + CONFIG.SHEET_ID + '/values/' + encodeURIComponent('_notifications!A:I') + '?key=' + CONFIG.API_KEY;
+    var resp = await fetch(url);
+    if (!resp.ok) {
+      _notifData = [];
+      updateNotifBadge();
+      return;
+    }
+    var json = await resp.json();
+    var data = json.values || [];
+    if (data.length <= 1) {
       _notifData = [];
       updateNotifBadge();
       return;
