@@ -134,6 +134,12 @@ async function markAllRead() {
 }
 
 async function refreshPage() {
+  var btn = document.getElementById('refreshBtn');
+  if (btn) {
+    btn.style.animation = 'spin 0.8s linear infinite';
+    btn.style.pointerEvents = 'none';
+  }
+
   var activeTab = document.querySelector('.nav-btn.active');
   var tabName = 'dashboard';
   if (activeTab) {
@@ -142,8 +148,15 @@ async function refreshPage() {
     if (match) tabName = match[1];
   }
 
-  showSection(tabName);
-  pollNotifications();
+  try {
+    await showSection(tabName);
+    await pollNotifications();
+  } catch(e) {}
+
+  if (btn) {
+    btn.style.animation = '';
+    btn.style.pointerEvents = '';
+  }
 }
 
 document.addEventListener('click', function(e) {
