@@ -1,6 +1,7 @@
 var _notifInterval = null;
 var _notifData = [];
 var _notifDropdownOpen = false;
+var _markedReadIds = {};
 
 function startNotificationPolling() {
   if (_notifInterval) clearInterval(_notifInterval);
@@ -38,7 +39,7 @@ async function pollNotifications() {
       var targetRole = String(row[3] || '');
       var targetUser = String(row[4] || '').trim();
       var createdBy = String(row[6] || '').trim();
-      var readBy = String(row[8] || '');
+      var readBy = String(row[8] || '').trim();
 
       if (createdBy === user) continue;
 
@@ -50,13 +51,15 @@ async function pollNotifications() {
       }
 
       if (isTarget) {
+        var readList = readBy.split(',').map(function(s) { return s.trim(); });
+        var isRead = readList.indexOf(user) >= 0 || !!_markedReadIds[row[0]];
         filtered.push({
           id: row[0],
           type: row[1],
           message: row[2],
           tab: String(row[5] || ''),
           createdAt: row[7],
-          read: readBy.indexOf(user) >= 0
+          read: isRead
         });
       }
     }
@@ -133,7 +136,10 @@ async function markAllRead() {
   var unread = _notifData.filter(function(n) { return !n.read; });
   if (unread.length === 0) return;
 
-  _notifData.forEach(function(n) { n.read = true; });
+  _notifData.forEach(function(n) {
+    n.read = true;
+    _markedReadIds[n.id] = true;
+  });
   updateNotifBadge();
 
   try {
