@@ -5,7 +5,7 @@ var _notifDropdownOpen = false;
 function startNotificationPolling() {
   if (_notifInterval) clearInterval(_notifInterval);
   pollNotifications();
-  _notifInterval = setInterval(pollNotifications, 3000);
+  _notifInterval = setInterval(pollNotifications, 5000);
 }
 
 function stopNotificationPolling() {
