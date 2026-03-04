@@ -157,8 +157,10 @@ async function refreshPage() {
   }
 
   try {
+    invalidateCache();
     await showSection(tabName);
     await pollNotifications();
+    if (typeof checkPendingClose === 'function') checkPendingClose();
   } catch(e) {}
 
   if (btn) {
