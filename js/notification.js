@@ -55,28 +55,92 @@ async function pollNotifications() {
       if (isTarget) {
         var readList = readBy.split(',').map(function(s) { return s.trim(); });
         var isRead = readList.indexOf(nickname) >= 0 || readList.indexOf(username) >= 0 || !!_markedReadIds[row[0]];
+        var nType = String(row[1] || '');
+        var isTx = nType === 'NEW_TX' || nType === 'TX_APPROVED' || nType === 'TX_REJECTED';
         filtered.push({
           id: row[0],
-          type: row[1],
+          type: nType,
           message: row[2],
           tab: String(row[5] || ''),
           createdAt: row[7],
-          read: isRead
+          read: isRead,
+          isTx: isTx
         });
       }
     }
 
-    _notifData = filtered.reverse();
+    filtered.reverse();
+
+    var txIds = [];
+    filtered.forEach(function(n) {
+      if (n.isTx) {
+        var m = String(n.message).match(/(SE|TI|EX|BB|WD|SW|FE)\d{5}/);
+        if (m) {
+          n.txId = m[0];
+          if (txIds.indexOf(m[0]) < 0) txIds.push(m[0]);
+        }
+      }
+    });
+
+    if (txIds.length > 0) {
+      var completedIds = await getCompletedTxIds(txIds);
+      filtered = filtered.filter(function(n) {
+        if (n.txId && completedIds[n.txId]) return false;
+        return true;
+      });
+    }
+
+    _notifData = filtered;
     updateNotifBadge();
   } catch(e) {}
+}
+
+async function getCompletedTxIds(txIds) {
+  var completed = {};
+  var sheetsToCheck = {
+    'SE': { sheet: 'Sells', statusCol: 10 },
+    'TI': { sheet: 'Tradeins', statusCol: 12 },
+    'EX': { sheet: 'Exchanges', statusCol: 12 },
+    'BB': { sheet: 'Buybacks', statusCol: 10 },
+    'WD': { sheet: 'Withdraws', statusCol: 7 },
+    'SW': { sheet: 'Switches', statusCol: 12 },
+    'FE': { sheet: 'FreeExchanges', statusCol: 8 }
+  };
+
+  var prefixes = {};
+  txIds.forEach(function(id) {
+    var p = id.replace(/\d+$/, '');
+    if (!prefixes[p]) prefixes[p] = [];
+    prefixes[p].push(id);
+  });
+
+  for (var prefix in prefixes) {
+    var cfg = sheetsToCheck[prefix];
+    if (!cfg) continue;
+    try {
+      var sheetData = await fetchSheetData(cfg.sheet + '!A:' + String.fromCharCode(65 + cfg.statusCol));
+      if (!sheetData || sheetData.length <= 1) continue;
+      for (var i = 1; i < sheetData.length; i++) {
+        var rowId = String(sheetData[i][0] || '');
+        var status = String(sheetData[i][cfg.statusCol] || '');
+        if (prefixes[prefix].indexOf(rowId) >= 0 && status === 'COMPLETED') {
+          completed[rowId] = true;
+        }
+      }
+    } catch(e) {}
+  }
+  return completed;
 }
 
 function updateNotifBadge() {
   var badge = document.getElementById('notifBadge');
   if (!badge) return;
-  var unread = _notifData.filter(function(n) { return !n.read; }).length;
-  if (unread > 0) {
-    badge.textContent = unread > 99 ? '99+' : unread;
+  var count = _notifData.filter(function(n) {
+    if (n.isTx) return true;
+    return !n.read;
+  }).length;
+  if (count > 0) {
+    badge.textContent = count > 99 ? '99+' : count;
     badge.style.display = 'flex';
   } else {
     badge.style.display = 'none';
@@ -135,10 +199,10 @@ function goToNotifTab(tab) {
 }
 
 async function markAllRead() {
-  var unread = _notifData.filter(function(n) { return !n.read; });
+  var unread = _notifData.filter(function(n) { return !n.read && !n.isTx; });
   if (unread.length === 0) return;
 
-  _notifData.forEach(function(n) {
+  unread.forEach(function(n) {
     n.read = true;
     _markedReadIds[n.id] = true;
   });
