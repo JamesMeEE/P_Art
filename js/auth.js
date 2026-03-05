@@ -171,6 +171,19 @@ async function login() {
 async function checkOpenShift() {
   if (!currentUser || currentUser.role !== 'User') return;
   try {
+    var closeData = await fetchSheetData('Close!A:C');
+    if (closeData && closeData.length > 1) {
+      var today = getTodayLocalStr();
+      for (var ci = 1; ci < closeData.length; ci++) {
+        var closeUser = String(closeData[ci][1] || '').trim();
+        var closeDate = '';
+        try { closeDate = new Date(closeData[ci][2]).toISOString().slice(0, 10); } catch(e2) {}
+        if (closeUser === currentUser.nickname && closeDate === today) {
+          return;
+        }
+      }
+    }
+
     var sheetName = currentUser.nickname;
     var data = await fetchSheetData(sheetName + '!A2:A2');
     if (!data || data.length === 0 || !data[0] || !data[0][0] || String(data[0][0]).trim() === '') {
