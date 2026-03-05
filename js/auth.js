@@ -171,14 +171,22 @@ async function login() {
 async function checkOpenShift() {
   if (!currentUser || currentUser.role !== 'User') return;
   try {
-    var closeData = await fetchSheetData('Close!A:C');
+    var closeData = await fetchSheetData('Close!A:I');
     if (closeData && closeData.length > 1) {
       var today = getTodayLocalStr();
       for (var ci = 1; ci < closeData.length; ci++) {
         var closeUser = String(closeData[ci][1] || '').trim();
+        var status = String(closeData[ci][8] || '').trim();
+        if (closeUser !== currentUser.nickname) continue;
+        if (status !== 'PENDING' && status !== 'APPROVED' && status !== 'COMPLETED') continue;
+        var rawDate = closeData[ci][2];
         var closeDate = '';
-        try { closeDate = new Date(closeData[ci][2]).toISOString().slice(0, 10); } catch(e2) {}
-        if (closeUser === currentUser.nickname && closeDate === today) {
+        try {
+          var d = new Date(rawDate);
+          var local = new Date(d.getTime() + 7 * 60 * 60000);
+          closeDate = local.toISOString().split('T')[0];
+        } catch(e2) {}
+        if (closeDate === today) {
           return;
         }
       }
