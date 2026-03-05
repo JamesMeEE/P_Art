@@ -56,12 +56,25 @@ async function pollNotifications() {
         var readList = readBy.split(',').map(function(s) { return s.trim(); });
         var isRead = readList.indexOf(nickname) >= 0 || readList.indexOf(username) >= 0 || !!_markedReadIds[row[0]];
         var nType = String(row[1] || '');
-        var isTx = nType === 'NEW_TX' || nType === 'TX_APPROVED' || nType === 'TX_REJECTED';
+
+        if (nType !== 'NEW_TX' && nType !== 'TX_APPROVED' && nType !== 'TX_REJECTED') continue;
+
+        var isTx = true;
+        var tab = String(row[5] || '');
+
+        if (isManager()) {
+          if (tab === 'buyback') {
+            tab = 'historybuyback';
+          } else {
+            tab = 'historysell';
+          }
+        }
+
         filtered.push({
           id: row[0],
           type: nType,
           message: row[2],
-          tab: String(row[5] || ''),
+          tab: tab,
           createdAt: row[7],
           read: isRead,
           isTx: isTx
@@ -74,7 +87,7 @@ async function pollNotifications() {
     var txIds = [];
     filtered.forEach(function(n) {
       if (n.isTx) {
-        var m = String(n.message).match(/(SE|TI|EX|BB|WD|SW|FE)\d{5}/);
+        var m = String(n.message).match(/(SE|TI|EX|BB|WD)\d{5}/);
         if (m) {
           n.txId = m[0];
           if (txIds.indexOf(m[0]) < 0) txIds.push(m[0]);
@@ -102,9 +115,7 @@ async function getCompletedTxIds(txIds) {
     'TI': { sheet: 'Tradeins', statusCol: 12 },
     'EX': { sheet: 'Exchanges', statusCol: 12 },
     'BB': { sheet: 'Buybacks', statusCol: 10 },
-    'WD': { sheet: 'Withdraws', statusCol: 7 },
-    'SW': { sheet: 'Switches', statusCol: 12 },
-    'FE': { sheet: 'FreeExchanges', statusCol: 8 }
+    'WD': { sheet: 'Withdraws', statusCol: 7 }
   };
 
   var prefixes = {};
@@ -174,10 +185,6 @@ function renderNotifList() {
     if (n.type === 'NEW_TX') icon = '🆕';
     else if (n.type === 'TX_APPROVED') icon = '✅';
     else if (n.type === 'TX_REJECTED') icon = '❌';
-    else if (n.type === 'PRICE_UPDATE') icon = '💰';
-    else if (n.type === 'CASHBANK') icon = '🏦';
-    else if (n.type === 'TRANSFER') icon = '🔄';
-    else if (n.type === 'STOCK') icon = '📦';
 
     var time = '';
     try { time = formatDateTime(n.createdAt); } catch(e) {}
