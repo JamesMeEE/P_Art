@@ -6,7 +6,7 @@ var _markedReadIds = {};
 function startNotificationPolling() {
   if (_notifInterval) clearInterval(_notifInterval);
   pollNotifications();
-  _notifInterval = setInterval(pollNotifications, 5000);
+  _notifInterval = setInterval(pollNotifications, 15000);
 }
 
 function stopNotificationPolling() {
@@ -234,10 +234,10 @@ async function refreshPage() {
   }
 
   try {
-    invalidateCache();
+    _sheetCache = {};
     await showSection(tabName);
     await pollNotifications();
-    if (typeof checkPendingClose === 'function') checkPendingClose();
+    if (typeof checkPendingClose === 'function') await checkPendingClose();
   } catch(e) {}
 
   if (btn) {
