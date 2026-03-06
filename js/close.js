@@ -562,7 +562,6 @@ var _autoRefreshInterval = null;
 function startAutoRefresh() {
   stopAutoRefresh();
   _autoRefreshInterval = setInterval(function() {
-    invalidateCache();
     checkPendingClose();
     if (typeof loadPendingTransferCount === 'function') loadPendingTransferCount();
   }, 30000);
@@ -593,7 +592,6 @@ async function checkPendingClose() {
     if (tcBtn2) tcBtn2.style.display = 'none';
 
     try {
-      invalidateCache();
       var closeData = await fetchSheetData('Close!A:K');
       var pendingCount = closeData.slice(1).filter(function(row) { return row[8] === 'PENDING'; }).length;
 
