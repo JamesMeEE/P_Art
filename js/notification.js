@@ -63,9 +63,7 @@ async function pollNotifications() {
         var tab = String(row[5] || '');
 
         if (isManager()) {
-          if (tab === 'buyback') {
-            tab = 'historybuyback';
-          } else {
+          if (tab !== 'buyback') {
             tab = 'historysell';
           }
         }
